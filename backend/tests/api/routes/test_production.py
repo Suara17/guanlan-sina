@@ -1,9 +1,9 @@
-import uuid
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.core.config import settings
 from app.models import ProductionLine
+
 
 def create_production_line(db: Session, name: str = "Line 1") -> ProductionLine:
     line = ProductionLine(name=name, status="idle", target_output=100)
