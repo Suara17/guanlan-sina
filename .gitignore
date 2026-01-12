@@ -1,0 +1,13 @@
+.vscode
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# 敏感文件
+.env
+*.env
+密码.txt
+*.zip
+*.tar.gz
