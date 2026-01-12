@@ -14,3 +14,12 @@ node_modules/
 
 # Claude 本地设置
 .claude/settings.local.json
+
+# TanStack Router 临时文件
+frontend/.tanstack/
+
+# 临时工作目录
+tmpclaude-*/
+
+# OpenAPI 生成文件
+openapi.json
