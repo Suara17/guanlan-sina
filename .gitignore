@@ -11,3 +11,6 @@ node_modules/
 密码.txt
 *.zip
 *.tar.gz
+
+# Claude 本地设置
+.claude/settings.local.json
