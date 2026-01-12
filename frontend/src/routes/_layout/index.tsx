@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 
+import { UtilsService } from "@/client"
 import useAuth from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/_layout/")({
@@ -19,13 +20,7 @@ function Dashboard() {
 
   const { data, error, isLoading } = useQuery({
     queryKey: ["ping-test"],
-    queryFn: async () => {
-      const response = await fetch("/api/test/ping")
-      if (!response.ok) {
-        throw new Error("Network response was not ok")
-      }
-      return response.json()
-    },
+    queryFn: UtilsService.pingTest,
     retry: 1,
     refetchOnWindowFocus: false,
   })

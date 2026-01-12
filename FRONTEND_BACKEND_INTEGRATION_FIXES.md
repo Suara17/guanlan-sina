@@ -1,0 +1,151 @@
+# 前端-后端集成问题修复文档
+
+## 问题概述
+
+在本地开发环境中，前端登录成功但访问其他页面时出现 API 调用失败的问题。
+
+## 遇到的错误及解决方案
+
+### 1. 登录成功但前端报 "Network Error"
+
+**错误现象：**
+- 后端登录返回 200 OK
+- 前端显示 "some Network Error"
+- 后端日志：`POST /api/v1/login/access-token HTTP/1.1" 200 OK`
+
+**根本原因：**
+Vite 代理配置错误，`rewrite` 配置错误地去掉了 `/api` 前缀，导致请求路径不匹配。
+
+**错误配置：**
+```javascript
+// frontend/vite.config.ts
+proxy: {
+  "/api": {
+    target: "http://localhost:8000",
+    changeOrigin: true,
+    rewrite: (path) => path.replace(/^\/api/, ""), // ❌ 错误：去掉 /api 前缀
+  },
+}
+```
+
+**解决方案：**
+删除 `rewrite` 配置，让代理保持完整路径。
+
+**修复后配置：**
+```javascript
+// frontend/vite.config.ts
+proxy: {
+  "/api": {
+    target: "http://localhost:8000",
+    changeOrigin: true,
+    // ✅ 删除 rewrite 配置
+  },
+}
+```
+
+### 2. 前端 API 请求路径不正确
+
+**错误现象：**
+- 前端请求：`GET /api/test/ping` → 404 Not Found
+- 后端实际路径：`/api/v1/utils/test/ping`
+
+**根本原因：**
+1. 前端主页使用硬编码的 `fetch("/api/test/ping")`
+2. OpenAPI.BASE 配置可能被环境变量覆盖
+
+**错误代码：**
+```javascript
+// frontend/src/routes/_layout/index.tsx
+const response = await fetch("/api/test/ping") // ❌ 硬编码错误路径
+```
+
+**解决方案：**
+1. 使用生成的客户端 SDK 替代硬编码 fetch
+2. 强制设置 `OpenAPI.BASE = ""` 确保相对路径
+
+**修复后代码：**
+```javascript
+// frontend/src/main.tsx
+OpenAPI.BASE = "" // ✅ 确保使用相对路径
+
+// frontend/src/routes/_layout/index.tsx
+import { UtilsService } from "@/client"
+// ...
+queryFn: UtilsService.pingTest // ✅ 使用客户端 SDK
+```
+
+### 3. 前端热重载和缓存问题
+
+**错误现象：**
+修改代码后，浏览器仍然使用旧的配置。
+
+**解决方案：**
+清除 Vite 缓存并重启服务器。
+
+```bash
+cd frontend
+rm -rf node_modules/.vite
+npm run dev
+```
+
+## 修复的文件
+
+### frontend/vite.config.ts
+- 删除了错误的 `rewrite` 配置
+
+### frontend/src/main.tsx
+- 设置 `OpenAPI.BASE = ""`
+- 添加调试输出
+
+### frontend/src/routes/_layout/index.tsx
+- 导入 `UtilsService`
+- 使用 `UtilsService.pingTest` 替代硬编码 fetch
+
+## 验证方法
+
+1. **检查浏览器控制台：**
+   ```
+   OpenAPI.BASE: ""
+   VITE_API_URL: undefined
+   ```
+
+2. **测试登录功能：**
+   - 用户名：`admin@example.com`
+   - 密码：`12345678`
+   - 期望：登录成功
+
+3. **测试主页连接状态：**
+   - 访问主页
+   - 期望：显示 "✅ 后端连接成功"
+
+4. **检查网络请求：**
+   - 打开开发者工具 Network 标签页
+   - 确认 API 请求路径正确（如 `/api/v1/users/me`）
+
+## 技术细节
+
+- **前端框架：** React + TypeScript + Vite
+- **后端框架：** FastAPI
+- **代理工具：** Vite dev server
+- **API 客户端：** OpenAPI 生成的 TypeScript SDK
+
+## 预防措施
+
+1. **代码审查：** 检查所有硬编码的 API 路径
+2. **环境变量：** 确保 VITE_API_URL 正确配置
+3. **代理配置：** 验证 Vite 代理规则
+4. **客户端 SDK：** 优先使用生成的客户端而非直接 fetch
+
+## 相关配置
+
+- **前端端口：** 5175 (开发环境)
+- **后端端口：** 8000
+- **数据库：** PostgreSQL (Docker)
+- **认证：** JWT Token
+
+---
+
+**修复时间：** 2025-01-12
+**修复人员：** AI Assistant
+**验证状态：** ✅ 已验证</content>
+<parameter name="filePath">E:\guanlan-sina\FRONTEND_BACKEND_INTEGRATION_FIXES.md
