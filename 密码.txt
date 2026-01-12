@@ -1,0 +1,16 @@
+🗄️ Adminer 数据库登录信息
+- 系统: PostgreSQL
+- 服务器: db 或 localhost:5432
+- 用户名: postgres
+- 密码: 123456
+- 数据库: app
+🔑 重要区分
+- admin@example.com / 12345678 是应用级别的超级用户，用于登录前端Web应用
+- postgres / 123456 是数据库级别的系统用户，用于通过Adminer管理数据库
+📋 现在可以登录Adminer
+访问 http://localhost:8080，使用上述数据库凭据登录即可查看和管理数据库内容。
+🎯 应用用户登录
+如果要登录前端应用，使用：
+- 用户名: admin@example.com  
+- 密码: 12345678
+现在试试用正确的数据库凭据登录Adminer吧
