@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/lines", response_model=list[ProductionLine])
 def read_production_lines(
-    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+    session: SessionDep, _current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> Any:
     """
     Retrieve production lines.
@@ -22,7 +22,7 @@ def read_production_lines(
 
 
 @router.get("/overview")
-def read_production_overview(session: SessionDep, current_user: CurrentUser) -> Any:
+def read_production_overview(session: SessionDep, _current_user: CurrentUser) -> Any:
     """
     Retrieve production overview statistics.
     """
