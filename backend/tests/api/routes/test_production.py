@@ -12,6 +12,7 @@ def create_production_line(db: Session, name: str = "Line 1") -> ProductionLine:
     db.refresh(line)
     return line
 
+
 def test_read_production_lines(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
@@ -27,6 +28,7 @@ def test_read_production_lines(
     assert len(content) >= 2
     assert any(line["name"] == "Line A" for line in content)
     assert any(line["name"] == "Line B" for line in content)
+
 
 def test_read_production_overview(
     client: TestClient, superuser_token_headers: dict[str, str]

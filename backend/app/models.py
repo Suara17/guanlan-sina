@@ -116,6 +116,7 @@ class NewPassword(SQLModel):
 
 # Production Models
 
+
 class ProductionLineBase(SQLModel):
     name: str = Field(max_length=255, index=True)
     status: str = Field(default="idle", max_length=50)
@@ -135,7 +136,9 @@ class ProductionLineUpdate(ProductionLineBase):
 class ProductionLine(ProductionLineBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     stations: list["Station"] = Relationship(back_populates="line", cascade_delete=True)
-    anomalies: list["Anomaly"] = Relationship(back_populates="line", cascade_delete=True)
+    anomalies: list["Anomaly"] = Relationship(
+        back_populates="line", cascade_delete=True
+    )
 
 
 class StationBase(SQLModel):
@@ -157,8 +160,12 @@ class StationUpdate(StationBase):
 class Station(StationBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     line: ProductionLine = Relationship(back_populates="stations")
-    defect_records: list["DefectRecord"] = Relationship(back_populates="station", cascade_delete=True)
-    anomalies: list["Anomaly"] = Relationship(back_populates="station", cascade_delete=True)
+    defect_records: list["DefectRecord"] = Relationship(
+        back_populates="station", cascade_delete=True
+    )
+    anomalies: list["Anomaly"] = Relationship(
+        back_populates="station", cascade_delete=True
+    )
 
 
 class DefectRecordBase(SQLModel):
@@ -186,6 +193,7 @@ class DefectRecord(DefectRecordBase, table=True):
 
 # Sinan Models
 
+
 class AnomalyBase(SQLModel):
     description: str = Field(max_length=500)
     status: str = Field(default="open", max_length=50)
@@ -212,7 +220,9 @@ class Anomaly(AnomalyBase, table=True):
 
     line: ProductionLine = Relationship(back_populates="anomalies")
     station: Station = Relationship(back_populates="anomalies")
-    diagnoses: list["Diagnosis"] = Relationship(back_populates="anomaly", cascade_delete=True)
+    diagnoses: list["Diagnosis"] = Relationship(
+        back_populates="anomaly", cascade_delete=True
+    )
 
 
 class DiagnosisBase(SQLModel):
@@ -235,7 +245,9 @@ class Diagnosis(DiagnosisBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
     anomaly: Anomaly = Relationship(back_populates="diagnoses")
-    solutions: list["Solution"] = Relationship(back_populates="diagnosis", cascade_delete=True)
+    solutions: list["Solution"] = Relationship(
+        back_populates="diagnosis", cascade_delete=True
+    )
 
 
 class SolutionBase(SQLModel):

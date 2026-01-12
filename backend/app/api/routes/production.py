@@ -8,6 +8,7 @@ from app.models import ProductionLine
 
 router = APIRouter()
 
+
 @router.get("/lines", response_model=list[ProductionLine])
 def read_production_lines(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
@@ -19,10 +20,9 @@ def read_production_lines(
     lines = session.exec(statement).all()
     return lines
 
+
 @router.get("/overview")
-def read_production_overview(
-    session: SessionDep, current_user: CurrentUser
-) -> Any:
+def read_production_overview(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Retrieve production overview statistics.
     """
@@ -40,5 +40,5 @@ def read_production_overview(
     return {
         "total_target": total_target,
         "total_actual": total_actual,
-        "overall_yield": overall_yield
+        "overall_yield": overall_yield,
     }
