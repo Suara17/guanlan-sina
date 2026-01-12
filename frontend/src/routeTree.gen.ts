@@ -17,7 +17,10 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutAlertsIndexRouteImport } from './routes/_layout/alerts/index'
+import { Route as LayoutAlertsAlertIdRouteImport } from './routes/_layout/alerts/$alertId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -58,9 +61,24 @@ const LayoutItemsRoute = LayoutItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAlertsIndexRoute = LayoutAlertsIndexRouteImport.update({
+  id: '/alerts/',
+  path: '/alerts/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAlertsAlertIdRoute = LayoutAlertsAlertIdRouteImport.update({
+  id: '/alerts/$alertId',
+  path: '/alerts/$alertId',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -70,9 +88,12 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/dashboard': typeof LayoutDashboardRoute
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
+  '/alerts/$alertId': typeof LayoutAlertsAlertIdRoute
+  '/alerts': typeof LayoutAlertsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -80,9 +101,12 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/dashboard': typeof LayoutDashboardRoute
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
+  '/alerts/$alertId': typeof LayoutAlertsAlertIdRoute
+  '/alerts': typeof LayoutAlertsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -92,9 +116,12 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/dashboard': typeof LayoutDashboardRoute
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/alerts/$alertId': typeof LayoutAlertsAlertIdRoute
+  '/_layout/alerts/': typeof LayoutAlertsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -104,9 +131,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/dashboard'
     | '/items'
     | '/settings'
     | '/'
+    | '/alerts/$alertId'
+    | '/alerts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -114,9 +144,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/dashboard'
     | '/items'
     | '/settings'
     | '/'
+    | '/alerts/$alertId'
+    | '/alerts'
   id:
     | '__root__'
     | '/_layout'
@@ -125,9 +158,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_layout/admin'
+    | '/_layout/dashboard'
     | '/_layout/items'
     | '/_layout/settings'
     | '/_layout/'
+    | '/_layout/alerts/$alertId'
+    | '/_layout/alerts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -196,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutItemsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/dashboard': {
+      id: '/_layout/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof LayoutDashboardRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin': {
       id: '/_layout/admin'
       path: '/admin'
@@ -203,21 +246,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/alerts/': {
+      id: '/_layout/alerts/'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof LayoutAlertsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/alerts/$alertId': {
+      id: '/_layout/alerts/$alertId'
+      path: '/alerts/$alertId'
+      fullPath: '/alerts/$alertId'
+      preLoaderRoute: typeof LayoutAlertsAlertIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutDashboardRoute: typeof LayoutDashboardRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutAlertsAlertIdRoute: typeof LayoutAlertsAlertIdRoute
+  LayoutAlertsIndexRoute: typeof LayoutAlertsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutAlertsAlertIdRoute: LayoutAlertsAlertIdRoute,
+  LayoutAlertsIndexRoute: LayoutAlertsIndexRoute,
 }
 
 const LayoutRouteWithChildren =

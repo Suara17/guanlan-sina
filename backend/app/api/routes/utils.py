@@ -29,3 +29,16 @@ def test_email(email_to: EmailStr) -> Message:
 @router.get("/health-check/")
 async def health_check() -> bool:
     return True
+
+
+@router.get("/test/ping")
+async def ping_test() -> dict:
+    """
+    Simple ping test endpoint for frontend connectivity verification.
+    """
+    return {
+        "status": "success",
+        "message": "Backend is connected!",
+        "timestamp": "2025-01-12T11:49:47Z",
+        "environment": "development",
+    }

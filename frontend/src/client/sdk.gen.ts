@@ -3,7 +3,55 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AnomaliesReadAnomaliesData, AnomaliesReadAnomaliesResponse, AnomaliesTriggerDiagnosisData, AnomaliesTriggerDiagnosisResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProductionReadProductionLinesData, ProductionReadProductionLinesResponse, ProductionReadProductionOverviewResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsPingTestResponse } from './types.gen';
+
+export class AnomaliesService {
+    /**
+     * Read Anomalies
+     * Retrieve anomalies.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @param data.status
+     * @returns Anomaly Successful Response
+     * @throws ApiError
+     */
+    public static readAnomalies(data: AnomaliesReadAnomaliesData = {}): CancelablePromise<AnomaliesReadAnomaliesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/anomalies/',
+            query: {
+                skip: data.skip,
+                limit: data.limit,
+                status: data.status
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Trigger Diagnosis
+     * Trigger diagnosis for an anomaly.
+     * @param data The data for the request.
+     * @param data.id
+     * @returns Diagnosis Successful Response
+     * @throws ApiError
+     */
+    public static triggerDiagnosis(data: AnomaliesTriggerDiagnosisData): CancelablePromise<AnomaliesTriggerDiagnosisResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/anomalies/{id}/diagnose',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class ItemsService {
     /**
@@ -231,6 +279,44 @@ export class PrivateService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+}
+
+export class ProductionService {
+    /**
+     * Read Production Lines
+     * Retrieve production lines.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns ProductionLine Successful Response
+     * @throws ApiError
+     */
+    public static readProductionLines(data: ProductionReadProductionLinesData = {}): CancelablePromise<ProductionReadProductionLinesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/production/lines',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Production Overview
+     * Retrieve production overview statistics.
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readProductionOverview(): CancelablePromise<ProductionReadProductionOverviewResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/production/overview'
         });
     }
 }
@@ -463,6 +549,19 @@ export class UtilsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/utils/health-check/'
+        });
+    }
+    
+    /**
+     * Ping Test
+     * Simple ping test endpoint for frontend connectivity verification.
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static pingTest(): CancelablePromise<UtilsPingTestResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/utils/test/ping'
         });
     }
 }
