@@ -1,33 +1,44 @@
 import uuid
 from datetime import datetime
+from typing import Optional, List
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy import Column, String
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 
 
-# Shared properties
+# --- User & Auth ---
+
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
+    username: str = Field(unique=True, index=True, max_length=100)
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=20)
+    role: str | None = Field(default=None, max_length=50)
 
 
-# Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
 
 
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
+    username: str = Field(max_length=100)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
 
 
-# Properties to receive via API on update, all are optional
-class UserUpdate(UserBase):
-    email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
+class UserUpdate(SQLModel):
+    email: EmailStr | None = Field(default=None, max_length=255)
+    username: str | None = Field(default=None, max_length=100)
     password: str | None = Field(default=None, min_length=8, max_length=128)
+    full_name: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=20)
+    role: str | None = Field(default=None, max_length=50)
+    is_active: bool | None = None
 
 
 class UserUpdateMe(SQLModel):
@@ -40,14 +51,18 @@ class UpdatePassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
-# Database model, database table inferred from class name
 class User(UserBase, table=True):
+    __tablename__ = "users"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
+    factory_ids: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    line_ids: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    permissions: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    last_login_at: datetime | None = Field(default=None)
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
-# Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
 
@@ -57,32 +72,30 @@ class UsersPublic(SQLModel):
     count: int
 
 
-# Shared properties
+# --- Items (Legacy/Template) ---
+
 class ItemBase(SQLModel):
     title: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=255)
 
 
-# Properties to receive on item creation
 class ItemCreate(ItemBase):
     pass
 
 
-# Properties to receive on item update
 class ItemUpdate(ItemBase):
     title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
 
 
-# Database model, database table inferred from class name
 class Item(ItemBase, table=True):
+    __tablename__ = "items"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+        foreign_key="users.id", nullable=False, ondelete="CASCADE"
     )
     owner: User | None = Relationship(back_populates="items")
 
 
-# Properties to return via API, id is always required
 class ItemPublic(ItemBase):
     id: uuid.UUID
     owner_id: uuid.UUID
@@ -93,18 +106,232 @@ class ItemsPublic(SQLModel):
     count: int
 
 
-# Generic message
+# --- Production Management ---
+
+class ProductionLineBase(SQLModel):
+    line_name: str = Field(max_length=100)
+    factory_id: uuid.UUID
+    status: str = Field(default="active", max_length=20)
+    current_status: str = Field(default="idle", max_length=20)
+
+
+class ProductionLine(ProductionLineBase, table=True):
+    __tablename__ = "production_lines"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    current_plan_id: uuid.UUID | None = Field(default=None, foreign_key="production_plans.id")
+    bottleneck_station_id: uuid.UUID | None = Field(default=None, foreign_key="stations.id")
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    stations: list["Station"] = Relationship(back_populates="line", cascade_delete=True)
+    plans: list["ProductionPlan"] = Relationship(back_populates="line", cascade_delete=True)
+
+
+class StationBase(SQLModel):
+    station_name: str = Field(max_length=100)
+    line_id: uuid.UUID = Field(foreign_key="production_lines.id")
+    station_type: str | None = Field(default=None, max_length=50)
+    sequence_order: int | None = Field(default=None)
+    current_cycle_time: float | None = Field(default=None)
+    wip_quantity: int = Field(default=0)
+
+
+class Station(StationBase, table=True):
+    __tablename__ = "stations"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    equipment_ids: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    line: ProductionLine = Relationship(back_populates="stations")
+    records: list["ProductionRecord"] = Relationship(back_populates="station", cascade_delete=True)
+
+
+class ProductionPlanBase(SQLModel):
+    line_id: uuid.UUID = Field(foreign_key="production_lines.id")
+    product_name: str | None = Field(default=None, max_length=200)
+    planned_quantity: int
+    actual_quantity: int = Field(default=0)
+    start_time: datetime
+    estimated_completion_time: datetime | None = Field(default=None)
+    actual_completion_time: datetime | None = Field(default=None)
+    status: str = Field(default="planned", max_length=20)
+
+
+class ProductionPlan(ProductionPlanBase, table=True):
+    __tablename__ = "production_plans"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    product_id: uuid.UUID | None = Field(default=None)
+    created_by: uuid.UUID | None = Field(default=None)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    line: ProductionLine = Relationship(back_populates="plans")
+
+
+class ProductionRecordBase(SQLModel):
+    plan_id: uuid.UUID = Field(foreign_key="production_plans.id")
+    line_id: uuid.UUID = Field(foreign_key="production_lines.id")
+    station_id: uuid.UUID = Field(foreign_key="stations.id")
+    product_id: uuid.UUID | None = Field(default=None)
+    batch_id: str | None = Field(default=None, max_length=50)
+    quantity: int = Field(default=1)
+    quality_status: str | None = Field(default=None, max_length=20)
+    defect_type: str | None = Field(default=None, max_length=100)
+    cycle_time: float | None = Field(default=None)
+
+
+class ProductionRecord(ProductionRecordBase, table=True):
+    __tablename__ = "production_records"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    recorded_at: datetime = Field(default_factory=datetime.utcnow)
+
+    station: Station = Relationship(back_populates="records")
+
+
+class QualityMetricBase(SQLModel):
+    plan_id: uuid.UUID = Field(foreign_key="production_plans.id")
+    line_id: uuid.UUID = Field(foreign_key="production_lines.id")
+    station_id: uuid.UUID | None = Field(default=None, foreign_key="stations.id")
+    total_produced: int = Field(default=0)
+    good_quantity: int = Field(default=0)
+    defect_quantity: int = Field(default=0)
+    rework_quantity: int = Field(default=0)
+    yield_rate: float | None = Field(default=None)
+    defect_rate: float | None = Field(default=None)
+
+
+class QualityMetric(QualityMetricBase, table=True):
+    __tablename__ = "quality_metrics"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    calculated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class DefectDetailBase(SQLModel):
+    record_id: uuid.UUID = Field(foreign_key="production_records.id")
+    plan_id: uuid.UUID = Field(foreign_key="production_plans.id")
+    line_id: uuid.UUID = Field(foreign_key="production_lines.id")
+    station_id: uuid.UUID = Field(foreign_key="stations.id")
+    defect_type: str = Field(max_length=100)
+    severity: str = Field(max_length=20)
+    defect_image_url: str | None = Field(default=None)
+    confidence: float | None = Field(default=None)
+
+
+class DefectDetail(DefectDetailBase, table=True):
+    __tablename__ = "defect_details"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    detected_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# --- Sinan (Anomaly Analysis & Resolution) ---
+
+class AnomalyBase(SQLModel):
+    line_id: uuid.UUID = Field(foreign_key="production_lines.id")
+    station_id: uuid.UUID = Field(foreign_key="stations.id")
+    defect_type: str = Field(max_length=100)
+    severity: str = Field(max_length=20)
+    detected_at: datetime
+    status: str = Field(default="open", max_length=20)
+    assigned_to: uuid.UUID | None = Field(default=None)
+    root_cause: str | None = Field(default=None)
+    solution_id: uuid.UUID | None = Field(default=None, foreign_key="solutions.id")
+
+
+class Anomaly(AnomalyBase, table=True):
+    __tablename__ = "anomalies"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    closed_at: datetime | None = Field(default=None)
+
+
+class SolutionBase(SQLModel):
+    anomaly_id: uuid.UUID = Field(foreign_key="anomalies.id")
+    solution_type: str | None = Field(default=None, max_length=50)
+    solution_name: str = Field(max_length=200)
+    description: str | None = Field(default=None)
+    estimated_downtime_hours: float | None = Field(default=None)
+    success_rate: float | None = Field(default=None)
+    expected_loss: float | None = Field(default=None)
+    roi: float | None = Field(default=None)
+    recommended: bool = Field(default=False)
+
+
+class Solution(SolutionBase, table=True):
+    __tablename__ = "solutions"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    simulation_result: dict | None = Field(default=None, sa_column=Column(JSONB))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class WorkOrderBase(SQLModel):
+    solution_id: uuid.UUID = Field(foreign_key="solutions.id")
+    order_type: str | None = Field(default=None, max_length=50)
+    responsible_person: str | None = Field(default=None, max_length=100)
+    instructions: str | None = Field(default=None)
+    estimated_duration_hours: float | None = Field(default=None)
+    actual_duration_hours: float | None = Field(default=None)
+    status: str = Field(default="pending", max_length=20)
+    execution_result: str | None = Field(default=None, max_length=20)
+    actual_loss: float | None = Field(default=None)
+    notes: str | None = Field(default=None)
+
+
+class WorkOrder(WorkOrderBase, table=True):
+    __tablename__ = "work_orders"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime | None = Field(default=None)
+    completed_at: datetime | None = Field(default=None)
+
+
+class CaseLibraryBase(SQLModel):
+    anomaly_id: uuid.UUID = Field(foreign_key="anomalies.id")
+    problem_description: str | None = Field(default=None)
+    solution_adopted: uuid.UUID | None = Field(default=None)
+    lessons_learned: str | None = Field(default=None)
+
+
+class CaseLibrary(CaseLibraryBase, table=True):
+    __tablename__ = "case_library"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    diagnosis_result: dict | None = Field(default=None, sa_column=Column(JSONB))
+    expected_effect: dict | None = Field(default=None, sa_column=Column(JSONB))
+    actual_effect: dict | None = Field(default=None, sa_column=Column(JSONB))
+    tags: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# --- Audit & System ---
+
+class AuditLogBase(SQLModel):
+    user_id: uuid.UUID | None = Field(default=None)
+    action: str = Field(max_length=100)
+    resource_type: str | None = Field(default=None, max_length=50)
+    resource_id: str | None = Field(default=None, max_length=50)
+    ip_address: str | None = Field(default=None, max_length=50)
+    user_agent: str | None = Field(default=None)
+    response_status: int | None = Field(default=None)
+
+
+class AuditLog(AuditLogBase, table=True):
+    __tablename__ = "audit_logs"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    request_body: dict | None = Field(default=None, sa_column=Column(JSONB))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# --- Utility Models ---
+
 class Message(SQLModel):
     message: str
 
 
-# JSON payload containing access token
 class Token(SQLModel):
     access_token: str
     token_type: str = "bearer"
 
 
-# Contents of JWT token
 class TokenPayload(SQLModel):
     sub: str | None = None
 
@@ -112,163 +339,3 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
-
-
-# Production Models
-
-
-class ProductionLineBase(SQLModel):
-    name: str = Field(max_length=255, index=True)
-    status: str = Field(default="idle", max_length=50)
-    target_output: int = Field(default=0)
-
-
-class ProductionLineCreate(ProductionLineBase):
-    pass
-
-
-class ProductionLineUpdate(ProductionLineBase):
-    name: str | None = Field(default=None, max_length=255)
-    status: str | None = Field(default=None, max_length=50)
-    target_output: int | None = None
-
-
-class ProductionLine(ProductionLineBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    stations: list["Station"] = Relationship(back_populates="line", cascade_delete=True)
-    anomalies: list["Anomaly"] = Relationship(
-        back_populates="line", cascade_delete=True
-    )
-
-
-class StationBase(SQLModel):
-    name: str = Field(max_length=255)
-    type: str = Field(max_length=50)
-    line_id: uuid.UUID = Field(foreign_key="productionline.id")
-
-
-class StationCreate(StationBase):
-    pass
-
-
-class StationUpdate(StationBase):
-    name: str | None = Field(default=None, max_length=255)
-    type: str | None = Field(default=None, max_length=50)
-    line_id: uuid.UUID | None = None
-
-
-class Station(StationBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    line: ProductionLine = Relationship(back_populates="stations")
-    defect_records: list["DefectRecord"] = Relationship(
-        back_populates="station", cascade_delete=True
-    )
-    anomalies: list["Anomaly"] = Relationship(
-        back_populates="station", cascade_delete=True
-    )
-
-
-class DefectRecordBase(SQLModel):
-    type: str = Field(max_length=50)
-    severity: str = Field(max_length=20)
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-    station_id: uuid.UUID = Field(foreign_key="station.id")
-
-
-class DefectRecordCreate(DefectRecordBase):
-    pass
-
-
-class DefectRecordUpdate(DefectRecordBase):
-    type: str | None = Field(default=None, max_length=50)
-    severity: str | None = Field(default=None, max_length=20)
-    timestamp: datetime | None = None
-    station_id: uuid.UUID | None = None
-
-
-class DefectRecord(DefectRecordBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    station: Station = Relationship(back_populates="defect_records")
-
-
-# Sinan Models
-
-
-class AnomalyBase(SQLModel):
-    description: str = Field(max_length=500)
-    status: str = Field(default="open", max_length=50)
-    severity: str = Field(default="low", max_length=20)
-    line_id: uuid.UUID = Field(foreign_key="productionline.id")
-    station_id: uuid.UUID = Field(foreign_key="station.id")
-
-
-class AnomalyCreate(AnomalyBase):
-    pass
-
-
-class AnomalyUpdate(AnomalyBase):
-    description: str | None = Field(default=None, max_length=500)
-    status: str | None = Field(default=None, max_length=50)
-    severity: str | None = Field(default=None, max_length=20)
-    line_id: uuid.UUID | None = None
-    station_id: uuid.UUID | None = None
-
-
-class Anomaly(AnomalyBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    line: ProductionLine = Relationship(back_populates="anomalies")
-    station: Station = Relationship(back_populates="anomalies")
-    diagnoses: list["Diagnosis"] = Relationship(
-        back_populates="anomaly", cascade_delete=True
-    )
-
-
-class DiagnosisBase(SQLModel):
-    root_cause: str = Field(max_length=500)
-    confidence: float = Field(default=0.0)
-    anomaly_id: uuid.UUID = Field(foreign_key="anomaly.id")
-
-
-class DiagnosisCreate(DiagnosisBase):
-    pass
-
-
-class DiagnosisUpdate(DiagnosisBase):
-    root_cause: str | None = Field(default=None, max_length=500)
-    confidence: float | None = None
-    anomaly_id: uuid.UUID | None = None
-
-
-class Diagnosis(DiagnosisBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-
-    anomaly: Anomaly = Relationship(back_populates="diagnoses")
-    solutions: list["Solution"] = Relationship(
-        back_populates="diagnosis", cascade_delete=True
-    )
-
-
-class SolutionBase(SQLModel):
-    title: str = Field(max_length=255)
-    description: str = Field(max_length=1000)
-    roi_score: float = Field(default=0.0)
-    diagnosis_id: uuid.UUID = Field(foreign_key="diagnosis.id")
-
-
-class SolutionCreate(SolutionBase):
-    pass
-
-
-class SolutionUpdate(SolutionBase):
-    title: str | None = Field(default=None, max_length=255)
-    description: str | None = Field(default=None, max_length=1000)
-    roi_score: float | None = None
-    diagnosis_id: uuid.UUID | None = None
-
-
-class Solution(SolutionBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-
-    diagnosis: Diagnosis = Relationship(back_populates="solutions")
