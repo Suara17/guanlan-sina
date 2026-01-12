@@ -12,7 +12,7 @@ test("Production Dashboard and Alert Center navigation", async ({ page }) => {
   // Verify URL and Heading
   await expect(page).toHaveURL(/\/dashboard/)
   await expect(
-    page.getByRole("heading", { name: "Production Overview" }),
+    page.getByRole("heading", { name: "生产概览 (观澜)" }),
   ).toBeVisible()
 
   // Check for presence of key metric cards (Yield Cards)
