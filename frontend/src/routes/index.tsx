@@ -26,6 +26,13 @@ function LandingPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Hero Section */}
       <header className="container mx-auto px-4 py-16 text-center">
+        {isLoggedIn && (
+          <div className="mb-8 rounded-lg bg-blue-50 p-4 dark:bg-blue-950">
+            <p className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+              Welcome back, nice to see you again!
+            </p>
+          </div>
+        )}
         <div className="mx-auto max-w-4xl">
           <div className="mb-8 flex items-center justify-center space-x-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-500">
