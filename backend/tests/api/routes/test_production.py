@@ -6,7 +6,9 @@ from app.models import ProductionLine
 
 
 def create_production_line(db: Session, name: str = "Line 1") -> ProductionLine:
-    line = ProductionLine(name=name, status="idle", target_output=100)
+    from uuid import uuid4
+
+    line = ProductionLine(line_name=name, factory_id=uuid4())
     db.add(line)
     db.commit()
     db.refresh(line)
@@ -26,8 +28,8 @@ def test_read_production_lines(
     assert response.status_code == 200
     content = response.json()
     assert len(content) >= 2
-    assert any(line["name"] == "Line A" for line in content)
-    assert any(line["name"] == "Line B" for line in content)
+    assert any(line["line_name"] == "Line A" for line in content)
+    assert any(line["line_name"] == "Line B" for line in content)
 
 
 def test_read_production_overview(

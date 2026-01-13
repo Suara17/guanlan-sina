@@ -1,0 +1,1 @@
+{"hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "command": "node \".iflow/hooks/read-readme.js\"", "statusMessage": "正在读取当前目录的 README.md..."}]}], "PostToolUse": [{"hooks": [{"type": "command", "command": "node \".iflow/hooks/update-readme.js\"", "statusMessage": "正在记录工具调用..."}]}]}}

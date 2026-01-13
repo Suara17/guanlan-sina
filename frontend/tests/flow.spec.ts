@@ -5,7 +5,10 @@ test("Production Dashboard and Alert Center navigation", async ({ page }) => {
   // and stored the state in playwright/.auth/user.json
   await page.goto("/")
 
-  // 2. Dashboard
+  // 2. Since user is authenticated, click "进入仪表板" to go to dashboard
+  await page.getByRole("link", { name: "进入仪表板" }).click()
+
+  // 3. Now we should be on dashboard with sidebar
   // Navigate to Production Dashboard using sidebar
   await page.getByRole("link", { name: "Production" }).click()
 
@@ -30,8 +33,9 @@ test("Production Dashboard and Alert Center navigation", async ({ page }) => {
   ).toBeVisible()
 
   // Check for Table Headers to confirm the alerts table is rendered
-  // Using getByRole 'columnheader' is more precise than 'cell' for headers, but 'cell' or text often works too.
-  // Instructions suggested getByRole('cell', { name: 'Status' })
-  await expect(page.getByRole("cell", { name: "Status" })).toBeVisible()
-  await expect(page.getByRole("cell", { name: "Severity" })).toBeVisible()
+  // Using getByRole 'columnheader' for table headers is more appropriate
+  await expect(page.getByRole("columnheader", { name: "Status" })).toBeVisible()
+  await expect(
+    page.getByRole("columnheader", { name: "Severity" }),
+  ).toBeVisible()
 })

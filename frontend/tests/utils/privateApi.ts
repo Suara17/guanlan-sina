@@ -2,7 +2,7 @@
 // for local environments
 import { OpenAPI, PrivateService } from "../../src/client"
 
-OpenAPI.BASE = `${process.env.VITE_API_URL}`
+OpenAPI.BASE = `http://localhost:8000`
 
 export const createUser = async ({
   email,
@@ -11,9 +11,11 @@ export const createUser = async ({
   email: string
   password: string
 }) => {
+  const username = email.split("@")[0] // Extract username from email
   return await PrivateService.createUser({
     requestBody: {
       email,
+      username,
       password,
       is_verified: true,
       full_name: "Test User",

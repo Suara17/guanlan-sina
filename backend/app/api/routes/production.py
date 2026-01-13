@@ -30,7 +30,9 @@ def read_production_overview(session: SessionDep, _current_user: CurrentUser) ->
     # total_target = sum of target_output of all lines
 
     lines = session.exec(select(ProductionLine)).all()
-    total_target = sum(line.target_output for line in lines)
+    # For now, use a default target output since the model doesn't have this field
+    # In a real scenario, this would be a separate field or calculated from plans
+    total_target = len(lines) * 100  # Default 100 units per line
 
     # Mocking actual and yield for now as we don't have actual_output field yet
     # In a real scenario, this would come from aggregating station outputs or a separate field

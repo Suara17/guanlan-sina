@@ -1,14 +1,13 @@
 import uuid
 from datetime import datetime
-from typing import Optional, List
 
 from pydantic import EmailStr
-from sqlmodel import Field, Relationship, SQLModel
 from sqlalchemy import Column, String
-from sqlalchemy.dialects.postgresql import JSONB, ARRAY
-
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlmodel import Field, Relationship, SQLModel
 
 # --- User & Auth ---
+
 
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
@@ -55,9 +54,9 @@ class User(UserBase, table=True):
     __tablename__ = "users"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    factory_ids: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
-    line_ids: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
-    permissions: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    factory_ids: list[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    line_ids: list[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    permissions: list[str] = Field(default=[], sa_column=Column(ARRAY(String)))
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_login_at: datetime | None = Field(default=None)
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
@@ -73,6 +72,7 @@ class UsersPublic(SQLModel):
 
 
 # --- Items (Legacy/Template) ---
+
 
 class ItemBase(SQLModel):
     title: str = Field(min_length=1, max_length=255)
@@ -108,6 +108,7 @@ class ItemsPublic(SQLModel):
 
 # --- Production Management ---
 
+
 class ProductionLineBase(SQLModel):
     line_name: str = Field(max_length=100)
     factory_id: uuid.UUID
@@ -118,14 +119,28 @@ class ProductionLineBase(SQLModel):
 class ProductionLine(ProductionLineBase, table=True):
     __tablename__ = "production_lines"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    current_plan_id: uuid.UUID | None = Field(default=None, foreign_key="production_plans.id")
-    bottleneck_station_id: uuid.UUID | None = Field(default=None, foreign_key="stations.id")
+    current_plan_id: uuid.UUID | None = Field(
+        default=None, foreign_key="production_plans.id"
+    )
+    bottleneck_station_id: uuid.UUID | None = Field(
+        default=None, foreign_key="stations.id"
+    )
     last_updated: datetime = Field(default_factory=datetime.utcnow)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    stations: list["Station"] = Relationship(back_populates="line", cascade_delete=True)
-    plans: list["ProductionPlan"] = Relationship(back_populates="line", cascade_delete=True)
+    stations: list["Station"] = Relationship(
+        back_populates="line",
+        cascade_delete=True,
+        sa_relationship_kwargs={"primaryjoin": "ProductionLine.id == Station.line_id"},
+    )
+    plans: list["ProductionPlan"] = Relationship(
+        back_populates="line",
+        cascade_delete=True,
+        sa_relationship_kwargs={
+            "primaryjoin": "ProductionLine.id == ProductionPlan.line_id"
+        },
+    )
 
 
 class StationBase(SQLModel):
@@ -140,11 +155,16 @@ class StationBase(SQLModel):
 class Station(StationBase, table=True):
     __tablename__ = "stations"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    equipment_ids: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    equipment_ids: list[str] = Field(default=[], sa_column=Column(ARRAY(String)))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    line: ProductionLine = Relationship(back_populates="stations")
-    records: list["ProductionRecord"] = Relationship(back_populates="station", cascade_delete=True)
+    line: ProductionLine = Relationship(
+        back_populates="stations",
+        sa_relationship_kwargs={"primaryjoin": "Station.line_id == ProductionLine.id"},
+    )
+    records: list["ProductionRecord"] = Relationship(
+        back_populates="station", cascade_delete=True
+    )
 
 
 class ProductionPlanBase(SQLModel):
@@ -166,7 +186,12 @@ class ProductionPlan(ProductionPlanBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    line: ProductionLine = Relationship(back_populates="plans")
+    line: ProductionLine = Relationship(
+        back_populates="plans",
+        sa_relationship_kwargs={
+            "primaryjoin": "ProductionPlan.line_id == ProductionLine.id"
+        },
+    )
 
 
 class ProductionRecordBase(SQLModel):
@@ -226,6 +251,7 @@ class DefectDetail(DefectDetailBase, table=True):
 
 # --- Sinan (Anomaly Analysis & Resolution) ---
 
+
 class AnomalyBase(SQLModel):
     line_id: uuid.UUID = Field(foreign_key="production_lines.id")
     station_id: uuid.UUID = Field(foreign_key="stations.id")
@@ -245,6 +271,19 @@ class Anomaly(AnomalyBase, table=True):
     closed_at: datetime | None = Field(default=None)
 
 
+class DiagnosisBase(SQLModel):
+    anomaly_id: uuid.UUID = Field(foreign_key="anomalies.id")
+    root_cause: str | None = Field(default=None)
+    confidence: float | None = Field(default=None)
+
+
+class Diagnosis(DiagnosisBase, table=True):
+    __tablename__ = "diagnoses"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    anomaly_id: uuid.UUID = Field(foreign_key="anomalies.id")
+
+
 class SolutionBase(SQLModel):
     anomaly_id: uuid.UUID = Field(foreign_key="anomalies.id")
     solution_type: str | None = Field(default=None, max_length=50)
@@ -260,6 +299,7 @@ class SolutionBase(SQLModel):
 class Solution(SolutionBase, table=True):
     __tablename__ = "solutions"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    diagnosis_id: uuid.UUID | None = Field(default=None, foreign_key="diagnoses.id")
     simulation_result: dict | None = Field(default=None, sa_column=Column(JSONB))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -298,11 +338,12 @@ class CaseLibrary(CaseLibraryBase, table=True):
     diagnosis_result: dict | None = Field(default=None, sa_column=Column(JSONB))
     expected_effect: dict | None = Field(default=None, sa_column=Column(JSONB))
     actual_effect: dict | None = Field(default=None, sa_column=Column(JSONB))
-    tags: List[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    tags: list[str] = Field(default=[], sa_column=Column(ARRAY(String)))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 # --- Audit & System ---
+
 
 class AuditLogBase(SQLModel):
     user_id: uuid.UUID | None = Field(default=None)
@@ -322,6 +363,7 @@ class AuditLog(AuditLogBase, table=True):
 
 
 # --- Utility Models ---
+
 
 class Message(SQLModel):
     message: str

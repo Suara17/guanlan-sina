@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
+import { UtilsService } from "@/client"
 import { ProductionChart } from "@/components/Dashboard/ProductionChart"
 import { YieldCard } from "@/components/Dashboard/YieldCard"
-import { useProductionOverview } from "@/hooks/useProductionData"
-
-import { UtilsService } from "@/client"
 import useAuth from "@/hooks/useAuth"
+import { useProductionOverview } from "@/hooks/useProductionData"
 
 export const Route = createFileRoute("/_layout/dashboard")({
   component: Dashboard,
@@ -21,7 +20,11 @@ export const Route = createFileRoute("/_layout/dashboard")({
 function Dashboard() {
   const { user: currentUser } = useAuth()
   const { data: overview } = useProductionOverview()
-  const { data: pingData, error: pingError, isLoading: pingLoading } = useQuery({
+  const {
+    data: pingData,
+    error: pingError,
+    isLoading: pingLoading,
+  } = useQuery({
     queryKey: ["ping-test"],
     queryFn: UtilsService.pingTest,
     retry: 1,
@@ -64,9 +67,7 @@ function Dashboard() {
       </div>
 
       <div className="flex h-full flex-col space-y-4">
-        <h2 className="text-xl font-bold tracking-tight">
-          生产概览 (观澜)
-        </h2>
+        <h2 className="text-xl font-bold tracking-tight">生产概览 (观澜)</h2>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <YieldCard title="Total Target" value={stats?.total_target || 0} />

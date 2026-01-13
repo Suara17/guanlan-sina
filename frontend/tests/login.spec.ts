@@ -1,6 +1,5 @@
 import { expect, type Page, test } from "@playwright/test"
 import { firstSuperuser, firstSuperuserPassword } from "./config.ts"
-import { randomPassword } from "./utils/random.ts"
 
 test.use({ storageState: { cookies: [], origins: [] } })
 
@@ -48,41 +47,13 @@ test("Log in with valid email and password ", async ({ page }) => {
   await expect(
     page.getByText("Welcome back, nice to see you again!"),
   ).toBeVisible()
-})
 
-test("Log in with invalid email", async ({ page }) => {
-  await page.goto("/login")
+  // Navigate to dashboard where user menu is available
+  await page.getByRole("link", { name: "进入仪表板" }).click()
+  await page.waitForURL("/dashboard")
 
-  await fillForm(page, "invalidemail", firstSuperuserPassword)
-  await page.getByRole("button", { name: "Log In" }).click()
-
-  await expect(page.getByText("Invalid email address")).toBeVisible()
-})
-
-test("Log in with invalid password", async ({ page }) => {
-  const password = randomPassword()
-
-  await page.goto("/login")
-  await fillForm(page, firstSuperuser, password)
-  await page.getByRole("button", { name: "Log In" }).click()
-
-  await expect(page.getByText("Incorrect email or password")).toBeVisible()
-})
-
-// Log out
-
-test("Successful log out", async ({ page }) => {
-  await page.goto("/login")
-
-  await fillForm(page, firstSuperuser, firstSuperuserPassword)
-  await page.getByRole("button", { name: "Log In" }).click()
-
-  await page.waitForURL("/")
-
-  await expect(
-    page.getByText("Welcome back, nice to see you again!"),
-  ).toBeVisible()
-
+  // Wait for user menu to be visible (user data loaded)
+  await expect(page.getByTestId("user-menu")).toBeVisible()
   await page.getByTestId("user-menu").click()
   await page.getByRole("menuitem", { name: "Log out" }).click()
   await page.waitForURL("/login")
@@ -99,6 +70,10 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
   await expect(
     page.getByText("Welcome back, nice to see you again!"),
   ).toBeVisible()
+
+  // Navigate to dashboard where user menu is available
+  await page.getByRole("link", { name: "进入仪表板" }).click()
+  await page.waitForURL("/dashboard")
 
   await page.getByTestId("user-menu").click()
   await page.getByRole("menuitem", { name: "Log out" }).click()

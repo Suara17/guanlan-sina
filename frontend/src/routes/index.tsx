@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { ArrowRight, Shield, Zap, TrendingUp } from "lucide-react"
+import { ArrowRight, Shield, TrendingUp, Zap } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -13,14 +18,17 @@ export const Route = createFileRoute("/")({
       },
       {
         name: "description",
-        content: "基于AI的工业生产智能决策支持平台，为制造业提供实时监控、异常检测和智能决策服务。",
+        content:
+          "基于AI的工业生产智能决策支持平台，为制造业提供实时监控、异常检测和智能决策服务。",
       },
     ],
   }),
 })
 
 function LandingPage() {
-  const isLoggedIn = typeof window !== "undefined" && localStorage.getItem("access_token") !== null
+  const isLoggedIn =
+    typeof window !== "undefined" &&
+    localStorage.getItem("access_token") !== null
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -130,9 +138,7 @@ function LandingPage() {
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 p-8 text-center text-white">
-          <h3 className="mb-4 text-3xl font-bold">
-            立即体验智能决策支持平台
-          </h3>
+          <h3 className="mb-4 text-3xl font-bold">立即体验智能决策支持平台</h3>
           <p className="mb-8 text-xl opacity-90">
             加入我们，提升您的生产效率和决策质量
           </p>
