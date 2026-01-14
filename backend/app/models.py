@@ -377,6 +377,19 @@ class AuditLog(AuditLogBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+# --- Production Dashboard ---
+
+
+class ProductionDashboardResponse(SQLModel):
+    total_production: int = Field(description="总产量")
+    quality_rate: float = Field(description="质量率/良率")
+    defect_rate: float = Field(description="缺陷率")
+    total_target: int = Field(description="总目标产量")
+    total_actual: int = Field(description="总实际产量")
+    line_count: int = Field(description="产线数量")
+    active_lines: int = Field(description="活跃产线数量")
+
+
 # --- Utility Models ---
 
 
