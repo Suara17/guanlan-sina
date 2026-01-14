@@ -2,23 +2,6 @@
 
 export const AnomalySchema = {
     properties: {
-        description: {
-            type: 'string',
-            maxLength: 500,
-            title: 'Description'
-        },
-        status: {
-            type: 'string',
-            maxLength: 50,
-            title: 'Status',
-            default: 'open'
-        },
-        severity: {
-            type: 'string',
-            maxLength: 20,
-            title: 'Severity',
-            default: 'low'
-        },
         line_id: {
             type: 'string',
             format: 'uuid',
@@ -29,6 +12,62 @@ export const AnomalySchema = {
             format: 'uuid',
             title: 'Station Id'
         },
+        defect_type: {
+            type: 'string',
+            maxLength: 100,
+            title: 'Defect Type'
+        },
+        severity: {
+            type: 'string',
+            maxLength: 20,
+            title: 'Severity'
+        },
+        detected_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Detected At'
+        },
+        status: {
+            type: 'string',
+            maxLength: 20,
+            title: 'Status',
+            default: 'open'
+        },
+        assigned_to: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Assigned To'
+        },
+        root_cause: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Root Cause'
+        },
+        solution_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Solution Id'
+        },
         id: {
             type: 'string',
             format: 'uuid',
@@ -38,20 +77,32 @@ export const AnomalySchema = {
             type: 'string',
             format: 'date-time',
             title: 'Created At'
+        },
+        closed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Closed At'
         }
     },
     type: 'object',
-    required: ['description', 'line_id', 'station_id'],
+    required: ['line_id', 'station_id', 'defect_type', 'severity', 'detected_at'],
     title: 'Anomaly'
 } as const;
 
-export const Body_login_login_access_tokenSchema = {
+export const Body_login_access_token_api_v1_login_access_token_postSchema = {
     properties: {
         grant_type: {
             anyOf: [
                 {
                     type: 'string',
-                    pattern: 'password'
+                    pattern: '^password$'
                 },
                 {
                     type: 'null'
@@ -65,6 +116,7 @@ export const Body_login_login_access_tokenSchema = {
         },
         password: {
             type: 'string',
+            format: 'password',
             title: 'Password'
         },
         scope: {
@@ -92,40 +144,214 @@ export const Body_login_login_access_tokenSchema = {
                     type: 'null'
                 }
             ],
+            format: 'password',
             title: 'Client Secret'
         }
     },
     type: 'object',
     required: ['username', 'password'],
-    title: 'Body_login-login_access_token'
+    title: 'Body_login_access_token_api_v1_login_access_token_post'
 } as const;
 
-export const DiagnosisSchema = {
+export const CaseLibrarySchema = {
     properties: {
-        root_cause: {
-            type: 'string',
-            maxLength: 500,
-            title: 'Root Cause'
-        },
-        confidence: {
-            type: 'number',
-            title: 'Confidence',
-            default: 0
-        },
         anomaly_id: {
             type: 'string',
             format: 'uuid',
             title: 'Anomaly Id'
         },
+        problem_description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Problem Description'
+        },
+        solution_adopted: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Solution Adopted'
+        },
+        lessons_learned: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Lessons Learned'
+        },
         id: {
             type: 'string',
             format: 'uuid',
             title: 'Id'
+        },
+        diagnosis_result: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Diagnosis Result'
+        },
+        expected_effect: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expected Effect'
+        },
+        actual_effect: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Actual Effect'
+        },
+        tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Tags',
+            default: []
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
         }
     },
     type: 'object',
-    required: ['root_cause', 'anomaly_id'],
-    title: 'Diagnosis'
+    required: ['anomaly_id'],
+    title: 'CaseLibrary'
+} as const;
+
+export const CaseLibraryBaseSchema = {
+    properties: {
+        anomaly_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Anomaly Id'
+        },
+        problem_description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Problem Description'
+        },
+        solution_adopted: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Solution Adopted'
+        },
+        lessons_learned: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Lessons Learned'
+        }
+    },
+    type: 'object',
+    required: ['anomaly_id'],
+    title: 'CaseLibraryBase'
+} as const;
+
+export const DiagnosisPublicSchema = {
+    properties: {
+        anomaly_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Anomaly Id'
+        },
+        root_cause: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Root Cause'
+        },
+        confidence: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Confidence'
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        solutions: {
+            items: {
+                '$ref': '#/components/schemas/SolutionPublic'
+            },
+            type: 'array',
+            title: 'Solutions',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['anomaly_id', 'id', 'created_at'],
+    title: 'DiagnosisPublic'
 } as const;
 
 export const HTTPValidationErrorSchema = {
@@ -291,6 +517,10 @@ export const PrivateUserCreateSchema = {
             type: 'string',
             title: 'Email'
         },
+        username: {
+            type: 'string',
+            title: 'Username'
+        },
         password: {
             type: 'string',
             title: 'Password'
@@ -306,37 +536,189 @@ export const PrivateUserCreateSchema = {
         }
     },
     type: 'object',
-    required: ['email', 'password', 'full_name'],
+    required: ['email', 'username', 'password', 'full_name'],
     title: 'PrivateUserCreate'
 } as const;
 
 export const ProductionLineSchema = {
     properties: {
-        name: {
+        line_name: {
             type: 'string',
-            maxLength: 255,
-            title: 'Name'
+            maxLength: 100,
+            title: 'Line Name'
+        },
+        factory_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Factory Id'
         },
         status: {
             type: 'string',
-            maxLength: 50,
+            maxLength: 20,
             title: 'Status',
-            default: 'idle'
+            default: 'active'
         },
-        target_output: {
-            type: 'integer',
-            title: 'Target Output',
-            default: 0
+        current_status: {
+            type: 'string',
+            maxLength: 20,
+            title: 'Current Status',
+            default: 'idle'
         },
         id: {
             type: 'string',
             format: 'uuid',
             title: 'Id'
+        },
+        current_plan_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Current Plan Id'
+        },
+        bottleneck_station_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bottleneck Station Id'
+        },
+        last_updated: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Last Updated'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
         }
     },
     type: 'object',
-    required: ['name'],
+    required: ['line_name', 'factory_id'],
     title: 'ProductionLine'
+} as const;
+
+export const SolutionPublicSchema = {
+    properties: {
+        anomaly_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Anomaly Id'
+        },
+        solution_type: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Solution Type'
+        },
+        solution_name: {
+            type: 'string',
+            maxLength: 200,
+            title: 'Solution Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        estimated_downtime_hours: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Estimated Downtime Hours'
+        },
+        success_rate: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Success Rate'
+        },
+        expected_loss: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expected Loss'
+        },
+        roi: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Roi'
+        },
+        recommended: {
+            type: 'boolean',
+            title: 'Recommended',
+            default: false
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        diagnosis_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Diagnosis Id'
+        }
+    },
+    type: 'object',
+    required: ['anomaly_id', 'solution_name', 'id', 'diagnosis_id'],
+    title: 'SolutionPublic'
 } as const;
 
 export const TokenSchema = {
@@ -384,6 +766,11 @@ export const UserCreateSchema = {
             format: 'email',
             title: 'Email'
         },
+        username: {
+            type: 'string',
+            maxLength: 100,
+            title: 'Username'
+        },
         is_active: {
             type: 'boolean',
             title: 'Is Active',
@@ -406,6 +793,30 @@ export const UserCreateSchema = {
             ],
             title: 'Full Name'
         },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 20
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
+        },
+        role: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Role'
+        },
         password: {
             type: 'string',
             maxLength: 128,
@@ -414,7 +825,7 @@ export const UserCreateSchema = {
         }
     },
     type: 'object',
-    required: ['email', 'password'],
+    required: ['email', 'username', 'password'],
     title: 'UserCreate'
 } as const;
 
@@ -426,6 +837,11 @@ export const UserPublicSchema = {
             format: 'email',
             title: 'Email'
         },
+        username: {
+            type: 'string',
+            maxLength: 100,
+            title: 'Username'
+        },
         is_active: {
             type: 'boolean',
             title: 'Is Active',
@@ -448,6 +864,30 @@ export const UserPublicSchema = {
             ],
             title: 'Full Name'
         },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 20
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
+        },
+        role: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Role'
+        },
         id: {
             type: 'string',
             format: 'uuid',
@@ -455,7 +895,7 @@ export const UserPublicSchema = {
         }
     },
     type: 'object',
-    required: ['email', 'id'],
+    required: ['email', 'username', 'id'],
     title: 'UserPublic'
 } as const;
 
@@ -466,6 +906,11 @@ export const UserRegisterSchema = {
             maxLength: 255,
             format: 'email',
             title: 'Email'
+        },
+        username: {
+            type: 'string',
+            maxLength: 100,
+            title: 'Username'
         },
         password: {
             type: 'string',
@@ -487,7 +932,7 @@ export const UserRegisterSchema = {
         }
     },
     type: 'object',
-    required: ['email', 'password'],
+    required: ['email', 'username', 'password'],
     title: 'UserRegister'
 } as const;
 
@@ -506,27 +951,17 @@ export const UserUpdateSchema = {
             ],
             title: 'Email'
         },
-        is_active: {
-            type: 'boolean',
-            title: 'Is Active',
-            default: true
-        },
-        is_superuser: {
-            type: 'boolean',
-            title: 'Is Superuser',
-            default: false
-        },
-        full_name: {
+        username: {
             anyOf: [
                 {
                     type: 'string',
-                    maxLength: 255
+                    maxLength: 100
                 },
                 {
                     type: 'null'
                 }
             ],
-            title: 'Full Name'
+            title: 'Username'
         },
         password: {
             anyOf: [
@@ -540,6 +975,53 @@ export const UserUpdateSchema = {
                 }
             ],
             title: 'Password'
+        },
+        full_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Full Name'
+        },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 20
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
+        },
+        role: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Role'
+        },
+        is_active: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Active'
         }
     },
     type: 'object',
@@ -625,4 +1107,148 @@ export const ValidationErrorSchema = {
     type: 'object',
     required: ['loc', 'msg', 'type'],
     title: 'ValidationError'
+} as const;
+
+export const WorkOrderSchema = {
+    properties: {
+        solution_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Solution Id'
+        },
+        order_type: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Order Type'
+        },
+        responsible_person: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Responsible Person'
+        },
+        instructions: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Instructions'
+        },
+        estimated_duration_hours: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Estimated Duration Hours'
+        },
+        actual_duration_hours: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Actual Duration Hours'
+        },
+        status: {
+            type: 'string',
+            maxLength: 20,
+            title: 'Status',
+            default: 'pending'
+        },
+        execution_result: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 20
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Execution Result'
+        },
+        actual_loss: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Actual Loss'
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        started_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Started At'
+        },
+        completed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Completed At'
+        }
+    },
+    type: 'object',
+    required: ['solution_id'],
+    title: 'WorkOrder'
 } as const;

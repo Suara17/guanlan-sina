@@ -8,6 +8,7 @@ from app.api.deps import SessionDep
 from app.models import (
     Anomaly,
     Diagnosis,
+    DiagnosisPublic,
     Solution,
 )
 
@@ -32,7 +33,7 @@ def read_anomalies(
     return anomalies
 
 
-@router.post("/{id}/diagnose", response_model=Diagnosis)
+@router.post("/{id}/diagnose", response_model=DiagnosisPublic)
 def trigger_diagnosis(
     *,
     session: SessionDep,
@@ -64,16 +65,28 @@ def trigger_diagnosis(
 
     # Create Solutions
     solution1 = Solution(
+        anomaly_id=id,
         diagnosis_id=diagnosis.id,
-        title="Calibrate Sensor",
+        solution_name="Calibrate Sensor",
         description="Perform standard calibration procedure for the sensor.",
-        roi_score=0.9,
+        roi=0.9,
+        solution_type="Maintenance",
+        estimated_downtime_hours=0.5,
+        success_rate=0.95,
+        expected_loss=100.0,
+        recommended=True,
     )
     solution2 = Solution(
+        anomaly_id=id,
         diagnosis_id=diagnosis.id,
-        title="Replace Sensor",
+        solution_name="Replace Sensor",
         description="Replace the faulty sensor with a new unit.",
-        roi_score=0.6,
+        roi=0.6,
+        solution_type="Replacement",
+        estimated_downtime_hours=2.0,
+        success_rate=0.99,
+        expected_loss=500.0,
+        recommended=False,
     )
     session.add(solution1)
     session.add(solution2)

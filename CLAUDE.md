@@ -9,7 +9,7 @@
 这是一个名为"观澜-司南"（guanlan-sina）的全栈Web应用，采用 FastAPI 后端和 React 前端架构。
 
 - **后端**: FastAPI, SQLModel (ORM), PostgreSQL, Pydantic, Alembic
-- **前端**: React 19, TypeScript, Vite, TanStack Query, TanStack Router, Tailwind CSS, shadcn/ui
+- **前端**: React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui
 
 ### 核心子系统
 
@@ -82,28 +82,6 @@
 - `src/hooks/`: 自定义 React Hooks
 - `src/assets/`: 静态资源
 
----
-
-## 常见工作流程
-
-### 1. 添加数据库模型
-- 确保数据库正在运行：`docker compose up -d db`
-- 在 `backend/app/models.py` 中添加模型类
-- 创建迁移: `alembic revision --autogenerate -m "Add X model"`
-- 应用迁移: `alembic upgrade head`
-
-### 2. 添加 API 端点
-- 如需要，在 `models.py` 中定义模式
-- 在 `backend/app/api/routes/` 中创建路由处理器
-- 如果创建新文件，在 `backend/app/api/main.py` 中注册路由
-
-### 3. 更新前端客户端
-- 确保后端正在运行（`fastapi dev app/main.py`）
-- 在 `frontend/` 目录中运行 `npm run generate-client`
-
-### 4. 安全检查
-- 提交时自动运行 pre-commit hooks
-- 手动运行: `uv run pre-commit run --all-files`
 
 ---
 
@@ -161,8 +139,6 @@
 - [ ] 生产进度监控
 - [ ] 质量指标可视化
 - [ ] 瓶颈工位分析
-- [ ] WIP 深度分析
-- [ ] 历史趋势对比
 - [ ] 大屏展示模式
 
 #### 司南系统（决策助手）
@@ -170,18 +146,12 @@
 - [ ] 知识图谱可视化
 - [ ] 诊断分析引擎
 - [ ] 处置方案推荐
-- [ ] ROI 预演工具
-- [ ] 工单生成与推送
 - [ ] 案例库管理
 - [ ] 复盘分析工具
 
 #### 后端功能
 - [ ] WebSocket 实时通信
 - [ ] 消息队列事件驱动
-- [ ] 与底层模块集成（洞微、格物、天筹、浑天）
-- [ ] MES 系统对接
-- [ ] PLC 指令下发
-- [ ] PDF 报表生成
 
 #### 前端功能
 - [ ] 观澜总览页面
@@ -193,80 +163,8 @@
 - [ ] 深色主题切换
 - [ ] 国际化支持
 
-### 📋 待规划
 
-- [ ] 性能优化（缓存、索引、CDN）
-- [ ] 安全加固（HTTPS、数据加密、审计）
-- [ ] 监控告警系统（Sentry、Prometheus）
-- [ ] 单点登录（企业微信、钉钉）
-- [ ] 多租户支持
-- [ ] 数据导出功能
-- [ ] 打印功能（工单、报表）
 
----
-
-## 数据模型关系图
-
-```
-User (用户)
-  ├─ Item (项目) [1:N]
-  ├─ factory_ids (工厂权限)
-  └─ line_ids (产线权限)
-
-ProductionLine (生产线)
-  ├─ Station (工位) [1:N]
-  ├─ ProductionPlan (生产计划) [1:N]
-  └─ bottleneck_station_id (瓶颈工位) [N:1]
-
-Station (工位)
-  ├─ ProductionRecord (生产记录) [1:N]
-  └─ line_id (所属产线) [N:1]
-
-ProductionPlan (生产计划)
-  └─ ProductionRecord (生产记录) [1:N]
-
-ProductionRecord (生产记录)
-  ├─ QualityMetric (质量指标) [1:1]
-  └─ DefectDetail (缺陷详情) [1:N]
-
-Anomaly (异常)
-  ├─ Diagnosis (诊断) [1:N]
-  ├─ Solution (解决方案) [1:N]
-  └─ WorkOrder (工单) [1:N]
-
-Diagnosis (诊断)
-  ├─ Solution (解决方案) [1:N]
-  └─ CaseLibrary (案例库) [1:N]
-
-Solution (解决方案)
-  ├─ WorkOrder (工单) [1:N]
-  └─ CaseLibrary (案例库) [1:N]
-
-WorkOrder (工单)
-  └─ CaseLibrary (案例库) [1:1]
-
-AuditLog (审计日志)
-  └─ user_id (操作用户) [N:1]
-```
-
----
-
-## 技术文档索引
-
-| 文档 | 路径 | 说明 |
-|------|------|------|
-| 项目概述 | `01-项目概述与需求分析.md` | 详细需求分析和系统设计 |
-| 观澜设计 | `02-观澜系统功能设计.md` | 观澜系统功能设计 |
-| 司南设计 | `03-司南系统功能设计.md` | 司南系统功能设计 |
-| 技术架构 | `04-技术架构设计.md` | 技术架构设计 |
-| 数据存储 | `05-数据存储设计.md` | 数据存储设计 |
-| 开发计划 | `06-开发计划与测试策略.md` | 开发计划与测试策略 |
-| 运维监控 | `07-运维监控与安全加固.md` | 运维监控与安全加固 |
-| 启动指南 | `启动指南.md` | 项目启动指引 |
-| 代码结构 | `项目代码结构说明.md` | 代码结构说明 |
-| 后端修复 | `后端服务验证与修复总结.md` | 后端服务修复总结 |
-
----
 
 ## 已知问题与解决方案
 
@@ -308,19 +206,5 @@ AuditLog (审计日志)
 
 ### 代码质量
 - 提交前运行 `pre-commit` hooks
-- 编写单元测试和集成测试
 - 保持代码风格一致性
 - 添加必要的注释说明复杂逻辑
-
----
-
-## 联系方式
-
-如有问题或建议，请通过以下方式联系：
-- 项目仓库: https://github.com/Suara17/guanlan-sina.git
-- 问题反馈: 使用 GitHub Issues
-- 文档更新: 请参考技术文档索引
-
----
-
-**最后更新**: 2026年1月13日

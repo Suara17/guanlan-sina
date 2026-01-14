@@ -283,6 +283,8 @@ class Diagnosis(DiagnosisBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     anomaly_id: uuid.UUID = Field(foreign_key="anomalies.id")
 
+    solutions: list["Solution"] = Relationship(back_populates="diagnosis")
+
 
 class SolutionBase(SQLModel):
     anomaly_id: uuid.UUID = Field(foreign_key="anomalies.id")
@@ -302,6 +304,19 @@ class Solution(SolutionBase, table=True):
     diagnosis_id: uuid.UUID | None = Field(default=None, foreign_key="diagnoses.id")
     simulation_result: dict | None = Field(default=None, sa_column=Column(JSONB))
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    diagnosis: Diagnosis | None = Relationship(back_populates="solutions")
+
+
+class SolutionPublic(SolutionBase):
+    id: uuid.UUID
+    diagnosis_id: uuid.UUID | None
+
+
+class DiagnosisPublic(DiagnosisBase):
+    id: uuid.UUID
+    created_at: datetime
+    solutions: list[SolutionPublic] = []
 
 
 class WorkOrderBase(SQLModel):

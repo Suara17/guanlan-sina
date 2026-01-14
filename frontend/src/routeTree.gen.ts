@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutKnowledgeRouteImport } from './routes/_layout/knowledge'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
@@ -56,6 +57,11 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutKnowledgeRoute = LayoutKnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
   id: '/items',
   path: '/items',
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof LayoutAdminRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/items': typeof LayoutItemsRoute
+  '/knowledge': typeof LayoutKnowledgeRoute
   '/settings': typeof LayoutSettingsRoute
   '/alerts/$alertId': typeof LayoutAlertsAlertIdRoute
   '/alerts': typeof LayoutAlertsIndexRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/admin': typeof LayoutAdminRoute
   '/dashboard': typeof LayoutDashboardRoute
   '/items': typeof LayoutItemsRoute
+  '/knowledge': typeof LayoutKnowledgeRoute
   '/settings': typeof LayoutSettingsRoute
   '/alerts/$alertId': typeof LayoutAlertsAlertIdRoute
   '/alerts': typeof LayoutAlertsIndexRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/dashboard': typeof LayoutDashboardRoute
   '/_layout/items': typeof LayoutItemsRoute
+  '/_layout/knowledge': typeof LayoutKnowledgeRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/alerts/$alertId': typeof LayoutAlertsAlertIdRoute
   '/_layout/alerts/': typeof LayoutAlertsIndexRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/items'
+    | '/knowledge'
     | '/settings'
     | '/alerts/$alertId'
     | '/alerts'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/items'
+    | '/knowledge'
     | '/settings'
     | '/alerts/$alertId'
     | '/alerts'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/_layout/admin'
     | '/_layout/dashboard'
     | '/_layout/items'
+    | '/_layout/knowledge'
     | '/_layout/settings'
     | '/_layout/alerts/$alertId'
     | '/_layout/alerts/'
@@ -226,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/knowledge': {
+      id: '/_layout/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof LayoutKnowledgeRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/items': {
       id: '/_layout/items'
       path: '/items'
@@ -268,6 +287,7 @@ interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutDashboardRoute: typeof LayoutDashboardRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
+  LayoutKnowledgeRoute: typeof LayoutKnowledgeRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutAlertsAlertIdRoute: typeof LayoutAlertsAlertIdRoute
   LayoutAlertsIndexRoute: typeof LayoutAlertsIndexRoute
@@ -277,6 +297,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutItemsRoute: LayoutItemsRoute,
+  LayoutKnowledgeRoute: LayoutKnowledgeRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutAlertsAlertIdRoute: LayoutAlertsAlertIdRoute,
   LayoutAlertsIndexRoute: LayoutAlertsIndexRoute,

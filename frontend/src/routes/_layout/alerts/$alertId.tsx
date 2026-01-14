@@ -4,12 +4,19 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { ChevronLeft } from "lucide-react"
+import { CheckCircle, ChevronLeft, Play } from "lucide-react"
 import { toast } from "sonner"
-import { AnomaliesService } from "@/client"
+import { AnomaliesService, SolutionsService } from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 export const Route = createFileRoute("/_layout/alerts/$alertId")({
   component: AlertDetail,
@@ -27,7 +34,7 @@ function AlertDetail() {
 
   const anomaly = anomalies.find((a) => a.id === alertId)
 
-  const mutation = useMutation({
+  const diagnosisMutation = useMutation({
     mutationFn: () => AnomaliesService.triggerDiagnosis({ id: alertId }),
     onSuccess: () => {
       toast.success("Diagnosis complete")
@@ -38,7 +45,19 @@ function AlertDetail() {
     },
   })
 
-  const diagnosis = mutation.data
+  const selectSolutionMutation = useMutation({
+    mutationFn: (solutionId: string) =>
+      SolutionsService.selectSolution({ id: solutionId }),
+    onSuccess: () => {
+      toast.success("Solution selected, Work Order created")
+      queryClient.invalidateQueries({ queryKey: ["anomalies"] })
+    },
+    onError: (err) => {
+      toast.error(`Selection failed: ${err.message || "Unknown error"}`)
+    },
+  })
+
+  const diagnosis = diagnosisMutation.data
 
   if (!anomaly) {
     return (
@@ -131,18 +150,27 @@ function AlertDetail() {
             <CardTitle>Diagnostics (SiNan)</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col justify-center items-center space-y-4">
-            {anomaly.status === "diagnosed" || diagnosis ? (
+            {anomaly.status === "diagnosed" ||
+            anomaly.status === "in_progress" ||
+            diagnosis ? (
               <div className="text-center w-full">
                 <div className="bg-green-50 text-green-700 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">✓</span>
+                  <CheckCircle className="h-8 w-8" />
                 </div>
-                <p className="font-medium text-green-700 mb-4">
+                <p className="font-medium text-green-700 mb-2">
                   Diagnosis Completed
                 </p>
                 {!diagnosis && (
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Results are available. Click below to re-run if needed.
-                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => diagnosisMutation.mutate()}
+                    disabled={diagnosisMutation.isPending}
+                  >
+                    {diagnosisMutation.isPending
+                      ? "Loading Results..."
+                      : "View Results"}
+                  </Button>
                 )}
               </div>
             ) : (
@@ -151,20 +179,27 @@ function AlertDetail() {
               </div>
             )}
 
-            <Button
-              onClick={() => mutation.mutate()}
-              disabled={mutation.isPending}
-              className="w-full"
-              size="lg"
-            >
-              {mutation.isPending ? "Diagnosing..." : "Run AI Diagnosis"}
-            </Button>
+            {!diagnosis &&
+              anomaly.status !== "diagnosed" &&
+              anomaly.status !== "in_progress" && (
+                <Button
+                  onClick={() => diagnosisMutation.mutate()}
+                  disabled={diagnosisMutation.isPending}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Play className="mr-2 h-4 w-4" />
+                  {diagnosisMutation.isPending
+                    ? "Diagnosing..."
+                    : "Run AI Diagnosis"}
+                </Button>
+              )}
           </CardContent>
         </Card>
       </div>
 
       {diagnosis && (
-        <Card className="border-primary/50 shadow-md">
+        <Card className="border-primary/50 shadow-md animate-in fade-in slide-in-from-bottom-4">
           <CardHeader className="bg-primary/5 border-b">
             <CardTitle className="flex justify-between items-center">
               <span>Diagnosis Result</span>
@@ -188,37 +223,70 @@ function AlertDetail() {
               </div>
             </div>
 
-            {/* Using 'any' cast as solutions might not be in the generated types yet but expected from backend */}
-            {(diagnosis as any).solutions &&
-              (diagnosis as any).solutions.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">
-                    Recommended Solutions
-                  </h3>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {(diagnosis as any).solutions.map(
-                      (sol: any, idx: number) => (
-                        <Card key={sol.id || idx} className="overflow-hidden">
-                          <div className="h-2 bg-secondary" />
-                          <div className="p-4">
-                            <div className="flex justify-between items-start mb-2">
-                              <span className="font-bold text-lg">
-                                {sol.title}
-                              </span>
-                              <Badge variant="secondary">
-                                ROI: {sol.roi_score}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {sol.description}
-                            </p>
+            {diagnosis.solutions && diagnosis.solutions.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  Recommended Solutions
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {diagnosis.solutions.map((sol) => (
+                    <Card
+                      key={sol.id}
+                      className={`overflow-hidden flex flex-col ${
+                        sol.recommended ? "border-green-500 border-2" : ""
+                      }`}
+                    >
+                      {sol.recommended && (
+                        <div className="bg-green-500 text-white text-xs font-bold px-2 py-1 text-center uppercase tracking-wider">
+                          Recommended
+                        </div>
+                      )}
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-lg">
+                            {sol.solution_name}
+                          </CardTitle>
+                          <Badge variant="secondary">
+                            ROI: {sol.roi ?? "N/A"}
+                          </Badge>
+                        </div>
+                        <CardDescription>{sol.solution_type}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pb-4 flex-1">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {sol.description}
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="font-semibold">Downtime:</span>{" "}
+                            {sol.estimated_downtime_hours}h
                           </div>
-                        </Card>
-                      ),
-                    )}
-                  </div>
+                          <div>
+                            <span className="font-semibold">Success Rate:</span>{" "}
+                            {(sol.success_rate ?? 0) * 100}%
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="pt-0">
+                        <Button
+                          className="w-full"
+                          variant={sol.recommended ? "default" : "secondary"}
+                          onClick={() => selectSolutionMutation.mutate(sol.id)}
+                          disabled={
+                            selectSolutionMutation.isPending ||
+                            anomaly.status === "in_progress"
+                          }
+                        >
+                          {anomaly.status === "in_progress"
+                            ? "Work Order Active"
+                            : "Select & Create Work Order"}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

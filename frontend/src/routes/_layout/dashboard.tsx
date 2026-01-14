@@ -81,7 +81,7 @@ function Dashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           <div className="col-span-4 rounded-xl border bg-card text-card-foreground shadow p-6">
             <div className="mb-4 text-lg font-semibold">Line Output</div>
-            <ProductionChart />
+            <ProductionChart data={stats?.line_stats || []} />
           </div>
         </div>
       </div>

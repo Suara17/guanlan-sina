@@ -5,7 +5,13 @@ const authFile = "playwright/.auth/user.json"
 
 setup("authenticate", async ({ page }) => {
   await page.goto("/login")
-  await page.getByTestId("email-input").fill(firstSuperuser)
+
+  // Wait for React to load and render
+  await page.waitForSelector('[data-testid="username-input"]', {
+    timeout: 30000,
+  })
+
+  await page.getByTestId("username-input").fill(firstSuperuser)
   await page.getByTestId("password-input").fill(firstSuperuserPassword)
   await page.getByRole("button", { name: "Log In" }).click()
   await page.waitForURL("/")

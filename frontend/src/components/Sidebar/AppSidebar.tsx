@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  BookOpen,
   Briefcase,
   Home,
   LayoutDashboard,
@@ -22,6 +23,7 @@ const baseItems: Item[] = [
   { icon: Home, title: "Home", path: "/" },
   { icon: LayoutDashboard, title: "Production", path: "/dashboard" },
   { icon: AlertTriangle, title: "Alerts", path: "/alerts" },
+  { icon: BookOpen, title: "Knowledge", path: "/knowledge" },
   { icon: Briefcase, title: "Items", path: "/items" },
 ]
 

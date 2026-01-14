@@ -1,12 +1,20 @@
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
 
-const data = [
-  { name: "Line A", total: 120 },
-  { name: "Line B", total: 85 },
-  { name: "Line C", total: 45 },
-]
+interface ProductionChartProps {
+  data?: any[]
+}
 
-export function ProductionChart() {
+export function ProductionChart({ data = [] }: ProductionChartProps) {
+  // Use provided data or fallback to empty array
+  // If data is provided but empty, the chart will be empty which is correct
+
   return (
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={data}>
@@ -24,7 +32,22 @@ export function ProductionChart() {
           axisLine={false}
           tickFormatter={(value) => `${value}`}
         />
-        <Bar dataKey="total" fill="#adfa1d" radius={[4, 4, 0, 0]} />
+        <Tooltip
+          cursor={{ fill: "transparent" }}
+          contentStyle={{ borderRadius: "8px" }}
+        />
+        <Bar
+          dataKey="actual"
+          fill="#adfa1d"
+          radius={[4, 4, 0, 0]}
+          name="Actual Output"
+        />
+        <Bar
+          dataKey="target"
+          fill="#2563eb"
+          radius={[4, 4, 0, 0]}
+          name="Target Output"
+        />
       </BarChart>
     </ResponsiveContainer>
   )

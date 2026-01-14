@@ -1,11 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
 import {
   createFileRoute,
   Link as RouterLink,
   redirect,
+  useNavigate,
 } from "@tanstack/react-router"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { type ApiError, type UserRegister, UsersService } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import {
   Form,
@@ -18,11 +22,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
-import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import { isLoggedIn } from "@/hooks/useAuth"
+import { extractErrorMessage } from "@/utils"
 
 const formSchema = z
   .object({
     email: z.email(),
+    username: z.string().min(1, { message: "Username is required" }),
     full_name: z.string().min(1, { message: "Full Name is required" }),
     password: z
       .string()
@@ -58,13 +64,28 @@ export const Route = createFileRoute("/signup")({
 })
 
 function SignUp() {
-  const { signUpMutation } = useAuth()
+  const navigate = useNavigate()
+  const [apiError, setApiError] = useState<string | null>(null)
+
+  // Custom sign up mutation with error handling
+  const customSignUpMutation = useMutation({
+    mutationFn: (data: UserRegister) =>
+      UsersService.registerUser({ requestBody: data }),
+    onSuccess: () => {
+      navigate({ to: "/login" })
+    },
+    onError: (error: ApiError) => {
+      const errorMessage = extractErrorMessage(error)
+      setApiError(errorMessage)
+    },
+  })
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
       email: "",
+      username: "",
       full_name: "",
       password: "",
       confirm_password: "",
@@ -72,11 +93,13 @@ function SignUp() {
   })
 
   const onSubmit = (data: FormData) => {
-    if (signUpMutation.isPending) return
+    if (customSignUpMutation.isPending) return
+
+    setApiError(null) // Clear previous errors
 
     // exclude confirm_password from submission data
     const { confirm_password: _confirm_password, ...submitData } = data
-    signUpMutation.mutate(submitData)
+    customSignUpMutation.mutate(submitData)
   }
 
   return (
@@ -91,6 +114,25 @@ function SignUp() {
           </div>
 
           <div className="grid gap-4">
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="username-input"
+                      placeholder="username"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="full_name"
@@ -165,10 +207,16 @@ function SignUp() {
               )}
             />
 
+            {apiError && (
+              <div className="text-sm text-destructive text-center p-2 bg-destructive/10 rounded-md">
+                {apiError}
+              </div>
+            )}
+
             <LoadingButton
               type="submit"
               className="w-full"
-              loading={signUpMutation.isPending}
+              loading={customSignUpMutation.isPending}
             >
               Sign Up
             </LoadingButton>

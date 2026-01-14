@@ -5,7 +5,9 @@
       "Skill(superpowers:writing-plans)",
       "Skill(superpowers:subagent-driven-development)",
       "Skill(superpowers:finishing-a-development-branch)",
-      "Skill(ralph-wiggum:ralph-loop)"
+      "Skill(ralph-wiggum:ralph-loop)",
+      "Skill(planning-with-files:planning-with-files)",
+      "Skill(planning-with-files)"
     ]
   }
 }

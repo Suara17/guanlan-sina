@@ -87,7 +87,7 @@ function Login() {
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      data-testid="email-input"
+                      data-testid="username-input"
                       placeholder="user@example.com"
                       type="email"
                       {...field}

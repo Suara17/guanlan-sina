@@ -4,7 +4,7 @@ import { firstSuperuser, firstSuperuserPassword } from "./config.ts"
 test.use({ storageState: { cookies: [], origins: [] } })
 
 const fillForm = async (page: Page, email: string, password: string) => {
-  await page.getByTestId("email-input").fill(email)
+  await page.getByTestId("username-input").fill(email)
   await page.getByTestId("password-input").fill(password)
 }
 
@@ -18,7 +18,7 @@ const verifyInput = async (page: Page, testId: string) => {
 test("Inputs are visible, empty and editable", async ({ page }) => {
   await page.goto("/login")
 
-  await verifyInput(page, "email-input")
+  await verifyInput(page, "username-input")
   await verifyInput(page, "password-input")
 })
 
