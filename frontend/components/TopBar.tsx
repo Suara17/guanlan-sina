@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bell, Search, User, Menu } from 'lucide-react';
+import { Bell, Search, User, Menu, LogOut } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 interface TopBarProps {
   title: string;
@@ -7,6 +8,14 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({ title, toggleSidebar }) => {
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    if (window.confirm('确定要退出登录吗？')) {
+      logout();
+    }
+  };
+
   return (
     <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
       <div className="flex items-center gap-4">
@@ -33,11 +42,24 @@ const TopBar: React.FC<TopBarProps> = ({ title, toggleSidebar }) => {
 
         <div className="flex items-center gap-3 pl-4 border-l border-slate-100">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-slate-700">演示用户</p>
-            <p className="text-xs text-slate-400">工厂管理员</p>
+            <p className="text-sm font-medium text-slate-700">
+              {user?.full_name || user?.username || '用户'}
+            </p>
+            <p className="text-xs text-slate-400">
+              {user?.role || '管理员'}
+            </p>
           </div>
-          <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 border border-blue-200">
-            <User size={18} />
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 border border-blue-200">
+              <User size={18} />
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+              title="退出登录"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
       </div>

@@ -8,7 +8,11 @@ import KernelConnect from './pages/KernelConnect';
 import Marketplace from './pages/Marketplace';
 import ScenarioBuilder from './pages/ScenarioBuilder';
 import SinanAnalysis from './pages/SinanAnalysis';
+import LandingPage from './components/LandingPage';
+import LoginPage from './components/LoginPage';
+import ProtectedRoute from './components/ProtectedRoute';
 import AiAssistant from './components/AiAssistant';
+import { AuthProvider } from './contexts/AuthContext';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,25 +21,25 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const getTitle = (path: string) => {
     switch (path) {
-      case '/': return '生产可视化';
-      case '/sinan': return '司南智能诊断';
-      case '/kernel': return 'OS 内核接入';
-      case '/marketplace': return '能力商店';
-      case '/builder': return '场景编排';
-      case '/ecosystem': return '开发者生态';
+      case '/app/': return '生产可视化';
+      case '/app/sinan': return '司南智能诊断';
+      case '/app/kernel': return 'OS 内核接入';
+      case '/app/marketplace': return '能力商店';
+      case '/app/builder': return '场景编排';
+      case '/app/ecosystem': return '开发者生态';
       default: return '天工·弈控';
     }
   };
 
   // Only show the floating global AI Assistant on pages where Sinan isn't the main focus
   // On Dashboard and Sinan Analysis, Sinan is integrated into the UI
-  const showGlobalAi = !['/', '/sinan'].includes(location.pathname);
+  const showGlobalAi = !['/app/', '/app/sinan'].includes(location.pathname);
 
   // Simulated context data for the AI Assistant based on current view
   const getContextData = () => {
-     if (location.pathname === '/') {
+     if (location.pathname === '/app/') {
         return { page: 'Dashboard', metrics: { oee: 0.89, downtime: 14, efficiencyTrend: 'up' } };
-     } else if (location.pathname === '/kernel') {
+     } else if (location.pathname === '/app/kernel') {
         return { page: 'Kernel', deviceCount: 3, protocol: 'Modbus' };
      }
      return { page: location.pathname };
@@ -88,18 +92,28 @@ const EcosystemPlaceholder = () => (
 
 const App: React.FC = () => {
   return (
-    <MemoryRouter>
-      <Layout>
+    <AuthProvider>
+      <MemoryRouter>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/sinan" element={<SinanAnalysis />} />
-          <Route path="/kernel" element={<KernelConnect />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/builder" element={<ScenarioBuilder />} />
-          <Route path="/ecosystem" element={<EcosystemPlaceholder />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+        <Route path="/app/*" element={
+          <ProtectedRoute>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/sinan" element={<SinanAnalysis />} />
+                <Route path="/kernel" element={<KernelConnect />} />
+                <Route path="/marketplace" element={<Marketplace />} />
+                <Route path="/builder" element={<ScenarioBuilder />} />
+                <Route path="/ecosystem" element={<EcosystemPlaceholder />} />
+              </Routes>
+            </Layout>
+          </ProtectedRoute>
+        } />
         </Routes>
-      </Layout>
-    </MemoryRouter>
+      </MemoryRouter>
+    </AuthProvider>
   );
 };
 

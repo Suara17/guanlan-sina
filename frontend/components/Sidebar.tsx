@@ -10,12 +10,12 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: '生产可视化', icon: LayoutDashboard, path: '/' },
-  { id: 'sinan', label: '司南智控', icon: Sparkles, path: '/sinan' },
-  { id: 'kernel', label: 'OS 内核接入', icon: Cable, path: '/kernel' },
-  { id: 'marketplace', label: '能力商店', icon: Store, path: '/marketplace' },
-  { id: 'builder', label: '场景编排', icon: Cuboid, path: '/builder' },
-  { id: 'ecosystem', label: '开发者生态', icon: Activity, path: '/ecosystem' },
+  { id: 'dashboard', label: '生产可视化', icon: LayoutDashboard, path: '/app/' },
+  { id: 'sinan', label: '司南智控', icon: Sparkles, path: '/app/sinan' },
+  { id: 'kernel', label: 'OS 内核接入', icon: Cable, path: '/app/kernel' },
+  { id: 'marketplace', label: '能力商店', icon: Store, path: '/app/marketplace' },
+  { id: 'builder', label: '场景编排', icon: Cuboid, path: '/app/builder' },
+  { id: 'ecosystem', label: '开发者生态', icon: Activity, path: '/app/ecosystem' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) => {

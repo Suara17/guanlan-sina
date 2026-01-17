@@ -1,210 +1,255 @@
 # CLAUDE.md
 
-本文件为 Claude Code (claude.ai/code) 在此代码库中工作时提供指导。
-
----
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 项目概述
 
-这是一个名为"观澜-司南"（guanlan-sina）的全栈Web应用，采用 FastAPI 后端和 React 前端架构。
+**天工·弈控** 是一个面向离散制造业的"视-空协同"智适应操作系统,基于 1+N+X 生态架构:
+- **1 (OS内核)**: 基础设施层 - 设备连接、数据采集、基础诊断
+- **N (原子能力)**: 服务组件层 - 视觉算法、知识图谱、优化引擎等模块化能力
+- **X (场景APP)**: 应用编排层 - 行业解决方案和低代码编排
 
-- **后端**: FastAPI, SQLModel (ORM), PostgreSQL, Pydantic, Alembic
-- **前端**: React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui
+技术栈: FastAPI + React + PostgreSQL + Redis + Celery
 
-### 核心子系统
+## 开发命令
 
-**观澜（GuanLan）- 生产可视化门户**
-- 面向对象：管理层、现场人员
-- 核心价值：提供"生产节奏 + 质量指标"统一总览
-- 解决痛点：消除"去现场看、去系统查"的信息割裂
+### 数据库和后端
 
-**司南（SiNan）- 决策助手**
-- 面向对象：工艺工程师、质量工程师、现场主管
-- 核心价值：提供"提醒 → 诊断 → 处置 → 复盘"完整闭环
-- 解决痛点：结构化、可解释、可落地的异常处理
+```bash
+# 启动数据库(Docker)
+docker compose up db -d
 
----
-
-## 开发环境与命令
-
-### 启动开发环境（推荐顺序）
-1. **启动数据库**: `docker compose up -d db`（仅启动 PostgreSQL 数据库）
-2. **启动后端**: 进入 `backend` 目录，激活环境后运行 `fastapi dev app/main.py`
-3. **启动前端**: 进入 `frontend` 目录，运行 `npm run dev`
-
-### 后端（`/backend`）
-- **包管理器**: `uv`（推荐）或 `pip`
-- **虚拟环境路径**: `E:\aa-zr\Python311`
-- **安装依赖**: `uv sync`
-- **激活环境**: `E:\aa-zr\Python311\Scripts\activate`（Windows）
-- **运行本地服务器**: `fastapi dev app/main.py`（运行在 localhost:8000）
-- **运行测试**: `bash ./scripts/test.sh` 或 `pytest`
-- **运行单个测试**: `pytest tests/api/routes/test_users.py::test_read_user_me`
-- **代码检查/格式化**: `ruff check .` / `ruff format .`
-- **数据库迁移**:
-  - 创建迁移: `alembic revision --autogenerate -m "message"`
-  - 应用迁移: `alembic upgrade head`
-
-### 前端（`/frontend`）
-- **包管理器**: `npm`
-- **安装依赖**: `npm install`
-- **运行本地服务器**: `npm run dev`（运行在 localhost:5173）
-- **构建**: `npm run build`
-- **代码检查**: `npm run lint`（使用 Biome）
-- **生成API客户端**: `npm run generate-client`（需要后端运行）
-- **E2E测试**: `npx playwright test`（需要完整服务运行）
-
-### 数据库（Docker）
-- **数据库类型**: PostgreSQL
-- **启动数据库**: `docker compose up -d db`（仅启动数据库服务）
-- **查看日志**: `docker compose logs db`
-- **停止数据库**: `docker compose down`
-- **连接配置**: 数据库默认运行在 localhost:5432，连接字符串在 `backend/app/core/config.py` 中配置
-
----
-
-## 代码结构
-
-### 后端
-- `app/main.py`: FastAPI 应用入口点
-- `app/api/`: API 路由处理器（端点）
-- `app/core/`: 核心配置（设置、数据库连接、安全）
-- `app/models.py`: SQLModel 数据库模型和 Pydantic 模式
-- `app/crud.py`: CRUD 操作
-- `app/alembic/`: 数据库迁移脚本
-- `app/email-templates/`: 邮件模板（MJML/HTML）
-- `tests/`: pytest 测试套件
+# 后端开发 docker启动
+```
 
 ### 前端
-- `src/routes/`: 应用路由（TanStack Router）
-- `src/components/`: React 组件（通用组件和功能特定组件）
-- `src/client/`: 自动生成的 OpenAPI 客户端
-- `src/hooks/`: 自定义 React Hooks
-- `src/assets/`: 静态资源
 
+```bash
+cd frontend
+npm install                          # 安装依赖
+npm run dev                          # 启动开发服务器(localhost:3000)
+npm run build                        # 生产构建
+npm run preview                      # 预览构建结果
+npm run generate-client              # 从OpenAPI规范生成类型化客户端
+```
 
----
+### Docker Compose 完整环境
 
-## 当前开发进度
-
-### ✅ 已完成
-
-#### 后端服务
-- [x] FastAPI 框架搭建
-- [x] PostgreSQL 数据库配置
-- [x] SQLModel 数据模型定义
-- [x] 数据库迁移系统（Alembic）
-- [x] JWT 认证系统
-- [x] 用户管理模块（CRUD）
-- [x] 生产数据模型（ProductionLine, Station, ProductionPlan, ProductionRecord）
-- [x] 质量指标模型（QualityMetric, DefectDetail）
-- [x] 司南系统模型（Anomaly, Diagnosis, Solution, WorkOrder, CaseLibrary）
-- [x] 审计日志系统（AuditLog）
-- [x] Celery 任务队列配置
-- [x] Redis 缓存配置
-- [x] API 文档自动生成（Swagger UI, ReDoc）
-
-#### 数据库迁移
-- [x] 初始数据库模型同步（v1）
-- [x] 添加诊断表和更新解决方案表（v2）
-- [x] 修复产线与工位之间的关系映射（v3）
-
-#### 前端应用
-- [x] React 19 + TypeScript + Vite 搭建
-- [x] TanStack Router 路由配置
-- [x] TanStack Query 状态管理
-- [x] shadcn/ui 组件库集成
-- [x] Tailwind CSS 样式系统
-- [x] 用户认证界面（登录、注册）
-- [x] Dashboard 仪表盘组件
-- [x] 生产图表组件（Recharts）
-- [x] 用户管理界面
-- [x] OpenAPI 客户端自动生成
-
-#### 测试
-- [x] 后端 pytest 测试框架
-- [x] 前端 Playwright E2E 测试框架
-- [x] 认证流程测试
-- [x] 用户管理测试
-
-#### 开发工具
-- [x] 代码格式化（Ruff, Biome）
-- [x] Pre-commit hooks
-- [x] GitHub Actions CI/CD
-
-### 🚧 进行中
-
-#### 观澜系统（生产可视化）
-- [ ] 实时数据看板
-- [ ] 生产进度监控
-- [ ] 质量指标可视化
-- [ ] 瓶颈工位分析
-- [ ] 大屏展示模式
-
-#### 司南系统（决策助手）
-- [ ] 异常检测与提醒
-- [ ] 知识图谱可视化
-- [ ] 诊断分析引擎
-- [ ] 处置方案推荐
-- [ ] 案例库管理
-- [ ] 复盘分析工具
-
-#### 后端功能
-- [ ] WebSocket 实时通信
-- [ ] 消息队列事件驱动
-
-#### 前端功能
-- [ ] 观澜总览页面
-- [ ] 司南诊断页面
-- [ ] 方案对比页面
-- [ ] 工单执行页面
-- [ ] 案例库查询页面
-- [ ] 移动端适配
-- [ ] 深色主题切换
-- [ ] 国际化支持
-
-
-
-
-## 已知问题与解决方案
-
-### 问题1: 数据库驱动不匹配
-- **问题**: 运行 Alembic 迁移时出现 `ModuleNotFoundError: No module named 'psycopg'`
-- **原因**: 项目配置使用 `postgresql+psycopg`，但系统只安装了 `psycopg2-binary`
-- **解决**: 修改 `app/core/config.py` 中的数据库 URL 方案为 `postgresql+psycopg2`
-
-### 问题2: 循环外键关系映射错误
-- **问题**: 访问 API 端点时出现 `sqlalchemy.exc.AmbiguousForeignKeysError`
-- **原因**: `ProductionLine` 和 `Station` 之间存在多个外键关系
-- **解决**: 使用 `sa_relationship_args` 参数明确指定外键关系
-
-### 问题3: 缺失模型定义
-- **问题**: 后端服务启动时抛出 `ImportError: cannot import name 'Diagnosis'`
-- **原因**: 路由文件引用了 `Diagnosis` 模型，但模型未定义
-- **解决**: 在 `app/models.py` 中添加完整的模型定义并创建迁移
-
----
-
-## 开发注意事项
+```bash
+docker compose watch                 # 启动完整开发环境(包含Traefik、Adminer等)
+docker compose logs backend          # 查看后端日志
+docker compose logs frontend         # 查看前端日志
+docker compose down                  # 停止所有服务
+```
 
 ### 数据库迁移
-- 每次修改模型后必须创建新的迁移
-- 迁移文件命名要清晰描述变更内容
-- 应用迁移前先在测试环境验证
 
-### API 设计
-- 遵循 RESTful 设计原则
-- 使用 Pydantic 模式进行数据验证
-- 为所有端点添加文档字符串
-- 使用适当的 HTTP 状态码
+```bash
+cd backend
+uv run alembic revision --autogenerate -m "描述"  # 创建迁移
+uv run alembic upgrade head                       # 应用迁移
+uv run alembic downgrade -1                       # 回滚一步
+```
 
-### 前端开发
-- 使用 TypeScript 严格模式
-- 遵循 React Hooks 最佳实践
-- 组件要保持单一职责
-- 使用 TanStack Query 进行数据获取
+## 架构说明
 
-### 代码质量
-- 提交前运行 `pre-commit` hooks
-- 保持代码风格一致性
-- 添加必要的注释说明复杂逻辑
+### 后端架构 (FastAPI)
+
+```
+backend/app/
+├── main.py                 # FastAPI应用入口,配置CORS和路由
+├── core/
+│   ├── config.py          # Pydantic Settings配置(从.env读取)
+│   ├── db.py              # 数据库会话管理
+│   ├── security.py        # JWT认证和密码哈希
+│   └── celery_app.py      # Celery异步任务配置
+├── api/
+│   ├── main.py            # API路由聚合器
+│   ├── deps.py            # 依赖注入(数据库会话、认证token)
+│   └── routes/            # API路由模块
+│       ├── login.py       # 用户登录
+│       ├── users.py       # 用户管理
+│       ├── production.py  # 生产数据
+│       ├── anomalies.py   # 异常检测
+│       ├── solutions.py   # 解决方案
+│       └── cases.py       # 案例管理
+├── models.py              # SQLModel数据库模型
+├── crud.py                # CRUD操作
+└── worker.py              # Celery后台任务
+```
+
+**关键设计模式:**
+- **依赖注入**: 通过`deps.py`提供`get_db`和`get_current_user`等依赖
+- **配置管理**: 使用`pydantic-settings`从`.env`读取配置,支持环境变量覆盖
+- **异步任务**: Celery + Redis处理后台任务(如数据聚合、报告生成)
+- **认证**: JWT token-based认证,通过HTTP Bearer header传递
+
+### 前端架构 (React + TypeScript)
+
+```
+frontend/
+├── src/
+│   ├── client/            # 自动生成的API客户端
+│   │   ├── client.gen.ts  # API客户端函数
+│   │   ├── types.gen.ts   # TypeScript类型定义
+│   │   └── sdk.gen.ts     # SDK类型
+│   └── index.ts           # 客户端入口
+├── openapi.yaml           # OpenAPI规范(用于生成客户端)
+└── package.json
+```
+
+**前端开发说明:**
+- API客户端通过`npm run generate-client`从OpenAPI规范自动生成
+- 使用Vite作为开发服务器和构建工具
+- 后端API地址通过环境变量`VITE_API_URL`配置
+
+### 数据库设计
+
+- **PostgreSQL**: 主数据库,存储业务数据
+- **Alembic**: 数据库迁移工具,版本文件在`backend/app/alembic/versions/`
+- **SQLModel**: ORM层,结合Pydantic和SQLAlchemy
+
+### 服务通信
+
+- **API通信**: RESTful API,前端的`/api/v1/*`请求通过Traefik代理到后端
+- **实时通信**: WebSocket(用于司南助手实时提醒)
+- **异步任务**: Celery任务队列,Redis作为broker
+
+## 环境配置
+
+### 关键环境变量 (.env)
+
+```bash
+# 项目配置
+PROJECT_NAME=天工·弈控
+ENVIRONMENT=local  # local/staging/production
+STACK_NAME=guanlan-sina
+DOMAIN=localhost.tiangolo.com  # 生产环境使用实际域名
+
+# 数据库
+POSTGRES_SERVER=db      # Docker中使用服务名,本地使用localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=app
+POSTGRES_PASSWORD=changethis
+POSTGRES_DB=app
+
+# 认证
+SECRET_KEY=changethis          # 生产环境必须更改
+FIRST_SUPERUSER=admin@example.com
+FIRST_SUPERUSER_PASSWORD=changethis
+ACCESS_TOKEN_EXPIRE_MINUTES=11520  # 8天
+
+# CORS
+FRONTEND_HOST=http://localhost:5173
+BACKEND_CORS_ORIGINS=http://localhost:5173
+
+# Redis和Celery
+REDIS_URL=redis://localhost:6379/0
+
+# SMTP(可选,用于邮件功能)
+SMTP_HOST=
+SMTP_USER=
+SMTP_PASSWORD=
+EMAILS_FROM_EMAIL=
+
+# Sentry(可选,用于错误追踪)
+SENTRY_DSN=
+```
+
+### Docker Compose网络
+
+- **traefik-public**: Traefik反向代理网络,用于生产环境
+- **default**: 内部服务网络(db、backend、frontend互通)
+
+## 开发工作流
+
+### 添加新的API端点
+
+1. 在`backend/app/api/routes/`创建或修改路由文件
+2. 在`backend/app/api/main.py`注册路由
+3. 运行`uv run alembic revision --autogenerate -m "描述"`创建数据库迁移
+4. 更新`frontend/openapi.yaml`(或让后端自动生成)
+5. 运行`npm run generate-client`生成前端客户端
+6. 在前端使用生成的客户端函数调用API
+
+### 本地开发 vs Docker开发
+
+**本地开发**:
+- 后端: `fastapi dev app/main.py` (端口8000)
+- 前端: `npm run dev` (端口3000)
+- 数据库: `docker compose up db -d` (端口5432)
+
+**Docker开发**:
+- 使用`docker compose watch`,所有服务在容器中运行
+- 支持热重载,代码更改自动同步到容器
+- Traefik提供子域名路由(api.localhost.tiangolo.com、dashboard.localhost.tiangolo.com)
+
+### 测试和代码质量
+
+```bash
+# 后端测试
+cd backend
+uv run pytest --cov=app                    # 测试并生成覆盖率报告
+uv run mypy                                # 类型检查(严格模式)
+uv run ruff check .                        # Lint检查
+
+# 前端测试(需配置)
+cd frontend
+npm run test                               # 运行测试
+
+# Pre-commit钩子
+# 安装: uv run pre-commit install
+# 手动运行: uv run pre-commit run --all-files
+```
+
+## 常见问题
+
+### 数据库连接失败
+- 确认PostgreSQL容器正在运行: `docker ps | grep postgres`
+- 检查`.env`中的数据库配置
+- 确认数据库迁移已应用: `uv run alembic current`
+
+### CORS错误
+- 检查`backend/app/core/config.py`中的`BACKEND_CORS_ORIGINS`配置
+- 确认前端地址(如`http://localhost:5173`)在CORS列表中
+
+### 前端API调用失败
+- 确认后端服务正在运行(localhost:8000)
+- 检查浏览器控制台的网络请求URL
+- 确认`VITE_API_URL`环境变量配置正确
+
+### Celery任务不执行
+- 确认Redis正在运行: `docker ps | grep redis`
+- 启动Celery worker: `cd backend && uv run celery -A app.worker.celery_app worker --loglevel=info`
+
+## 核心业务概念
+
+### 司南助手
+- **定位**: AI驱动的虚拟助手,负责异常提醒、归因分析、解决方案推荐
+- **实现**: WebSocket实时推送 + 前端动画组件
+- **集成**: 调用格物(知识图谱归因)和天筹(优化决策)模块
+
+### 生产可视化面板
+- **核心指标**: 计划vs实时产量、整体不良品率、异常信息流
+- **数据源**: `/api/v1/production/metrics`接口
+- **实时更新**: WebSocket推送或前端轮询
+
+### 原子能力模块化
+- **视觉检测**: MSA-YOLO算法容器
+- **知识图谱**: 格物归因分析
+- **优化引擎**: 天筹决策优化
+- **仿真引擎**: 浑天仿真模拟
+
+### API版本控制
+- 所有API端点前缀: `/api/v1/`
+- OpenAPI文档: `http://localhost:8000/docs` (Swagger UI)
+- 替代文档: `http://localhost:8000/redoc` (ReDoc)
+
+## 项目特色
+
+1. **模板基础**: 基于[tiangolo/full-stack-fastapi-postgresql](https://github.com/tiangolo/full-stack-fastapi-postgresql)模板
+2. **类型安全**: 前后端全类型化,自动生成TypeScript客户端
+3. **容器化**: 完整的Docker Compose配置,支持一键部署
+4. **可观测性**: 集成Sentry错误追踪和性能监控
+5. **邮件功能**: 支持SMTP邮件发送(如密码重置、告警通知)
+6. **异步任务**: Celery处理后台任务,如数据聚合、报告生成
