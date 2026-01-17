@@ -14,7 +14,7 @@ export const analyzeSystemHealth = async (metrics: any): Promise<string> => {
       你是一个工业操作系统“天工·弈控”的智能助手。
       请根据以下产线数据生成一份简短的“体检报告”和优化建议：
       ${JSON.stringify(metrics)}
-      
+
       要求：
       1. 语气专业、冷静、客观。
       2. 重点指出OEE（设备综合效率）是否达标（基准85%）。

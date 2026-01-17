@@ -33,7 +33,7 @@ const ScenarioBuilder: React.FC = () => {
             {/* Sidebar Palette */}
             <div className="w-64 bg-slate-50 border-r border-slate-200 p-4 overflow-y-auto">
                 <h3 className="text-xs font-bold text-slate-500 uppercase mb-4 tracking-wider">组件库</h3>
-                
+
                 <div className="space-y-6">
                     <div>
                         <h4 className="text-sm font-medium text-slate-700 mb-2">数据源</h4>
@@ -75,7 +75,7 @@ const ScenarioBuilder: React.FC = () => {
 
             {/* Canvas Area (Visual Simulation) */}
             <div className="flex-1 bg-slate-100 relative overflow-hidden flex items-center justify-center">
-                <div className="absolute inset-0 opacity-10" 
+                <div className="absolute inset-0 opacity-10"
                      style={{backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '20px 20px'}}>
                 </div>
 
@@ -86,7 +86,7 @@ const ScenarioBuilder: React.FC = () => {
                         <path d="M180,135 C240,135 240,135 300,135" stroke="#94a3b8" strokeWidth="2" fill="none" markerEnd="url(#arrow)" />
                         <path d="M460,135 C505,135 505,85 550,85" stroke="#94a3b8" strokeWidth="2" fill="none" markerEnd="url(#arrow)" />
                         <path d="M460,135 C505,135 505,185 550,185" stroke="#94a3b8" strokeWidth="2" fill="none" markerEnd="url(#arrow)" />
-                        
+
                         <defs>
                             <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
                             <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8" />
@@ -95,7 +95,7 @@ const ScenarioBuilder: React.FC = () => {
                      </svg>
 
                      {nodes.map(node => (
-                        <div 
+                        <div
                             key={node.id}
                             style={{ left: node.x, top: node.y }}
                             className={`absolute z-10 w-40 p-3 rounded-lg border shadow-sm cursor-move flex items-center gap-2 ${

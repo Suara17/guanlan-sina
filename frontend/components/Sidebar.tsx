@@ -37,8 +37,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
               key={item.id}
               onClick={() => onNavigate(item.path)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
-                isActive 
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-900/50' 
+                isActive
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-900/50'
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white'
               }`}
             >

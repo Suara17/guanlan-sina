@@ -18,7 +18,7 @@ import { loginAccessTokenApiV1LoginAccessTokenPost } from './src/client';
 
 const login = async (username: string, password: string) => {
   try {
-    const response = await loginAccessTokenApiV1LoginAccessTokenPost({ 
+    const response = await loginAccessTokenApiV1LoginAccessTokenPost({
       client,
       body: {
         grant_type: 'password',
@@ -26,13 +26,13 @@ const login = async (username: string, password: string) => {
         password,
       }
     });
-    
+
     // 保存token到localStorage
     if (response.data?.access_token) {
       localStorage.setItem('access_token', response.data.access_token);
       localStorage.setItem('refresh_token', response.data.refresh_token);
     }
-    
+
     return response.data;
   } catch (error) {
     console.error('登录失败:', error);

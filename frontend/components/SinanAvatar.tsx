@@ -26,7 +26,7 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
       <style>{robotStyle}</style>
 
       {/* Chat Bubble */}
-      <div 
+      <div
         className={`absolute bottom-28 w-64 bg-white p-4 rounded-2xl rounded-br-none shadow-xl border border-blue-100 transition-all duration-300 transform origin-bottom-right cursor-pointer
         ${mode === 'alert' ? 'opacity-100 scale-100' : isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}`}
         onClick={() => mode === 'alert' && navigate('/sinan-analysis')}
@@ -58,7 +58,7 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
       </div>
 
       {/* Robot Avatar */}
-      <div 
+      <div
         className="relative w-32 h-32 animate-float cursor-pointer group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -74,7 +74,7 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
                 <div className={`w-3 h-8 rounded-full animate-blink ${mode === 'alert' ? 'bg-red-500 rotate-12' : 'bg-blue-400'}`}></div>
                 <div className={`w-3 h-8 rounded-full animate-blink ${mode === 'alert' ? 'bg-red-500 -rotate-12' : 'bg-blue-400'}`}></div>
             </div>
-            
+
             {/* Mouth (Simple line) */}
             <div className={`mt-2 w-4 h-1 rounded-full ${mode === 'alert' ? 'bg-red-400 w-8' : 'bg-slate-300'}`}></div>
         </div>
@@ -82,7 +82,7 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
         {/* Antenna */}
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-1 h-4 bg-slate-300"></div>
         <div className={`absolute -top-6 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${mode === 'alert' ? 'bg-red-500 animate-ping' : 'bg-blue-400'}`}></div>
-        
+
         {/* Shadow */}
         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-2 bg-black/10 rounded-full blur-sm"></div>
       </div>

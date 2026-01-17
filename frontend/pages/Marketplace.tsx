@@ -36,10 +36,10 @@ const Marketplace: React.FC = () => {
                             </div>
                             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{cap.category}</span>
                         </div>
-                        
+
                         <h3 className="text-lg font-bold text-slate-800 mb-2">{cap.title}</h3>
                         <p className="text-sm text-slate-500 leading-relaxed mb-6 flex-1">{cap.description}</p>
-                        
+
                         <div className="border-t border-slate-100 pt-4 flex items-center justify-between">
                             <span className="font-bold text-slate-900">{cap.price}</span>
                             {cap.subscribed ? (
@@ -56,7 +56,7 @@ const Marketplace: React.FC = () => {
                 </div>
             )
         })}
-        
+
         {/* Placeholder for "Coming Soon" */}
         <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center opacity-60 hover:opacity-100 hover:border-blue-300 transition-all cursor-pointer">
             <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3">

@@ -48,7 +48,7 @@ const KernelConnect: React.FC = () => {
                     </div>
                     <h3 className="text-xl font-bold text-slate-800 mb-2">{scanning ? '正在扫描局域网...' : '准备开始接入'}</h3>
                     <p className="text-slate-500 mb-8">系统将自动发现支持 Modbus/OPC UA 协议的设备。</p>
-                    <button 
+                    <button
                         onClick={startScan}
                         disabled={scanning}
                         className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium transition-all"
@@ -104,7 +104,7 @@ const KernelConnect: React.FC = () => {
                                 <p className="text-2xl font-mono text-slate-900">128 packets/s</p>
                             </div>
                         </div>
-                        
+
                         <div className="space-y-4">
                              <h5 className="font-medium text-slate-700 flex items-center gap-2">
                                 <AlertCircle size={16} className="text-amber-500"/> 发现潜在问题

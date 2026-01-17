@@ -43,31 +43,31 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
-      <Sidebar 
-        currentPath={location.pathname} 
+      <Sidebar
+        currentPath={location.pathname}
         onNavigate={(path) => {
             navigate(path);
             setSidebarOpen(false);
         }}
         isOpen={sidebarOpen}
       />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        <TopBar 
-            title={getTitle(location.pathname)} 
+        <TopBar
+            title={getTitle(location.pathname)}
             toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         />
-        
+
         <main className="flex-1 overflow-auto scroll-smooth">
           {children}
         </main>
 
         {showGlobalAi && <AiAssistant contextData={getContextData()} />}
       </div>
-      
+
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
+        <div
             className="fixed inset-0 bg-black/20 z-20 lg:hidden"
             onClick={() => setSidebarOpen(false)}
         ></div>

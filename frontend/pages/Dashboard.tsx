@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Sector
 } from 'recharts';
@@ -33,7 +33,7 @@ const QUALITY_DATA = [
 
 const Dashboard: React.FC = () => {
   const [sinanMode, setSinanMode] = useState<'idle' | 'alert'>('idle');
-  
+
   // Simulate anomaly detection after a few seconds
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,7 +76,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 min-h-full flex flex-col gap-6">
-      
+
       {/* Header Info Bar */}
       <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm flex flex-wrap justify-between items-center gap-4">
         <div className="flex items-center gap-4">
@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
                 </p>
             </div>
         </div>
-        
+
         <div className="flex items-center gap-6 text-sm">
              <div className="text-right">
                 <p className="text-slate-400 text-xs">当前班次</p>
@@ -110,10 +110,10 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
-        
+
         {/* Left Column: KPIs & Charts */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-            
+
             {/* Production Monitor */}
             <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex-1">
                 <div className="flex justify-between items-center mb-6">
@@ -132,7 +132,7 @@ const Dashboard: React.FC = () => {
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                             <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
                             <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                            <Tooltip 
+                            <Tooltip
                                 cursor={{fill: '#f1f5f9'}}
                                 contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
                             />
@@ -187,7 +187,7 @@ const Dashboard: React.FC = () => {
                      <div className="w-full bg-slate-100 rounded-full h-2">
                         <div className="bg-blue-600 h-2 rounded-full" style={{width: '82.5%'}}></div>
                      </div>
-                     
+
                      <div className="flex items-center justify-between mt-2">
                         <span className="text-sm text-slate-500">本班次完成率</span>
                         <span className="text-xl font-bold text-slate-800">94.2%</span>
@@ -209,7 +209,7 @@ const Dashboard: React.FC = () => {
 
         {/* Right Column: Alert Stream & Sinan */}
         <div className="flex flex-col gap-6">
-            
+
             {/* Alert Stream */}
             <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex-1 overflow-hidden flex flex-col">
                 <h3 className="font-bold text-slate-800 mb-4 flex items-center justify-between">
@@ -222,14 +222,14 @@ const Dashboard: React.FC = () => {
 
                     {ALERTS.map((alert) => (
                         <div key={alert.id} className="relative pl-6 group cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
-                            <div className={`absolute left-[5px] top-4 w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm z-10 
+                            <div className={`absolute left-[5px] top-4 w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm z-10
                                 ${alert.level === 'critical' ? 'bg-red-500' : alert.level === 'error' ? 'bg-orange-500' : 'bg-yellow-400'}`}>
                             </div>
                             <div className="flex justify-between items-start">
                                 <span className="text-xs font-mono text-slate-400">{alert.time}</span>
-                                <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border 
-                                    ${alert.level === 'critical' ? 'bg-red-50 border-red-100 text-red-600' : 
-                                      alert.level === 'error' ? 'bg-orange-50 border-orange-100 text-orange-600' : 
+                                <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border
+                                    ${alert.level === 'critical' ? 'bg-red-50 border-red-100 text-red-600' :
+                                      alert.level === 'error' ? 'bg-orange-50 border-orange-100 text-orange-600' :
                                       'bg-yellow-50 border-yellow-100 text-yellow-700'}`}>
                                     {alert.level}
                                 </span>
@@ -243,8 +243,8 @@ const Dashboard: React.FC = () => {
 
             {/* Sinan Assistant Area */}
             <div className="h-64 relative">
-                <SinanAvatar 
-                    mode={sinanMode} 
+                <SinanAvatar
+                    mode={sinanMode}
                     alertMessage="#5 贴片机 不良品率飙升至 8%！疑似吸嘴故障。"
                     className="h-full justify-end pb-4"
                 />

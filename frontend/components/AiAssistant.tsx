@@ -17,9 +17,9 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
   const handleAnalyze = async () => {
     setLoading(true);
     setMessages(prev => [...prev, { role: 'user', content: '请分析当前产线健康状况并给出建议。' }]);
-    
+
     const analysis = await analyzeSystemHealth(contextData);
-    
+
     setMessages(prev => [...prev, { role: 'ai', content: analysis }]);
     setLoading(false);
   };
@@ -37,13 +37,13 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
                 <X size={16} />
             </button>
           </div>
-          
+
           <div className="h-80 overflow-y-auto p-4 space-y-4 bg-slate-50">
             {messages.map((msg, idx) => (
                 <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[85%] p-3 rounded-xl text-sm leading-relaxed ${
-                        msg.role === 'user' 
-                        ? 'bg-blue-600 text-white rounded-tr-none' 
+                        msg.role === 'user'
+                        ? 'bg-blue-600 text-white rounded-tr-none'
                         : 'bg-white text-slate-700 shadow-sm border border-slate-100 rounded-tl-none'
                     }`}>
                         {msg.content}
@@ -62,7 +62,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
           </div>
 
           <div className="p-4 bg-white border-t border-slate-100">
-             <button 
+             <button
                 onClick={handleAnalyze}
                 disabled={loading}
                 className="w-full py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium rounded-lg text-sm transition-colors flex justify-center items-center gap-2"
@@ -74,7 +74,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
         </div>
       )}
 
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-lg shadow-blue-600/30 text-white flex items-center justify-center hover:scale-105 transition-all"
       >
