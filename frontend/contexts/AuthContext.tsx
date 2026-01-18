@@ -22,6 +22,7 @@ interface AuthContextType extends AuthState {
   logout: () => void
   checkAuth: () => Promise<void>
   clearError: () => void
+  getTokenExpiryTime: () => number | null // 返回过期时间戳（毫秒）
 }
 
 // 创建认证上下文
@@ -84,8 +85,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // 检查认证状态
   const checkAuth = useCallback(async (): Promise<void> => {
     const token = localStorage.getItem('access_token')
+    const expiresAt = localStorage.getItem('token_expires_at')
 
+    // 检查token是否存在
     if (!token) {
+      updateAuthState({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      })
+      return
+    }
+
+    // 检查token是否过期
+    if (expiresAt && Date.now() > parseInt(expiresAt)) {
+      // token已过期，清除存储
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('token_expires_at')
       updateAuthState({
         user: null,
         token: null,
@@ -120,8 +138,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
     } catch (error) {
       console.error('Auth check failed:', error)
-      // 清除无效token
+      // 清除无效token和过期时间
       localStorage.removeItem('access_token')
+      localStorage.removeItem('token_expires_at')
       updateAuthState({
         user: null,
         token: null,
@@ -150,8 +169,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid login response')
       }
 
-      // 存储token
+      // 存储token和过期时间（24小时）
+      const expiresAt = Date.now() + (24 * 60 * 60 * 1000) // 24小时后过期
       localStorage.setItem('access_token', tokenData.access_token)
+      localStorage.setItem('token_expires_at', expiresAt.toString())
 
       // 验证token并获取用户信息
       const isValid = await validateToken()
@@ -200,8 +221,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // 登出函数
   const logout = (): void => {
-    // 清除localStorage中的token
+    // 清除localStorage中的token和过期时间
     localStorage.removeItem('access_token')
+    localStorage.removeItem('token_expires_at')
 
     // 重置认证状态
     updateAuthState({
@@ -211,6 +233,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isLoading: false,
       error: null,
     })
+  }
+
+  // 获取token过期时间
+  const getTokenExpiryTime = (): number | null => {
+    const expiresAt = localStorage.getItem('token_expires_at')
+    return expiresAt ? parseInt(expiresAt) : null
   }
 
   // 初始化时检查认证状态
@@ -225,6 +253,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     checkAuth,
     clearError,
+    getTokenExpiryTime,
   }
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

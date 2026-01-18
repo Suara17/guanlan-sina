@@ -29,6 +29,7 @@ export const useAuth = (): AuthContextType => {
         logout: () => {},
         checkAuth: async () => {},
         clearError: () => {},
+        getTokenExpiryTime: () => null,
       } as AuthContextType
     }
     throw error
