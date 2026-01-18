@@ -1,5 +1,4 @@
-import { client } from './src/client';
-import { readUsersApiV1UsersGet } from './src/client';
+import { client, readUsersApiV1UsersGet } from './src/client';
 
 // 示例：获取用户列表
 const getUsers = async () => {

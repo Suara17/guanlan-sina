@@ -1,7 +1,7 @@
-import { createClient } from './src/client';
+import { createClient } from './src/client'
 
 // 创建客户端实例
-const client = createClient();
+const client = createClient()
 
 // 配置客户端
 client.setConfig({
@@ -9,19 +9,19 @@ client.setConfig({
   headers: {
     'Content-Type': 'application/json',
   },
-});
+})
 
 // 设置认证token
 client.interceptors.request.use((request) => {
-  const token = localStorage.getItem("access_token");
+  const token = localStorage.getItem('access_token')
   if (token) {
-    request.headers.set('Authorization', `Bearer ${token}`);
+    request.headers.set('Authorization', `Bearer ${token}`)
   }
-  return request;
-});
+  return request
+})
 
-console.log("Client baseUrl:", client.getConfig().baseUrl)
-console.log("VITE_API_URL:", import.meta.env.VITE_API_URL)
+console.log('Client baseUrl:', client.getConfig().baseUrl)
+console.log('VITE_API_URL:', import.meta.env.VITE_API_URL)
 
 // 导出客户端供其他模块使用
-export { client };
+export { client }

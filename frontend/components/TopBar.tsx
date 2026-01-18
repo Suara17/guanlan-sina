@@ -1,26 +1,29 @@
-import React from 'react';
-import { Bell, Search, User, Menu, LogOut } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { Bell, LogOut, Menu, Search, User } from 'lucide-react'
+import type React from 'react'
+import { useAuth } from '../hooks/useAuth'
 
 interface TopBarProps {
-  title: string;
-  toggleSidebar: () => void;
+  title: string
+  toggleSidebar: () => void
 }
 
 const TopBar: React.FC<TopBarProps> = ({ title, toggleSidebar }) => {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth()
 
   const handleLogout = () => {
     if (window.confirm('确定要退出登录吗？')) {
-      logout();
+      logout()
     }
-  };
+  }
 
   return (
     <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
       <div className="flex items-center gap-4">
-        <button onClick={toggleSidebar} className="lg:hidden p-2 text-slate-500 hover:bg-slate-50 rounded-md">
-            <Menu size={20} />
+        <button
+          onClick={toggleSidebar}
+          className="lg:hidden p-2 text-slate-500 hover:bg-slate-50 rounded-md"
+        >
+          <Menu size={20} />
         </button>
         <h2 className="text-xl font-semibold text-slate-800 tracking-tight">{title}</h2>
       </div>
@@ -45,9 +48,7 @@ const TopBar: React.FC<TopBarProps> = ({ title, toggleSidebar }) => {
             <p className="text-sm font-medium text-slate-700">
               {user?.full_name || user?.username || '用户'}
             </p>
-            <p className="text-xs text-slate-400">
-              {user?.role || '管理员'}
-            </p>
+            <p className="text-xs text-slate-400">{user?.role || '管理员'}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 border border-blue-200">
@@ -64,7 +65,7 @@ const TopBar: React.FC<TopBarProps> = ({ title, toggleSidebar }) => {
         </div>
       </div>
     </header>
-  );
-};
+  )
+}
 
-export default TopBar;
+export default TopBar

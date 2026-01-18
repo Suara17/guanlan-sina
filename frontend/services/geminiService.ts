@@ -1,12 +1,11 @@
+import { GoogleGenAI } from '@google/genai'
 
-import { GoogleGenAI } from "@google/genai";
-
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+const apiKey = process.env.API_KEY || ''
+const ai = new GoogleGenAI({ apiKey })
 
 export const analyzeSystemHealth = async (metrics: any): Promise<string> => {
   if (!apiKey) {
-    return "API Key 未配置。请在环境变量中设置 API_KEY 以启用 AI 诊断功能。";
+    return 'API Key 未配置。请在环境变量中设置 API_KEY 以启用 AI 诊断功能。'
   }
 
   try {
@@ -20,16 +19,16 @@ export const analyzeSystemHealth = async (metrics: any): Promise<string> => {
       2. 重点指出OEE（设备综合效率）是否达标（基准85%）。
       3. 给出1-2条具体的改进建议。
       4. 输出格式为纯文本，不要Markdown。
-    `;
+    `
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-latest',
       contents: prompt,
-    });
+    })
 
-    return response.text || "无法生成分析报告。";
+    return response.text || '无法生成分析报告。'
   } catch (error) {
-    console.error("AI Analysis failed:", error);
-    return "AI 服务暂时不可用，请稍后再试。";
+    console.error('AI Analysis failed:', error)
+    return 'AI 服务暂时不可用，请稍后再试。'
   }
-};
+}

@@ -1,5 +1,5 @@
-import { useContext } from 'react';
-import AuthContext, { AuthContextType } from '../contexts/AuthContext';
+import { useContext } from 'react'
+import AuthContext, { type AuthContextType } from '../contexts/AuthContext'
 
 /**
  * 认证相关的自定义hook
@@ -9,11 +9,11 @@ import AuthContext, { AuthContextType } from '../contexts/AuthContext';
  * @throws 如果在AuthProvider之外使用会抛出错误
  */
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   }
-  return context;
-};
+  return context
+}
 
-export default useAuth;
+export default useAuth

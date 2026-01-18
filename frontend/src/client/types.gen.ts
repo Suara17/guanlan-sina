@@ -4,1685 +4,1751 @@
  * Anomaly
  */
 export type Anomaly = {
-    /**
-     * Line Id
-     */
-    line_id: string;
-    /**
-     * Station Id
-     */
-    station_id: string;
-    /**
-     * Defect Type
-     */
-    defect_type: string;
-    /**
-     * Severity
-     */
-    severity: string;
-    /**
-     * Detected At
-     */
-    detected_at: string;
-    /**
-     * Status
-     */
-    status?: string;
-    /**
-     * Assigned To
-     */
-    assigned_to?: string | null;
-    /**
-     * Root Cause
-     */
-    root_cause?: string | null;
-    /**
-     * Solution Id
-     */
-    solution_id?: string | null;
-    /**
-     * Id
-     */
-    id?: string;
-    /**
-     * Created At
-     */
-    created_at?: string;
-    /**
-     * Closed At
-     */
-    closed_at?: string | null;
+	/**
+	 * Line Id
+	 */
+	line_id: string;
+	/**
+	 * Station Id
+	 */
+	station_id: string;
+	/**
+	 * Defect Type
+	 */
+	defect_type: string;
+	/**
+	 * Severity
+	 */
+	severity: string;
+	/**
+	 * Detected At
+	 */
+	detected_at: string;
+	/**
+	 * Status
+	 */
+	status?: string;
+	/**
+	 * Assigned To
+	 */
+	assigned_to?: string | null;
+	/**
+	 * Root Cause
+	 */
+	root_cause?: string | null;
+	/**
+	 * Solution Id
+	 */
+	solution_id?: string | null;
+	/**
+	 * Id
+	 */
+	id?: string;
+	/**
+	 * Created At
+	 */
+	created_at?: string;
+	/**
+	 * Closed At
+	 */
+	closed_at?: string | null;
 };
 
 /**
  * Body_login_access_token_api_v1_login_access_token_post
  */
 export type BodyLoginAccessTokenApiV1LoginAccessTokenPost = {
-    /**
-     * Grant Type
-     */
-    grant_type?: string | null;
-    /**
-     * Username
-     */
-    username: string;
-    /**
-     * Password
-     */
-    password: string;
-    /**
-     * Scope
-     */
-    scope?: string;
-    /**
-     * Client Id
-     */
-    client_id?: string | null;
-    /**
-     * Client Secret
-     */
-    client_secret?: string | null;
+	/**
+	 * Grant Type
+	 */
+	grant_type?: string | null;
+	/**
+	 * Username
+	 */
+	username: string;
+	/**
+	 * Password
+	 */
+	password: string;
+	/**
+	 * Scope
+	 */
+	scope?: string;
+	/**
+	 * Client Id
+	 */
+	client_id?: string | null;
+	/**
+	 * Client Secret
+	 */
+	client_secret?: string | null;
 };
 
 /**
  * CaseLibrary
  */
 export type CaseLibrary = {
-    /**
-     * Anomaly Id
-     */
-    anomaly_id: string;
-    /**
-     * Problem Description
-     */
-    problem_description?: string | null;
-    /**
-     * Solution Adopted
-     */
-    solution_adopted?: string | null;
-    /**
-     * Lessons Learned
-     */
-    lessons_learned?: string | null;
-    /**
-     * Id
-     */
-    id?: string;
-    /**
-     * Diagnosis Result
-     */
-    diagnosis_result?: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Expected Effect
-     */
-    expected_effect?: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Actual Effect
-     */
-    actual_effect?: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Tags
-     */
-    tags?: Array<string>;
-    /**
-     * Created At
-     */
-    created_at?: string;
+	/**
+	 * Anomaly Id
+	 */
+	anomaly_id: string;
+	/**
+	 * Problem Description
+	 */
+	problem_description?: string | null;
+	/**
+	 * Solution Adopted
+	 */
+	solution_adopted?: string | null;
+	/**
+	 * Lessons Learned
+	 */
+	lessons_learned?: string | null;
+	/**
+	 * Id
+	 */
+	id?: string;
+	/**
+	 * Diagnosis Result
+	 */
+	diagnosis_result?: {
+		[key: string]: unknown;
+	} | null;
+	/**
+	 * Expected Effect
+	 */
+	expected_effect?: {
+		[key: string]: unknown;
+	} | null;
+	/**
+	 * Actual Effect
+	 */
+	actual_effect?: {
+		[key: string]: unknown;
+	} | null;
+	/**
+	 * Tags
+	 */
+	tags?: Array<string>;
+	/**
+	 * Created At
+	 */
+	created_at?: string;
 };
 
 /**
  * CaseLibraryBase
  */
 export type CaseLibraryBase = {
-    /**
-     * Anomaly Id
-     */
-    anomaly_id: string;
-    /**
-     * Problem Description
-     */
-    problem_description?: string | null;
-    /**
-     * Solution Adopted
-     */
-    solution_adopted?: string | null;
-    /**
-     * Lessons Learned
-     */
-    lessons_learned?: string | null;
+	/**
+	 * Anomaly Id
+	 */
+	anomaly_id: string;
+	/**
+	 * Problem Description
+	 */
+	problem_description?: string | null;
+	/**
+	 * Solution Adopted
+	 */
+	solution_adopted?: string | null;
+	/**
+	 * Lessons Learned
+	 */
+	lessons_learned?: string | null;
 };
 
 /**
  * DiagnosisPublic
  */
 export type DiagnosisPublic = {
-    /**
-     * Anomaly Id
-     */
-    anomaly_id: string;
-    /**
-     * Root Cause
-     */
-    root_cause?: string | null;
-    /**
-     * Confidence
-     */
-    confidence?: number | null;
-    /**
-     * Id
-     */
-    id: string;
-    /**
-     * Created At
-     */
-    created_at: string;
-    /**
-     * Solutions
-     */
-    solutions?: Array<SolutionPublic>;
+	/**
+	 * Anomaly Id
+	 */
+	anomaly_id: string;
+	/**
+	 * Root Cause
+	 */
+	root_cause?: string | null;
+	/**
+	 * Confidence
+	 */
+	confidence?: number | null;
+	/**
+	 * Id
+	 */
+	id: string;
+	/**
+	 * Created At
+	 */
+	created_at: string;
+	/**
+	 * Solutions
+	 */
+	solutions?: Array<SolutionPublic>;
 };
 
 /**
  * HTTPValidationError
  */
 export type HttpValidationError = {
-    /**
-     * Detail
-     */
-    detail?: Array<ValidationError>;
+	/**
+	 * Detail
+	 */
+	detail?: Array<ValidationError>;
 };
 
 /**
  * ItemCreate
  */
 export type ItemCreate = {
-    /**
-     * Title
-     */
-    title: string;
-    /**
-     * Description
-     */
-    description?: string | null;
+	/**
+	 * Title
+	 */
+	title: string;
+	/**
+	 * Description
+	 */
+	description?: string | null;
 };
 
 /**
  * ItemPublic
  */
 export type ItemPublic = {
-    /**
-     * Title
-     */
-    title: string;
-    /**
-     * Description
-     */
-    description?: string | null;
-    /**
-     * Id
-     */
-    id: string;
-    /**
-     * Owner Id
-     */
-    owner_id: string;
+	/**
+	 * Title
+	 */
+	title: string;
+	/**
+	 * Description
+	 */
+	description?: string | null;
+	/**
+	 * Id
+	 */
+	id: string;
+	/**
+	 * Owner Id
+	 */
+	owner_id: string;
 };
 
 /**
  * ItemUpdate
  */
 export type ItemUpdate = {
-    /**
-     * Title
-     */
-    title?: string | null;
-    /**
-     * Description
-     */
-    description?: string | null;
+	/**
+	 * Title
+	 */
+	title?: string | null;
+	/**
+	 * Description
+	 */
+	description?: string | null;
 };
 
 /**
  * ItemsPublic
  */
 export type ItemsPublic = {
-    /**
-     * Data
-     */
-    data: Array<ItemPublic>;
-    /**
-     * Count
-     */
-    count: number;
+	/**
+	 * Data
+	 */
+	data: Array<ItemPublic>;
+	/**
+	 * Count
+	 */
+	count: number;
 };
 
 /**
  * Message
  */
 export type Message = {
-    /**
-     * Message
-     */
-    message: string;
+	/**
+	 * Message
+	 */
+	message: string;
 };
 
 /**
  * NewPassword
  */
 export type NewPassword = {
-    /**
-     * Token
-     */
-    token: string;
-    /**
-     * New Password
-     */
-    new_password: string;
+	/**
+	 * Token
+	 */
+	token: string;
+	/**
+	 * New Password
+	 */
+	new_password: string;
 };
 
 /**
  * PrivateUserCreate
  */
 export type PrivateUserCreate = {
-    /**
-     * Email
-     */
-    email: string;
-    /**
-     * Username
-     */
-    username: string;
-    /**
-     * Password
-     */
-    password: string;
-    /**
-     * Full Name
-     */
-    full_name: string;
-    /**
-     * Is Verified
-     */
-    is_verified?: boolean;
+	/**
+	 * Email
+	 */
+	email: string;
+	/**
+	 * Username
+	 */
+	username: string;
+	/**
+	 * Password
+	 */
+	password: string;
+	/**
+	 * Full Name
+	 */
+	full_name: string;
+	/**
+	 * Is Verified
+	 */
+	is_verified?: boolean;
 };
 
 /**
  * ProductionDashboardResponse
  */
 export type ProductionDashboardResponse = {
-    /**
-     * Total Production
-     * 总产量
-     */
-    total_production: number;
-    /**
-     * Quality Rate
-     * 质量率/良率
-     */
-    quality_rate: number;
-    /**
-     * Defect Rate
-     * 缺陷率
-     */
-    defect_rate: number;
-    /**
-     * Total Target
-     * 总目标产量
-     */
-    total_target: number;
-    /**
-     * Total Actual
-     * 总实际产量
-     */
-    total_actual: number;
-    /**
-     * Line Count
-     * 产线数量
-     */
-    line_count: number;
-    /**
-     * Active Lines
-     * 活跃产线数量
-     */
-    active_lines: number;
+	/**
+	 * Total Production
+	 * 总产量
+	 */
+	total_production: number;
+	/**
+	 * Quality Rate
+	 * 质量率/良率
+	 */
+	quality_rate: number;
+	/**
+	 * Defect Rate
+	 * 缺陷率
+	 */
+	defect_rate: number;
+	/**
+	 * Total Target
+	 * 总目标产量
+	 */
+	total_target: number;
+	/**
+	 * Total Actual
+	 * 总实际产量
+	 */
+	total_actual: number;
+	/**
+	 * Line Count
+	 * 产线数量
+	 */
+	line_count: number;
+	/**
+	 * Active Lines
+	 * 活跃产线数量
+	 */
+	active_lines: number;
 };
 
 /**
  * ProductionLine
  */
 export type ProductionLine = {
-    /**
-     * Line Name
-     */
-    line_name: string;
-    /**
-     * Factory Id
-     */
-    factory_id: string;
-    /**
-     * Status
-     */
-    status?: string;
-    /**
-     * Current Status
-     */
-    current_status?: string;
-    /**
-     * Id
-     */
-    id?: string;
-    /**
-     * Current Plan Id
-     */
-    current_plan_id?: string | null;
-    /**
-     * Bottleneck Station Id
-     */
-    bottleneck_station_id?: string | null;
-    /**
-     * Last Updated
-     */
-    last_updated?: string;
-    /**
-     * Created At
-     */
-    created_at?: string;
-    /**
-     * Updated At
-     */
-    updated_at?: string;
+	/**
+	 * Line Name
+	 */
+	line_name: string;
+	/**
+	 * Factory Id
+	 */
+	factory_id: string;
+	/**
+	 * Status
+	 */
+	status?: string;
+	/**
+	 * Current Status
+	 */
+	current_status?: string;
+	/**
+	 * Id
+	 */
+	id?: string;
+	/**
+	 * Current Plan Id
+	 */
+	current_plan_id?: string | null;
+	/**
+	 * Bottleneck Station Id
+	 */
+	bottleneck_station_id?: string | null;
+	/**
+	 * Last Updated
+	 */
+	last_updated?: string;
+	/**
+	 * Created At
+	 */
+	created_at?: string;
+	/**
+	 * Updated At
+	 */
+	updated_at?: string;
 };
 
 /**
  * SolutionPublic
  */
 export type SolutionPublic = {
-    /**
-     * Anomaly Id
-     */
-    anomaly_id: string;
-    /**
-     * Solution Type
-     */
-    solution_type?: string | null;
-    /**
-     * Solution Name
-     */
-    solution_name: string;
-    /**
-     * Description
-     */
-    description?: string | null;
-    /**
-     * Estimated Downtime Hours
-     */
-    estimated_downtime_hours?: number | null;
-    /**
-     * Success Rate
-     */
-    success_rate?: number | null;
-    /**
-     * Expected Loss
-     */
-    expected_loss?: number | null;
-    /**
-     * Roi
-     */
-    roi?: number | null;
-    /**
-     * Recommended
-     */
-    recommended?: boolean;
-    /**
-     * Id
-     */
-    id: string;
-    /**
-     * Diagnosis Id
-     */
-    diagnosis_id: string | null;
+	/**
+	 * Anomaly Id
+	 */
+	anomaly_id: string;
+	/**
+	 * Solution Type
+	 */
+	solution_type?: string | null;
+	/**
+	 * Solution Name
+	 */
+	solution_name: string;
+	/**
+	 * Description
+	 */
+	description?: string | null;
+	/**
+	 * Estimated Downtime Hours
+	 */
+	estimated_downtime_hours?: number | null;
+	/**
+	 * Success Rate
+	 */
+	success_rate?: number | null;
+	/**
+	 * Expected Loss
+	 */
+	expected_loss?: number | null;
+	/**
+	 * Roi
+	 */
+	roi?: number | null;
+	/**
+	 * Recommended
+	 */
+	recommended?: boolean;
+	/**
+	 * Id
+	 */
+	id: string;
+	/**
+	 * Diagnosis Id
+	 */
+	diagnosis_id: string | null;
 };
 
 /**
  * Token
  */
 export type Token = {
-    /**
-     * Access Token
-     */
-    access_token: string;
-    /**
-     * Token Type
-     */
-    token_type?: string;
+	/**
+	 * Access Token
+	 */
+	access_token: string;
+	/**
+	 * Token Type
+	 */
+	token_type?: string;
 };
 
 /**
  * UpdatePassword
  */
 export type UpdatePassword = {
-    /**
-     * Current Password
-     */
-    current_password: string;
-    /**
-     * New Password
-     */
-    new_password: string;
+	/**
+	 * Current Password
+	 */
+	current_password: string;
+	/**
+	 * New Password
+	 */
+	new_password: string;
 };
 
 /**
  * UserCreate
  */
 export type UserCreate = {
-    /**
-     * Email
-     */
-    email: string;
-    /**
-     * Username
-     */
-    username: string;
-    /**
-     * Is Active
-     */
-    is_active?: boolean;
-    /**
-     * Is Superuser
-     */
-    is_superuser?: boolean;
-    /**
-     * Full Name
-     */
-    full_name?: string | null;
-    /**
-     * Phone
-     */
-    phone?: string | null;
-    /**
-     * Role
-     */
-    role?: string | null;
-    /**
-     * Password
-     */
-    password: string;
+	/**
+	 * Email
+	 */
+	email: string;
+	/**
+	 * Username
+	 */
+	username: string;
+	/**
+	 * Is Active
+	 */
+	is_active?: boolean;
+	/**
+	 * Is Superuser
+	 */
+	is_superuser?: boolean;
+	/**
+	 * Full Name
+	 */
+	full_name?: string | null;
+	/**
+	 * Phone
+	 */
+	phone?: string | null;
+	/**
+	 * Role
+	 */
+	role?: string | null;
+	/**
+	 * Password
+	 */
+	password: string;
 };
 
 /**
  * UserPublic
  */
 export type UserPublic = {
-    /**
-     * Email
-     */
-    email: string;
-    /**
-     * Username
-     */
-    username: string;
-    /**
-     * Is Active
-     */
-    is_active?: boolean;
-    /**
-     * Is Superuser
-     */
-    is_superuser?: boolean;
-    /**
-     * Full Name
-     */
-    full_name?: string | null;
-    /**
-     * Phone
-     */
-    phone?: string | null;
-    /**
-     * Role
-     */
-    role?: string | null;
-    /**
-     * Id
-     */
-    id: string;
+	/**
+	 * Email
+	 */
+	email: string;
+	/**
+	 * Username
+	 */
+	username: string;
+	/**
+	 * Is Active
+	 */
+	is_active?: boolean;
+	/**
+	 * Is Superuser
+	 */
+	is_superuser?: boolean;
+	/**
+	 * Full Name
+	 */
+	full_name?: string | null;
+	/**
+	 * Phone
+	 */
+	phone?: string | null;
+	/**
+	 * Role
+	 */
+	role?: string | null;
+	/**
+	 * Id
+	 */
+	id: string;
 };
 
 /**
  * UserRegister
  */
 export type UserRegister = {
-    /**
-     * Email
-     */
-    email: string;
-    /**
-     * Username
-     */
-    username: string;
-    /**
-     * Password
-     */
-    password: string;
-    /**
-     * Full Name
-     */
-    full_name?: string | null;
+	/**
+	 * Email
+	 */
+	email: string;
+	/**
+	 * Username
+	 */
+	username: string;
+	/**
+	 * Password
+	 */
+	password: string;
+	/**
+	 * Full Name
+	 */
+	full_name?: string | null;
 };
 
 /**
  * UserUpdate
  */
 export type UserUpdate = {
-    /**
-     * Email
-     */
-    email?: string | null;
-    /**
-     * Username
-     */
-    username?: string | null;
-    /**
-     * Password
-     */
-    password?: string | null;
-    /**
-     * Full Name
-     */
-    full_name?: string | null;
-    /**
-     * Phone
-     */
-    phone?: string | null;
-    /**
-     * Role
-     */
-    role?: string | null;
-    /**
-     * Is Active
-     */
-    is_active?: boolean | null;
+	/**
+	 * Email
+	 */
+	email?: string | null;
+	/**
+	 * Username
+	 */
+	username?: string | null;
+	/**
+	 * Password
+	 */
+	password?: string | null;
+	/**
+	 * Full Name
+	 */
+	full_name?: string | null;
+	/**
+	 * Phone
+	 */
+	phone?: string | null;
+	/**
+	 * Role
+	 */
+	role?: string | null;
+	/**
+	 * Is Active
+	 */
+	is_active?: boolean | null;
 };
 
 /**
  * UserUpdateMe
  */
 export type UserUpdateMe = {
-    /**
-     * Full Name
-     */
-    full_name?: string | null;
-    /**
-     * Email
-     */
-    email?: string | null;
+	/**
+	 * Full Name
+	 */
+	full_name?: string | null;
+	/**
+	 * Email
+	 */
+	email?: string | null;
 };
 
 /**
  * UsersPublic
  */
 export type UsersPublic = {
-    /**
-     * Data
-     */
-    data: Array<UserPublic>;
-    /**
-     * Count
-     */
-    count: number;
+	/**
+	 * Data
+	 */
+	data: Array<UserPublic>;
+	/**
+	 * Count
+	 */
+	count: number;
 };
 
 /**
  * ValidationError
  */
 export type ValidationError = {
-    /**
-     * Location
-     */
-    loc: Array<string | number>;
-    /**
-     * Message
-     */
-    msg: string;
-    /**
-     * Error Type
-     */
-    type: string;
+	/**
+	 * Location
+	 */
+	loc: Array<string | number>;
+	/**
+	 * Message
+	 */
+	msg: string;
+	/**
+	 * Error Type
+	 */
+	type: string;
 };
 
 /**
  * WorkOrder
  */
 export type WorkOrder = {
-    /**
-     * Solution Id
-     */
-    solution_id: string;
-    /**
-     * Order Type
-     */
-    order_type?: string | null;
-    /**
-     * Responsible Person
-     */
-    responsible_person?: string | null;
-    /**
-     * Instructions
-     */
-    instructions?: string | null;
-    /**
-     * Estimated Duration Hours
-     */
-    estimated_duration_hours?: number | null;
-    /**
-     * Actual Duration Hours
-     */
-    actual_duration_hours?: number | null;
-    /**
-     * Status
-     */
-    status?: string;
-    /**
-     * Execution Result
-     */
-    execution_result?: string | null;
-    /**
-     * Actual Loss
-     */
-    actual_loss?: number | null;
-    /**
-     * Notes
-     */
-    notes?: string | null;
-    /**
-     * Id
-     */
-    id?: string;
-    /**
-     * Created At
-     */
-    created_at?: string;
-    /**
-     * Started At
-     */
-    started_at?: string | null;
-    /**
-     * Completed At
-     */
-    completed_at?: string | null;
+	/**
+	 * Solution Id
+	 */
+	solution_id: string;
+	/**
+	 * Order Type
+	 */
+	order_type?: string | null;
+	/**
+	 * Responsible Person
+	 */
+	responsible_person?: string | null;
+	/**
+	 * Instructions
+	 */
+	instructions?: string | null;
+	/**
+	 * Estimated Duration Hours
+	 */
+	estimated_duration_hours?: number | null;
+	/**
+	 * Actual Duration Hours
+	 */
+	actual_duration_hours?: number | null;
+	/**
+	 * Status
+	 */
+	status?: string;
+	/**
+	 * Execution Result
+	 */
+	execution_result?: string | null;
+	/**
+	 * Actual Loss
+	 */
+	actual_loss?: number | null;
+	/**
+	 * Notes
+	 */
+	notes?: string | null;
+	/**
+	 * Id
+	 */
+	id?: string;
+	/**
+	 * Created At
+	 */
+	created_at?: string;
+	/**
+	 * Started At
+	 */
+	started_at?: string | null;
+	/**
+	 * Completed At
+	 */
+	completed_at?: string | null;
 };
 
 export type LoginAccessTokenApiV1LoginAccessTokenPostData = {
-    body: BodyLoginAccessTokenApiV1LoginAccessTokenPost;
-    path?: never;
-    query?: never;
-    url: '/api/v1/login/access-token';
+	body: BodyLoginAccessTokenApiV1LoginAccessTokenPost;
+	path?: never;
+	query?: never;
+	url: "/api/v1/login/access-token";
 };
 
 export type LoginAccessTokenApiV1LoginAccessTokenPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type LoginAccessTokenApiV1LoginAccessTokenPostError = LoginAccessTokenApiV1LoginAccessTokenPostErrors[keyof LoginAccessTokenApiV1LoginAccessTokenPostErrors];
+export type LoginAccessTokenApiV1LoginAccessTokenPostError =
+	LoginAccessTokenApiV1LoginAccessTokenPostErrors[keyof LoginAccessTokenApiV1LoginAccessTokenPostErrors];
 
 export type LoginAccessTokenApiV1LoginAccessTokenPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: Token;
+	/**
+	 * Successful Response
+	 */
+	200: Token;
 };
 
-export type LoginAccessTokenApiV1LoginAccessTokenPostResponse = LoginAccessTokenApiV1LoginAccessTokenPostResponses[keyof LoginAccessTokenApiV1LoginAccessTokenPostResponses];
+export type LoginAccessTokenApiV1LoginAccessTokenPostResponse =
+	LoginAccessTokenApiV1LoginAccessTokenPostResponses[keyof LoginAccessTokenApiV1LoginAccessTokenPostResponses];
 
 export type TestTokenApiV1LoginTestTokenPostData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/login/test-token';
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/v1/login/test-token";
 };
 
 export type TestTokenApiV1LoginTestTokenPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserPublic;
+	/**
+	 * Successful Response
+	 */
+	200: UserPublic;
 };
 
-export type TestTokenApiV1LoginTestTokenPostResponse = TestTokenApiV1LoginTestTokenPostResponses[keyof TestTokenApiV1LoginTestTokenPostResponses];
+export type TestTokenApiV1LoginTestTokenPostResponse =
+	TestTokenApiV1LoginTestTokenPostResponses[keyof TestTokenApiV1LoginTestTokenPostResponses];
 
 export type RecoverPasswordApiV1PasswordRecoveryEmailPostData = {
-    body?: never;
-    path: {
-        /**
-         * Email
-         */
-        email: string;
-    };
-    query?: never;
-    url: '/api/v1/password-recovery/{email}';
+	body?: never;
+	path: {
+		/**
+		 * Email
+		 */
+		email: string;
+	};
+	query?: never;
+	url: "/api/v1/password-recovery/{email}";
 };
 
 export type RecoverPasswordApiV1PasswordRecoveryEmailPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type RecoverPasswordApiV1PasswordRecoveryEmailPostError = RecoverPasswordApiV1PasswordRecoveryEmailPostErrors[keyof RecoverPasswordApiV1PasswordRecoveryEmailPostErrors];
+export type RecoverPasswordApiV1PasswordRecoveryEmailPostError =
+	RecoverPasswordApiV1PasswordRecoveryEmailPostErrors[keyof RecoverPasswordApiV1PasswordRecoveryEmailPostErrors];
 
 export type RecoverPasswordApiV1PasswordRecoveryEmailPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: Message;
+	/**
+	 * Successful Response
+	 */
+	200: Message;
 };
 
-export type RecoverPasswordApiV1PasswordRecoveryEmailPostResponse = RecoverPasswordApiV1PasswordRecoveryEmailPostResponses[keyof RecoverPasswordApiV1PasswordRecoveryEmailPostResponses];
+export type RecoverPasswordApiV1PasswordRecoveryEmailPostResponse =
+	RecoverPasswordApiV1PasswordRecoveryEmailPostResponses[keyof RecoverPasswordApiV1PasswordRecoveryEmailPostResponses];
 
 export type ResetPasswordApiV1ResetPasswordPostData = {
-    body: NewPassword;
-    path?: never;
-    query?: never;
-    url: '/api/v1/reset-password/';
+	body: NewPassword;
+	path?: never;
+	query?: never;
+	url: "/api/v1/reset-password/";
 };
 
 export type ResetPasswordApiV1ResetPasswordPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type ResetPasswordApiV1ResetPasswordPostError = ResetPasswordApiV1ResetPasswordPostErrors[keyof ResetPasswordApiV1ResetPasswordPostErrors];
+export type ResetPasswordApiV1ResetPasswordPostError =
+	ResetPasswordApiV1ResetPasswordPostErrors[keyof ResetPasswordApiV1ResetPasswordPostErrors];
 
 export type ResetPasswordApiV1ResetPasswordPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: Message;
+	/**
+	 * Successful Response
+	 */
+	200: Message;
 };
 
-export type ResetPasswordApiV1ResetPasswordPostResponse = ResetPasswordApiV1ResetPasswordPostResponses[keyof ResetPasswordApiV1ResetPasswordPostResponses];
+export type ResetPasswordApiV1ResetPasswordPostResponse =
+	ResetPasswordApiV1ResetPasswordPostResponses[keyof ResetPasswordApiV1ResetPasswordPostResponses];
 
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostData = {
-    body?: never;
-    path: {
-        /**
-         * Email
-         */
-        email: string;
-    };
-    query?: never;
-    url: '/api/v1/password-recovery-html-content/{email}';
-};
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostData =
+	{
+		body?: never;
+		path: {
+			/**
+			 * Email
+			 */
+			email: string;
+		};
+		query?: never;
+		url: "/api/v1/password-recovery-html-content/{email}";
+	};
 
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostErrors =
+	{
+		/**
+		 * Validation Error
+		 */
+		422: HttpValidationError;
+	};
 
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostError = RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostErrors[keyof RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostErrors];
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostError =
+	RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostErrors[keyof RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostErrors];
 
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: string;
-};
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses =
+	{
+		/**
+		 * Successful Response
+		 */
+		200: string;
+	};
 
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponse = RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses[keyof RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses];
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponse =
+	RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses[keyof RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses];
 
 export type ReadUsersApiV1UsersGetData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Skip
-         */
-        skip?: number;
-        /**
-         * Limit
-         */
-        limit?: number;
-    };
-    url: '/api/v1/users/';
+	body?: never;
+	path?: never;
+	query?: {
+		/**
+		 * Skip
+		 */
+		skip?: number;
+		/**
+		 * Limit
+		 */
+		limit?: number;
+	};
+	url: "/api/v1/users/";
 };
 
 export type ReadUsersApiV1UsersGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type ReadUsersApiV1UsersGetError = ReadUsersApiV1UsersGetErrors[keyof ReadUsersApiV1UsersGetErrors];
+export type ReadUsersApiV1UsersGetError =
+	ReadUsersApiV1UsersGetErrors[keyof ReadUsersApiV1UsersGetErrors];
 
 export type ReadUsersApiV1UsersGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: UsersPublic;
+	/**
+	 * Successful Response
+	 */
+	200: UsersPublic;
 };
 
-export type ReadUsersApiV1UsersGetResponse = ReadUsersApiV1UsersGetResponses[keyof ReadUsersApiV1UsersGetResponses];
+export type ReadUsersApiV1UsersGetResponse =
+	ReadUsersApiV1UsersGetResponses[keyof ReadUsersApiV1UsersGetResponses];
 
 export type CreateUserApiV1UsersPostData = {
-    body: UserCreate;
-    path?: never;
-    query?: never;
-    url: '/api/v1/users/';
+	body: UserCreate;
+	path?: never;
+	query?: never;
+	url: "/api/v1/users/";
 };
 
 export type CreateUserApiV1UsersPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type CreateUserApiV1UsersPostError = CreateUserApiV1UsersPostErrors[keyof CreateUserApiV1UsersPostErrors];
+export type CreateUserApiV1UsersPostError =
+	CreateUserApiV1UsersPostErrors[keyof CreateUserApiV1UsersPostErrors];
 
 export type CreateUserApiV1UsersPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserPublic;
+	/**
+	 * Successful Response
+	 */
+	200: UserPublic;
 };
 
-export type CreateUserApiV1UsersPostResponse = CreateUserApiV1UsersPostResponses[keyof CreateUserApiV1UsersPostResponses];
+export type CreateUserApiV1UsersPostResponse =
+	CreateUserApiV1UsersPostResponses[keyof CreateUserApiV1UsersPostResponses];
 
 export type DeleteUserMeApiV1UsersMeDeleteData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/users/me';
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/v1/users/me";
 };
 
 export type DeleteUserMeApiV1UsersMeDeleteResponses = {
-    /**
-     * Successful Response
-     */
-    200: Message;
+	/**
+	 * Successful Response
+	 */
+	200: Message;
 };
 
-export type DeleteUserMeApiV1UsersMeDeleteResponse = DeleteUserMeApiV1UsersMeDeleteResponses[keyof DeleteUserMeApiV1UsersMeDeleteResponses];
+export type DeleteUserMeApiV1UsersMeDeleteResponse =
+	DeleteUserMeApiV1UsersMeDeleteResponses[keyof DeleteUserMeApiV1UsersMeDeleteResponses];
 
 export type ReadUserMeApiV1UsersMeGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/users/me';
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/v1/users/me";
 };
 
 export type ReadUserMeApiV1UsersMeGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserPublic;
+	/**
+	 * Successful Response
+	 */
+	200: UserPublic;
 };
 
-export type ReadUserMeApiV1UsersMeGetResponse = ReadUserMeApiV1UsersMeGetResponses[keyof ReadUserMeApiV1UsersMeGetResponses];
+export type ReadUserMeApiV1UsersMeGetResponse =
+	ReadUserMeApiV1UsersMeGetResponses[keyof ReadUserMeApiV1UsersMeGetResponses];
 
 export type UpdateUserMeApiV1UsersMePatchData = {
-    body: UserUpdateMe;
-    path?: never;
-    query?: never;
-    url: '/api/v1/users/me';
+	body: UserUpdateMe;
+	path?: never;
+	query?: never;
+	url: "/api/v1/users/me";
 };
 
 export type UpdateUserMeApiV1UsersMePatchErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type UpdateUserMeApiV1UsersMePatchError = UpdateUserMeApiV1UsersMePatchErrors[keyof UpdateUserMeApiV1UsersMePatchErrors];
+export type UpdateUserMeApiV1UsersMePatchError =
+	UpdateUserMeApiV1UsersMePatchErrors[keyof UpdateUserMeApiV1UsersMePatchErrors];
 
 export type UpdateUserMeApiV1UsersMePatchResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserPublic;
+	/**
+	 * Successful Response
+	 */
+	200: UserPublic;
 };
 
-export type UpdateUserMeApiV1UsersMePatchResponse = UpdateUserMeApiV1UsersMePatchResponses[keyof UpdateUserMeApiV1UsersMePatchResponses];
+export type UpdateUserMeApiV1UsersMePatchResponse =
+	UpdateUserMeApiV1UsersMePatchResponses[keyof UpdateUserMeApiV1UsersMePatchResponses];
 
 export type UpdatePasswordMeApiV1UsersMePasswordPatchData = {
-    body: UpdatePassword;
-    path?: never;
-    query?: never;
-    url: '/api/v1/users/me/password';
+	body: UpdatePassword;
+	path?: never;
+	query?: never;
+	url: "/api/v1/users/me/password";
 };
 
 export type UpdatePasswordMeApiV1UsersMePasswordPatchErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type UpdatePasswordMeApiV1UsersMePasswordPatchError = UpdatePasswordMeApiV1UsersMePasswordPatchErrors[keyof UpdatePasswordMeApiV1UsersMePasswordPatchErrors];
+export type UpdatePasswordMeApiV1UsersMePasswordPatchError =
+	UpdatePasswordMeApiV1UsersMePasswordPatchErrors[keyof UpdatePasswordMeApiV1UsersMePasswordPatchErrors];
 
 export type UpdatePasswordMeApiV1UsersMePasswordPatchResponses = {
-    /**
-     * Successful Response
-     */
-    200: Message;
+	/**
+	 * Successful Response
+	 */
+	200: Message;
 };
 
-export type UpdatePasswordMeApiV1UsersMePasswordPatchResponse = UpdatePasswordMeApiV1UsersMePasswordPatchResponses[keyof UpdatePasswordMeApiV1UsersMePasswordPatchResponses];
+export type UpdatePasswordMeApiV1UsersMePasswordPatchResponse =
+	UpdatePasswordMeApiV1UsersMePasswordPatchResponses[keyof UpdatePasswordMeApiV1UsersMePasswordPatchResponses];
 
 export type RegisterUserApiV1UsersSignupPostData = {
-    body: UserRegister;
-    path?: never;
-    query?: never;
-    url: '/api/v1/users/signup';
+	body: UserRegister;
+	path?: never;
+	query?: never;
+	url: "/api/v1/users/signup";
 };
 
 export type RegisterUserApiV1UsersSignupPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type RegisterUserApiV1UsersSignupPostError = RegisterUserApiV1UsersSignupPostErrors[keyof RegisterUserApiV1UsersSignupPostErrors];
+export type RegisterUserApiV1UsersSignupPostError =
+	RegisterUserApiV1UsersSignupPostErrors[keyof RegisterUserApiV1UsersSignupPostErrors];
 
 export type RegisterUserApiV1UsersSignupPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserPublic;
+	/**
+	 * Successful Response
+	 */
+	200: UserPublic;
 };
 
-export type RegisterUserApiV1UsersSignupPostResponse = RegisterUserApiV1UsersSignupPostResponses[keyof RegisterUserApiV1UsersSignupPostResponses];
+export type RegisterUserApiV1UsersSignupPostResponse =
+	RegisterUserApiV1UsersSignupPostResponses[keyof RegisterUserApiV1UsersSignupPostResponses];
 
 export type DeleteUserApiV1UsersUserIdDeleteData = {
-    body?: never;
-    path: {
-        /**
-         * User Id
-         */
-        user_id: string;
-    };
-    query?: never;
-    url: '/api/v1/users/{user_id}';
+	body?: never;
+	path: {
+		/**
+		 * User Id
+		 */
+		user_id: string;
+	};
+	query?: never;
+	url: "/api/v1/users/{user_id}";
 };
 
 export type DeleteUserApiV1UsersUserIdDeleteErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type DeleteUserApiV1UsersUserIdDeleteError = DeleteUserApiV1UsersUserIdDeleteErrors[keyof DeleteUserApiV1UsersUserIdDeleteErrors];
+export type DeleteUserApiV1UsersUserIdDeleteError =
+	DeleteUserApiV1UsersUserIdDeleteErrors[keyof DeleteUserApiV1UsersUserIdDeleteErrors];
 
 export type DeleteUserApiV1UsersUserIdDeleteResponses = {
-    /**
-     * Successful Response
-     */
-    200: Message;
+	/**
+	 * Successful Response
+	 */
+	200: Message;
 };
 
-export type DeleteUserApiV1UsersUserIdDeleteResponse = DeleteUserApiV1UsersUserIdDeleteResponses[keyof DeleteUserApiV1UsersUserIdDeleteResponses];
+export type DeleteUserApiV1UsersUserIdDeleteResponse =
+	DeleteUserApiV1UsersUserIdDeleteResponses[keyof DeleteUserApiV1UsersUserIdDeleteResponses];
 
 export type ReadUserByIdApiV1UsersUserIdGetData = {
-    body?: never;
-    path: {
-        /**
-         * User Id
-         */
-        user_id: string;
-    };
-    query?: never;
-    url: '/api/v1/users/{user_id}';
+	body?: never;
+	path: {
+		/**
+		 * User Id
+		 */
+		user_id: string;
+	};
+	query?: never;
+	url: "/api/v1/users/{user_id}";
 };
 
 export type ReadUserByIdApiV1UsersUserIdGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type ReadUserByIdApiV1UsersUserIdGetError = ReadUserByIdApiV1UsersUserIdGetErrors[keyof ReadUserByIdApiV1UsersUserIdGetErrors];
+export type ReadUserByIdApiV1UsersUserIdGetError =
+	ReadUserByIdApiV1UsersUserIdGetErrors[keyof ReadUserByIdApiV1UsersUserIdGetErrors];
 
 export type ReadUserByIdApiV1UsersUserIdGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserPublic;
+	/**
+	 * Successful Response
+	 */
+	200: UserPublic;
 };
 
-export type ReadUserByIdApiV1UsersUserIdGetResponse = ReadUserByIdApiV1UsersUserIdGetResponses[keyof ReadUserByIdApiV1UsersUserIdGetResponses];
+export type ReadUserByIdApiV1UsersUserIdGetResponse =
+	ReadUserByIdApiV1UsersUserIdGetResponses[keyof ReadUserByIdApiV1UsersUserIdGetResponses];
 
 export type UpdateUserApiV1UsersUserIdPatchData = {
-    body: UserUpdate;
-    path: {
-        /**
-         * User Id
-         */
-        user_id: string;
-    };
-    query?: never;
-    url: '/api/v1/users/{user_id}';
+	body: UserUpdate;
+	path: {
+		/**
+		 * User Id
+		 */
+		user_id: string;
+	};
+	query?: never;
+	url: "/api/v1/users/{user_id}";
 };
 
 export type UpdateUserApiV1UsersUserIdPatchErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type UpdateUserApiV1UsersUserIdPatchError = UpdateUserApiV1UsersUserIdPatchErrors[keyof UpdateUserApiV1UsersUserIdPatchErrors];
+export type UpdateUserApiV1UsersUserIdPatchError =
+	UpdateUserApiV1UsersUserIdPatchErrors[keyof UpdateUserApiV1UsersUserIdPatchErrors];
 
 export type UpdateUserApiV1UsersUserIdPatchResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserPublic;
+	/**
+	 * Successful Response
+	 */
+	200: UserPublic;
 };
 
-export type UpdateUserApiV1UsersUserIdPatchResponse = UpdateUserApiV1UsersUserIdPatchResponses[keyof UpdateUserApiV1UsersUserIdPatchResponses];
+export type UpdateUserApiV1UsersUserIdPatchResponse =
+	UpdateUserApiV1UsersUserIdPatchResponses[keyof UpdateUserApiV1UsersUserIdPatchResponses];
 
 export type TestEmailApiV1UtilsTestEmailPostData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Email To
-         */
-        email_to: string;
-    };
-    url: '/api/v1/utils/test-email/';
+	body?: never;
+	path?: never;
+	query: {
+		/**
+		 * Email To
+		 */
+		email_to: string;
+	};
+	url: "/api/v1/utils/test-email/";
 };
 
 export type TestEmailApiV1UtilsTestEmailPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type TestEmailApiV1UtilsTestEmailPostError = TestEmailApiV1UtilsTestEmailPostErrors[keyof TestEmailApiV1UtilsTestEmailPostErrors];
+export type TestEmailApiV1UtilsTestEmailPostError =
+	TestEmailApiV1UtilsTestEmailPostErrors[keyof TestEmailApiV1UtilsTestEmailPostErrors];
 
 export type TestEmailApiV1UtilsTestEmailPostResponses = {
-    /**
-     * Successful Response
-     */
-    201: Message;
+	/**
+	 * Successful Response
+	 */
+	201: Message;
 };
 
-export type TestEmailApiV1UtilsTestEmailPostResponse = TestEmailApiV1UtilsTestEmailPostResponses[keyof TestEmailApiV1UtilsTestEmailPostResponses];
+export type TestEmailApiV1UtilsTestEmailPostResponse =
+	TestEmailApiV1UtilsTestEmailPostResponses[keyof TestEmailApiV1UtilsTestEmailPostResponses];
 
 export type HealthCheckApiV1UtilsHealthCheckGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/utils/health-check/';
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/v1/utils/health-check/";
 };
 
 export type HealthCheckApiV1UtilsHealthCheckGetResponses = {
-    /**
-     * Response Health Check Api V1 Utils Health Check  Get
-     * Successful Response
-     */
-    200: boolean;
+	/**
+	 * Response Health Check Api V1 Utils Health Check  Get
+	 * Successful Response
+	 */
+	200: boolean;
 };
 
-export type HealthCheckApiV1UtilsHealthCheckGetResponse = HealthCheckApiV1UtilsHealthCheckGetResponses[keyof HealthCheckApiV1UtilsHealthCheckGetResponses];
+export type HealthCheckApiV1UtilsHealthCheckGetResponse =
+	HealthCheckApiV1UtilsHealthCheckGetResponses[keyof HealthCheckApiV1UtilsHealthCheckGetResponses];
 
 export type PingTestApiV1UtilsTestPingGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/utils/test/ping';
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/v1/utils/test/ping";
 };
 
 export type PingTestApiV1UtilsTestPingGetResponses = {
-    /**
-     * Response Ping Test Api V1 Utils Test Ping Get
-     * Successful Response
-     */
-    200: {
-        [key: string]: unknown;
-    };
+	/**
+	 * Response Ping Test Api V1 Utils Test Ping Get
+	 * Successful Response
+	 */
+	200: {
+		[key: string]: unknown;
+	};
 };
 
-export type PingTestApiV1UtilsTestPingGetResponse = PingTestApiV1UtilsTestPingGetResponses[keyof PingTestApiV1UtilsTestPingGetResponses];
+export type PingTestApiV1UtilsTestPingGetResponse =
+	PingTestApiV1UtilsTestPingGetResponses[keyof PingTestApiV1UtilsTestPingGetResponses];
 
 export type ReadItemsApiV1ItemsGetData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Skip
-         */
-        skip?: number;
-        /**
-         * Limit
-         */
-        limit?: number;
-    };
-    url: '/api/v1/items/';
+	body?: never;
+	path?: never;
+	query?: {
+		/**
+		 * Skip
+		 */
+		skip?: number;
+		/**
+		 * Limit
+		 */
+		limit?: number;
+	};
+	url: "/api/v1/items/";
 };
 
 export type ReadItemsApiV1ItemsGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type ReadItemsApiV1ItemsGetError = ReadItemsApiV1ItemsGetErrors[keyof ReadItemsApiV1ItemsGetErrors];
+export type ReadItemsApiV1ItemsGetError =
+	ReadItemsApiV1ItemsGetErrors[keyof ReadItemsApiV1ItemsGetErrors];
 
 export type ReadItemsApiV1ItemsGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: ItemsPublic;
+	/**
+	 * Successful Response
+	 */
+	200: ItemsPublic;
 };
 
-export type ReadItemsApiV1ItemsGetResponse = ReadItemsApiV1ItemsGetResponses[keyof ReadItemsApiV1ItemsGetResponses];
+export type ReadItemsApiV1ItemsGetResponse =
+	ReadItemsApiV1ItemsGetResponses[keyof ReadItemsApiV1ItemsGetResponses];
 
 export type CreateItemApiV1ItemsPostData = {
-    body: ItemCreate;
-    path?: never;
-    query?: never;
-    url: '/api/v1/items/';
+	body: ItemCreate;
+	path?: never;
+	query?: never;
+	url: "/api/v1/items/";
 };
 
 export type CreateItemApiV1ItemsPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type CreateItemApiV1ItemsPostError = CreateItemApiV1ItemsPostErrors[keyof CreateItemApiV1ItemsPostErrors];
+export type CreateItemApiV1ItemsPostError =
+	CreateItemApiV1ItemsPostErrors[keyof CreateItemApiV1ItemsPostErrors];
 
 export type CreateItemApiV1ItemsPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: ItemPublic;
+	/**
+	 * Successful Response
+	 */
+	200: ItemPublic;
 };
 
-export type CreateItemApiV1ItemsPostResponse = CreateItemApiV1ItemsPostResponses[keyof CreateItemApiV1ItemsPostResponses];
+export type CreateItemApiV1ItemsPostResponse =
+	CreateItemApiV1ItemsPostResponses[keyof CreateItemApiV1ItemsPostResponses];
 
 export type DeleteItemApiV1ItemsIdDeleteData = {
-    body?: never;
-    path: {
-        /**
-         * Id
-         */
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/items/{id}';
+	body?: never;
+	path: {
+		/**
+		 * Id
+		 */
+		id: string;
+	};
+	query?: never;
+	url: "/api/v1/items/{id}";
 };
 
 export type DeleteItemApiV1ItemsIdDeleteErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type DeleteItemApiV1ItemsIdDeleteError = DeleteItemApiV1ItemsIdDeleteErrors[keyof DeleteItemApiV1ItemsIdDeleteErrors];
+export type DeleteItemApiV1ItemsIdDeleteError =
+	DeleteItemApiV1ItemsIdDeleteErrors[keyof DeleteItemApiV1ItemsIdDeleteErrors];
 
 export type DeleteItemApiV1ItemsIdDeleteResponses = {
-    /**
-     * Successful Response
-     */
-    200: Message;
+	/**
+	 * Successful Response
+	 */
+	200: Message;
 };
 
-export type DeleteItemApiV1ItemsIdDeleteResponse = DeleteItemApiV1ItemsIdDeleteResponses[keyof DeleteItemApiV1ItemsIdDeleteResponses];
+export type DeleteItemApiV1ItemsIdDeleteResponse =
+	DeleteItemApiV1ItemsIdDeleteResponses[keyof DeleteItemApiV1ItemsIdDeleteResponses];
 
 export type ReadItemApiV1ItemsIdGetData = {
-    body?: never;
-    path: {
-        /**
-         * Id
-         */
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/items/{id}';
+	body?: never;
+	path: {
+		/**
+		 * Id
+		 */
+		id: string;
+	};
+	query?: never;
+	url: "/api/v1/items/{id}";
 };
 
 export type ReadItemApiV1ItemsIdGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type ReadItemApiV1ItemsIdGetError = ReadItemApiV1ItemsIdGetErrors[keyof ReadItemApiV1ItemsIdGetErrors];
+export type ReadItemApiV1ItemsIdGetError =
+	ReadItemApiV1ItemsIdGetErrors[keyof ReadItemApiV1ItemsIdGetErrors];
 
 export type ReadItemApiV1ItemsIdGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: ItemPublic;
+	/**
+	 * Successful Response
+	 */
+	200: ItemPublic;
 };
 
-export type ReadItemApiV1ItemsIdGetResponse = ReadItemApiV1ItemsIdGetResponses[keyof ReadItemApiV1ItemsIdGetResponses];
+export type ReadItemApiV1ItemsIdGetResponse =
+	ReadItemApiV1ItemsIdGetResponses[keyof ReadItemApiV1ItemsIdGetResponses];
 
 export type UpdateItemApiV1ItemsIdPutData = {
-    body: ItemUpdate;
-    path: {
-        /**
-         * Id
-         */
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/items/{id}';
+	body: ItemUpdate;
+	path: {
+		/**
+		 * Id
+		 */
+		id: string;
+	};
+	query?: never;
+	url: "/api/v1/items/{id}";
 };
 
 export type UpdateItemApiV1ItemsIdPutErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type UpdateItemApiV1ItemsIdPutError = UpdateItemApiV1ItemsIdPutErrors[keyof UpdateItemApiV1ItemsIdPutErrors];
+export type UpdateItemApiV1ItemsIdPutError =
+	UpdateItemApiV1ItemsIdPutErrors[keyof UpdateItemApiV1ItemsIdPutErrors];
 
 export type UpdateItemApiV1ItemsIdPutResponses = {
-    /**
-     * Successful Response
-     */
-    200: ItemPublic;
+	/**
+	 * Successful Response
+	 */
+	200: ItemPublic;
 };
 
-export type UpdateItemApiV1ItemsIdPutResponse = UpdateItemApiV1ItemsIdPutResponses[keyof UpdateItemApiV1ItemsIdPutResponses];
+export type UpdateItemApiV1ItemsIdPutResponse =
+	UpdateItemApiV1ItemsIdPutResponses[keyof UpdateItemApiV1ItemsIdPutResponses];
 
 export type ReadProductionLinesApiV1ProductionLinesGetData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Skip
-         */
-        skip?: number;
-        /**
-         * Limit
-         */
-        limit?: number;
-    };
-    url: '/api/v1/production/lines';
+	body?: never;
+	path?: never;
+	query?: {
+		/**
+		 * Skip
+		 */
+		skip?: number;
+		/**
+		 * Limit
+		 */
+		limit?: number;
+	};
+	url: "/api/v1/production/lines";
 };
 
 export type ReadProductionLinesApiV1ProductionLinesGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type ReadProductionLinesApiV1ProductionLinesGetError = ReadProductionLinesApiV1ProductionLinesGetErrors[keyof ReadProductionLinesApiV1ProductionLinesGetErrors];
+export type ReadProductionLinesApiV1ProductionLinesGetError =
+	ReadProductionLinesApiV1ProductionLinesGetErrors[keyof ReadProductionLinesApiV1ProductionLinesGetErrors];
 
 export type ReadProductionLinesApiV1ProductionLinesGetResponses = {
-    /**
-     * Response Read Production Lines Api V1 Production Lines Get
-     * Successful Response
-     */
-    200: Array<ProductionLine>;
+	/**
+	 * Response Read Production Lines Api V1 Production Lines Get
+	 * Successful Response
+	 */
+	200: Array<ProductionLine>;
 };
 
-export type ReadProductionLinesApiV1ProductionLinesGetResponse = ReadProductionLinesApiV1ProductionLinesGetResponses[keyof ReadProductionLinesApiV1ProductionLinesGetResponses];
+export type ReadProductionLinesApiV1ProductionLinesGetResponse =
+	ReadProductionLinesApiV1ProductionLinesGetResponses[keyof ReadProductionLinesApiV1ProductionLinesGetResponses];
 
 export type ReadProductionOverviewApiV1ProductionOverviewGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/production/overview';
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/v1/production/overview";
 };
 
 export type ReadProductionOverviewApiV1ProductionOverviewGetResponses = {
-    /**
-     * Response Read Production Overview Api V1 Production Overview Get
-     * Successful Response
-     */
-    200: unknown;
+	/**
+	 * Response Read Production Overview Api V1 Production Overview Get
+	 * Successful Response
+	 */
+	200: unknown;
 };
 
 export type GetProductionDashboardApiV1ProductionDashboardGetData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Start Date
-         * 开始日期
-         */
-        start_date: string;
-        /**
-         * End Date
-         * 结束日期
-         */
-        end_date: string;
-        /**
-         * Line Ids
-         * 产线ID列表
-         */
-        line_ids?: Array<string> | null;
-    };
-    url: '/api/v1/production/dashboard';
+	body?: never;
+	path?: never;
+	query: {
+		/**
+		 * Start Date
+		 * 开始日期
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 * 结束日期
+		 */
+		end_date: string;
+		/**
+		 * Line Ids
+		 * 产线ID列表
+		 */
+		line_ids?: Array<string> | null;
+	};
+	url: "/api/v1/production/dashboard";
 };
 
 export type GetProductionDashboardApiV1ProductionDashboardGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type GetProductionDashboardApiV1ProductionDashboardGetError = GetProductionDashboardApiV1ProductionDashboardGetErrors[keyof GetProductionDashboardApiV1ProductionDashboardGetErrors];
+export type GetProductionDashboardApiV1ProductionDashboardGetError =
+	GetProductionDashboardApiV1ProductionDashboardGetErrors[keyof GetProductionDashboardApiV1ProductionDashboardGetErrors];
 
 export type GetProductionDashboardApiV1ProductionDashboardGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: ProductionDashboardResponse;
+	/**
+	 * Successful Response
+	 */
+	200: ProductionDashboardResponse;
 };
 
-export type GetProductionDashboardApiV1ProductionDashboardGetResponse = GetProductionDashboardApiV1ProductionDashboardGetResponses[keyof GetProductionDashboardApiV1ProductionDashboardGetResponses];
+export type GetProductionDashboardApiV1ProductionDashboardGetResponse =
+	GetProductionDashboardApiV1ProductionDashboardGetResponses[keyof GetProductionDashboardApiV1ProductionDashboardGetResponses];
 
 export type ReadAnomaliesApiV1AnomaliesGetData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Skip
-         */
-        skip?: number;
-        /**
-         * Limit
-         */
-        limit?: number;
-        /**
-         * Status
-         */
-        status?: string | null;
-    };
-    url: '/api/v1/anomalies/';
+	body?: never;
+	path?: never;
+	query?: {
+		/**
+		 * Skip
+		 */
+		skip?: number;
+		/**
+		 * Limit
+		 */
+		limit?: number;
+		/**
+		 * Status
+		 */
+		status?: string | null;
+	};
+	url: "/api/v1/anomalies/";
 };
 
 export type ReadAnomaliesApiV1AnomaliesGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type ReadAnomaliesApiV1AnomaliesGetError = ReadAnomaliesApiV1AnomaliesGetErrors[keyof ReadAnomaliesApiV1AnomaliesGetErrors];
+export type ReadAnomaliesApiV1AnomaliesGetError =
+	ReadAnomaliesApiV1AnomaliesGetErrors[keyof ReadAnomaliesApiV1AnomaliesGetErrors];
 
 export type ReadAnomaliesApiV1AnomaliesGetResponses = {
-    /**
-     * Response Read Anomalies Api V1 Anomalies  Get
-     * Successful Response
-     */
-    200: Array<Anomaly>;
+	/**
+	 * Response Read Anomalies Api V1 Anomalies  Get
+	 * Successful Response
+	 */
+	200: Array<Anomaly>;
 };
 
-export type ReadAnomaliesApiV1AnomaliesGetResponse = ReadAnomaliesApiV1AnomaliesGetResponses[keyof ReadAnomaliesApiV1AnomaliesGetResponses];
+export type ReadAnomaliesApiV1AnomaliesGetResponse =
+	ReadAnomaliesApiV1AnomaliesGetResponses[keyof ReadAnomaliesApiV1AnomaliesGetResponses];
 
 export type TriggerDiagnosisApiV1AnomaliesIdDiagnosePostData = {
-    body?: never;
-    path: {
-        /**
-         * Id
-         */
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/anomalies/{id}/diagnose';
+	body?: never;
+	path: {
+		/**
+		 * Id
+		 */
+		id: string;
+	};
+	query?: never;
+	url: "/api/v1/anomalies/{id}/diagnose";
 };
 
 export type TriggerDiagnosisApiV1AnomaliesIdDiagnosePostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type TriggerDiagnosisApiV1AnomaliesIdDiagnosePostError = TriggerDiagnosisApiV1AnomaliesIdDiagnosePostErrors[keyof TriggerDiagnosisApiV1AnomaliesIdDiagnosePostErrors];
+export type TriggerDiagnosisApiV1AnomaliesIdDiagnosePostError =
+	TriggerDiagnosisApiV1AnomaliesIdDiagnosePostErrors[keyof TriggerDiagnosisApiV1AnomaliesIdDiagnosePostErrors];
 
 export type TriggerDiagnosisApiV1AnomaliesIdDiagnosePostResponses = {
-    /**
-     * Successful Response
-     */
-    200: DiagnosisPublic;
+	/**
+	 * Successful Response
+	 */
+	200: DiagnosisPublic;
 };
 
-export type TriggerDiagnosisApiV1AnomaliesIdDiagnosePostResponse = TriggerDiagnosisApiV1AnomaliesIdDiagnosePostResponses[keyof TriggerDiagnosisApiV1AnomaliesIdDiagnosePostResponses];
+export type TriggerDiagnosisApiV1AnomaliesIdDiagnosePostResponse =
+	TriggerDiagnosisApiV1AnomaliesIdDiagnosePostResponses[keyof TriggerDiagnosisApiV1AnomaliesIdDiagnosePostResponses];
 
 export type SelectSolutionApiV1SolutionsIdSelectPostData = {
-    body?: never;
-    path: {
-        /**
-         * Id
-         */
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/solutions/{id}/select';
+	body?: never;
+	path: {
+		/**
+		 * Id
+		 */
+		id: string;
+	};
+	query?: never;
+	url: "/api/v1/solutions/{id}/select";
 };
 
 export type SelectSolutionApiV1SolutionsIdSelectPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type SelectSolutionApiV1SolutionsIdSelectPostError = SelectSolutionApiV1SolutionsIdSelectPostErrors[keyof SelectSolutionApiV1SolutionsIdSelectPostErrors];
+export type SelectSolutionApiV1SolutionsIdSelectPostError =
+	SelectSolutionApiV1SolutionsIdSelectPostErrors[keyof SelectSolutionApiV1SolutionsIdSelectPostErrors];
 
 export type SelectSolutionApiV1SolutionsIdSelectPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: WorkOrder;
+	/**
+	 * Successful Response
+	 */
+	200: WorkOrder;
 };
 
-export type SelectSolutionApiV1SolutionsIdSelectPostResponse = SelectSolutionApiV1SolutionsIdSelectPostResponses[keyof SelectSolutionApiV1SolutionsIdSelectPostResponses];
+export type SelectSolutionApiV1SolutionsIdSelectPostResponse =
+	SelectSolutionApiV1SolutionsIdSelectPostResponses[keyof SelectSolutionApiV1SolutionsIdSelectPostResponses];
 
 export type ReadCasesApiV1CasesGetData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Skip
-         */
-        skip?: number;
-        /**
-         * Limit
-         */
-        limit?: number;
-        /**
-         * Search
-         */
-        search?: string | null;
-    };
-    url: '/api/v1/cases/';
+	body?: never;
+	path?: never;
+	query?: {
+		/**
+		 * Skip
+		 */
+		skip?: number;
+		/**
+		 * Limit
+		 */
+		limit?: number;
+		/**
+		 * Search
+		 */
+		search?: string | null;
+	};
+	url: "/api/v1/cases/";
 };
 
 export type ReadCasesApiV1CasesGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type ReadCasesApiV1CasesGetError = ReadCasesApiV1CasesGetErrors[keyof ReadCasesApiV1CasesGetErrors];
+export type ReadCasesApiV1CasesGetError =
+	ReadCasesApiV1CasesGetErrors[keyof ReadCasesApiV1CasesGetErrors];
 
 export type ReadCasesApiV1CasesGetResponses = {
-    /**
-     * Response Read Cases Api V1 Cases  Get
-     * Successful Response
-     */
-    200: Array<CaseLibrary>;
+	/**
+	 * Response Read Cases Api V1 Cases  Get
+	 * Successful Response
+	 */
+	200: Array<CaseLibrary>;
 };
 
-export type ReadCasesApiV1CasesGetResponse = ReadCasesApiV1CasesGetResponses[keyof ReadCasesApiV1CasesGetResponses];
+export type ReadCasesApiV1CasesGetResponse =
+	ReadCasesApiV1CasesGetResponses[keyof ReadCasesApiV1CasesGetResponses];
 
 export type CreateCaseApiV1CasesPostData = {
-    body: CaseLibraryBase;
-    path?: never;
-    query?: never;
-    url: '/api/v1/cases/';
+	body: CaseLibraryBase;
+	path?: never;
+	query?: never;
+	url: "/api/v1/cases/";
 };
 
 export type CreateCaseApiV1CasesPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type CreateCaseApiV1CasesPostError = CreateCaseApiV1CasesPostErrors[keyof CreateCaseApiV1CasesPostErrors];
+export type CreateCaseApiV1CasesPostError =
+	CreateCaseApiV1CasesPostErrors[keyof CreateCaseApiV1CasesPostErrors];
 
 export type CreateCaseApiV1CasesPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: CaseLibrary;
+	/**
+	 * Successful Response
+	 */
+	200: CaseLibrary;
 };
 
-export type CreateCaseApiV1CasesPostResponse = CreateCaseApiV1CasesPostResponses[keyof CreateCaseApiV1CasesPostResponses];
+export type CreateCaseApiV1CasesPostResponse =
+	CreateCaseApiV1CasesPostResponses[keyof CreateCaseApiV1CasesPostResponses];
 
 export type DeleteCaseApiV1CasesIdDeleteData = {
-    body?: never;
-    path: {
-        /**
-         * Id
-         */
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/cases/{id}';
+	body?: never;
+	path: {
+		/**
+		 * Id
+		 */
+		id: string;
+	};
+	query?: never;
+	url: "/api/v1/cases/{id}";
 };
 
 export type DeleteCaseApiV1CasesIdDeleteErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type DeleteCaseApiV1CasesIdDeleteError = DeleteCaseApiV1CasesIdDeleteErrors[keyof DeleteCaseApiV1CasesIdDeleteErrors];
+export type DeleteCaseApiV1CasesIdDeleteError =
+	DeleteCaseApiV1CasesIdDeleteErrors[keyof DeleteCaseApiV1CasesIdDeleteErrors];
 
 export type DeleteCaseApiV1CasesIdDeleteResponses = {
-    /**
-     * Successful Response
-     */
-    200: Message;
+	/**
+	 * Successful Response
+	 */
+	200: Message;
 };
 
-export type DeleteCaseApiV1CasesIdDeleteResponse = DeleteCaseApiV1CasesIdDeleteResponses[keyof DeleteCaseApiV1CasesIdDeleteResponses];
+export type DeleteCaseApiV1CasesIdDeleteResponse =
+	DeleteCaseApiV1CasesIdDeleteResponses[keyof DeleteCaseApiV1CasesIdDeleteResponses];
 
 export type ReadCaseApiV1CasesIdGetData = {
-    body?: never;
-    path: {
-        /**
-         * Id
-         */
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/cases/{id}';
+	body?: never;
+	path: {
+		/**
+		 * Id
+		 */
+		id: string;
+	};
+	query?: never;
+	url: "/api/v1/cases/{id}";
 };
 
 export type ReadCaseApiV1CasesIdGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type ReadCaseApiV1CasesIdGetError = ReadCaseApiV1CasesIdGetErrors[keyof ReadCaseApiV1CasesIdGetErrors];
+export type ReadCaseApiV1CasesIdGetError =
+	ReadCaseApiV1CasesIdGetErrors[keyof ReadCaseApiV1CasesIdGetErrors];
 
 export type ReadCaseApiV1CasesIdGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: CaseLibrary;
+	/**
+	 * Successful Response
+	 */
+	200: CaseLibrary;
 };
 
-export type ReadCaseApiV1CasesIdGetResponse = ReadCaseApiV1CasesIdGetResponses[keyof ReadCaseApiV1CasesIdGetResponses];
+export type ReadCaseApiV1CasesIdGetResponse =
+	ReadCaseApiV1CasesIdGetResponses[keyof ReadCaseApiV1CasesIdGetResponses];
 
 export type UpdateCaseApiV1CasesIdPatchData = {
-    body: CaseLibraryBase;
-    path: {
-        /**
-         * Id
-         */
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/cases/{id}';
+	body: CaseLibraryBase;
+	path: {
+		/**
+		 * Id
+		 */
+		id: string;
+	};
+	query?: never;
+	url: "/api/v1/cases/{id}";
 };
 
 export type UpdateCaseApiV1CasesIdPatchErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type UpdateCaseApiV1CasesIdPatchError = UpdateCaseApiV1CasesIdPatchErrors[keyof UpdateCaseApiV1CasesIdPatchErrors];
+export type UpdateCaseApiV1CasesIdPatchError =
+	UpdateCaseApiV1CasesIdPatchErrors[keyof UpdateCaseApiV1CasesIdPatchErrors];
 
 export type UpdateCaseApiV1CasesIdPatchResponses = {
-    /**
-     * Successful Response
-     */
-    200: CaseLibrary;
+	/**
+	 * Successful Response
+	 */
+	200: CaseLibrary;
 };
 
-export type UpdateCaseApiV1CasesIdPatchResponse = UpdateCaseApiV1CasesIdPatchResponses[keyof UpdateCaseApiV1CasesIdPatchResponses];
+export type UpdateCaseApiV1CasesIdPatchResponse =
+	UpdateCaseApiV1CasesIdPatchResponses[keyof UpdateCaseApiV1CasesIdPatchResponses];
 
 export type CreateUserApiV1PrivateUsersPostData = {
-    body: PrivateUserCreate;
-    path?: never;
-    query?: never;
-    url: '/api/v1/private/users/';
+	body: PrivateUserCreate;
+	path?: never;
+	query?: never;
+	url: "/api/v1/private/users/";
 };
 
 export type CreateUserApiV1PrivateUsersPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
 };
 
-export type CreateUserApiV1PrivateUsersPostError = CreateUserApiV1PrivateUsersPostErrors[keyof CreateUserApiV1PrivateUsersPostErrors];
+export type CreateUserApiV1PrivateUsersPostError =
+	CreateUserApiV1PrivateUsersPostErrors[keyof CreateUserApiV1PrivateUsersPostErrors];
 
 export type CreateUserApiV1PrivateUsersPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserPublic;
+	/**
+	 * Successful Response
+	 */
+	200: UserPublic;
 };
 
-export type CreateUserApiV1PrivateUsersPostResponse = CreateUserApiV1PrivateUsersPostResponses[keyof CreateUserApiV1PrivateUsersPostResponses];
+export type CreateUserApiV1PrivateUsersPostResponse =
+	CreateUserApiV1PrivateUsersPostResponses[keyof CreateUserApiV1PrivateUsersPostResponses];
 
 export type ClientOptions = {
-    baseUrl: `${string}://${string}` | (string & {});
+	baseUrl: `${string}://${string}` | (string & {});
 };

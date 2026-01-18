@@ -1,14 +1,14 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Cpu, Eye, Zap } from 'lucide-react';
+import { ArrowRight, Cpu, Eye, Zap } from 'lucide-react'
+import type React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleLoginClick = () => {
     // 导航到登录页面
-    navigate('/login');
-  };
+    navigate('/login')
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -68,7 +68,7 @@ const LandingPage: React.FC = () => {
                 { name: 'React', color: 'bg-blue-500' },
                 { name: 'PostgreSQL', color: 'bg-slate-600' },
                 { name: 'Redis', color: 'bg-red-500' },
-                { name: 'Celery', color: 'bg-green-500' }
+                { name: 'Celery', color: 'bg-green-500' },
               ].map((tech) => (
                 <div
                   key={tech.name}
@@ -102,7 +102,7 @@ const LandingPage: React.FC = () => {
         </div>
       </footer>
     </div>
-  );
-};
+  )
+}
 
-export default LandingPage;
+export default LandingPage

@@ -1,67 +1,68 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Loader2, Cpu } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { ArrowLeft, Cpu, Eye, EyeOff, Loader2 } from 'lucide-react'
+import type React from 'react'
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 
 const LoginPage: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { login, isLoading, error, clearError } = useAuth();
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { login, isLoading, error, clearError } = useAuth()
 
   // 获取重定向路径（如果用户被重定向到登录页面）
-  const from = (location.state as any)?.from?.pathname || '/app';
+  const from = (location.state as any)?.from?.pathname || '/app'
   const [formData, setFormData] = useState({
     username: '',
-    password: ''
-  });
-  const [showPassword, setShowPassword] = useState(false);
+    password: '',
+  })
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
+      [name]: value,
+    }))
     // Clear error when user starts typing
-    if (error) clearError();
-  };
+    if (error) clearError()
+  }
 
   const validateForm = (): boolean => {
     if (!formData.username.trim()) {
-      setError('请输入邮箱地址');
-      return false;
+      setError('请输入邮箱地址')
+      return false
     }
     if (!formData.password.trim()) {
-      setError('请输入密码');
-      return false;
+      setError('请输入密码')
+      return false
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.username)) {
-      setError('请输入有效的邮箱地址');
-      return false;
+      setError('请输入有效的邮箱地址')
+      return false
     }
-    return true;
-  };
+    return true
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!validateForm()) {
-      return;
+      return
     }
 
     // 使用认证上下文的登录方法
-    const success = await login(formData.username, formData.password);
+    const success = await login(formData.username, formData.password)
 
     if (success) {
       // 登录成功，导航到原本想要访问的页面或应用主界面
-      navigate(from, { replace: true });
+      navigate(from, { replace: true })
     }
     // 错误处理由useAuth内部处理
-  };
+  }
 
   const handleBackToLanding = () => {
-    navigate('/');
-  };
+    navigate('/')
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -85,12 +86,8 @@ const LoginPage: React.FC = () => {
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-bold text-center text-slate-900 mb-2">
-            登录天工·弈控
-          </h1>
-          <p className="text-center text-slate-600 mb-8">
-            请输入您的账号信息
-          </p>
+          <h1 className="text-2xl font-bold text-center text-slate-900 mb-2">登录天工·弈控</h1>
+          <p className="text-center text-slate-600 mb-8">请输入您的账号信息</p>
 
           {/* Error Message */}
           {error && (
@@ -168,14 +165,12 @@ const LoginPage: React.FC = () => {
 
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-slate-200 text-center">
-            <p className="text-sm text-slate-500">
-              忘记密码？请联系系统管理员
-            </p>
+            <p className="text-sm text-slate-500">忘记密码？请联系系统管理员</p>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage
