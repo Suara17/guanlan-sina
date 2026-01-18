@@ -23,13 +23,22 @@ const ScenarioBuilder: React.FC = () => {
           </h2>
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" className="px-3 py-1.5 text-slate-600 hover:bg-slate-50 rounded text-sm font-medium flex items-center gap-2">
+          <button
+            type="button"
+            className="px-3 py-1.5 text-slate-600 hover:bg-slate-50 rounded text-sm font-medium flex items-center gap-2"
+          >
             <RotateCcw size={16} /> 重置
           </button>
-          <button type="button" className="px-3 py-1.5 text-slate-600 hover:bg-slate-50 rounded text-sm font-medium flex items-center gap-2">
+          <button
+            type="button"
+            className="px-3 py-1.5 text-slate-600 hover:bg-slate-50 rounded text-sm font-medium flex items-center gap-2"
+          >
             <Save size={16} /> 保存
           </button>
-          <button type="button" className="px-4 py-1.5 bg-blue-600 text-white rounded text-sm font-medium flex items-center gap-2 hover:bg-blue-700">
+          <button
+            type="button"
+            className="px-4 py-1.5 bg-blue-600 text-white rounded text-sm font-medium flex items-center gap-2 hover:bg-blue-700"
+          >
             <Play size={16} /> 部署运行
           </button>
         </div>
@@ -91,7 +100,11 @@ const ScenarioBuilder: React.FC = () => {
 
           {/* Simulated Nodes & Connections using absolute positioning */}
           <div className="relative w-[800px] h-[500px] bg-white/50 backdrop-blur-sm rounded-xl border border-dashed border-slate-300 shadow-sm">
-            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" role="img" aria-label="流程连接线图">
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none z-0"
+              role="img"
+              aria-label="流程连接线图"
+            >
               {/* Connecting Lines */}
               <path
                 d="M180,135 C240,135 240,135 300,135"

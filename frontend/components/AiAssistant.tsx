@@ -39,7 +39,11 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
               <Sparkles size={18} />
               <span className="font-semibold">AI 智囊团</span>
             </div>
-            <button type="button" onClick={() => setIsOpen(false)} className="hover:bg-white/20 rounded p-1">
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="hover:bg-white/20 rounded p-1"
+            >
               <X size={16} />
             </button>
           </div>
