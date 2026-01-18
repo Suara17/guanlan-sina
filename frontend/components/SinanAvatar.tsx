@@ -1,6 +1,6 @@
 import { AlertCircle, ChevronRight, MessageCircle } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface SinanAvatarProps {
@@ -27,9 +27,12 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
 
       {/* Chat Bubble */}
       <div
+        role="button"
+        tabIndex={mode === 'alert' ? 0 : -1}
         className={`absolute bottom-28 w-64 bg-white p-4 rounded-2xl rounded-br-none shadow-xl border border-blue-100 transition-all duration-300 transform origin-bottom-right cursor-pointer
         ${mode === 'alert' ? 'opacity-100 scale-100' : isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}`}
         onClick={() => mode === 'alert' && navigate('/sinan-analysis')}
+        onKeyDown={(e) => { if (mode === 'alert' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); navigate('/sinan-analysis'); } }}
       >
         <div className="flex items-start gap-3">
           {mode === 'alert' ? (
@@ -51,8 +54,12 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
               {mode === 'alert' ? alertMessage : '产线运行平稳，今日产量已达标 85% ~'}
             </p>
             {mode === 'alert' && (
-              <button className="mt-2 text-xs font-semibold text-blue-600 flex items-center hover:underline">
-                查看分析与对策 <ChevronRight size={12} />
+              <button
+                type="button"
+                className="mt-2 text-xs font-semibold text-blue-600 flex items-center hover:underline"
+              >
+                查看分析与对策
+                <ChevronRight size={12} />
               </button>
             )}
           </div>
@@ -61,10 +68,13 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
 
       {/* Robot Avatar */}
       <div
+        role="button"
+        tabIndex={mode === 'alert' ? 0 : -1}
         className="relative w-32 h-32 animate-float cursor-pointer group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => mode === 'alert' && navigate('/sinan-analysis')}
+        onKeyDown={(e) => { if (mode === 'alert' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); navigate('/sinan-analysis'); } }}
       >
         {/* Head */}
         <div className="absolute inset-0 bg-white rounded-3xl border-2 border-slate-200 shadow-lg flex flex-col items-center justify-center overflow-hidden">

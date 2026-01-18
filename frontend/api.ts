@@ -5,23 +5,20 @@ const client = createClient()
 
 // 配置客户端
 client.setConfig({
-  baseUrl: import.meta.env.VITE_API_URL || '',
+  baseUrl: '', // 使用相对路径，让vite proxy处理
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// 设置认证token
+// 设置认证token（备用方式，用于非security配置的请求）
 client.interceptors.request.use((request) => {
-  const token = localStorage.getItem('access_token')
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('access_token') : null
   if (token) {
     request.headers.set('Authorization', `Bearer ${token}`)
   }
   return request
 })
-
-console.log('Client baseUrl:', client.getConfig().baseUrl)
-console.log('VITE_API_URL:', import.meta.env.VITE_API_URL)
 
 // 导出客户端供其他模块使用
 export { client }

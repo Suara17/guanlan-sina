@@ -54,7 +54,7 @@ const ScenarioBuilder: React.FC = () => {
               <h4 className="text-sm font-medium text-slate-700 mb-2">数据源</h4>
               <div className="space-y-2">
                 <div className="p-3 bg-white border border-slate-200 rounded cursor-grab active:cursor-grabbing hover:border-blue-400 hover:shadow-sm transition-all text-sm text-slate-700">
-                  📷 工业相机流
+                  📷 工业相机
                 </div>
                 <div className="p-3 bg-white border border-slate-200 rounded cursor-grab active:cursor-grabbing hover:border-blue-400 hover:shadow-sm transition-all text-sm text-slate-700">
                   🔌 PLC 信号

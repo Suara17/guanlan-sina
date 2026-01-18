@@ -20,6 +20,7 @@ const TopBar: React.FC<TopBarProps> = ({ title, toggleSidebar }) => {
     <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
       <div className="flex items-center gap-4">
         <button
+          type="button"
           onClick={toggleSidebar}
           className="lg:hidden p-2 text-slate-500 hover:bg-slate-50 rounded-md"
         >
@@ -38,7 +39,10 @@ const TopBar: React.FC<TopBarProps> = ({ title, toggleSidebar }) => {
           />
         </div>
 
-        <button className="relative p-2 text-slate-500 hover:text-blue-600 transition-colors">
+        <button
+          type="button"
+          className="relative p-2 text-slate-500 hover:text-blue-600 transition-colors"
+        >
           <Bell size={20} />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
         </button>
@@ -55,6 +59,7 @@ const TopBar: React.FC<TopBarProps> = ({ title, toggleSidebar }) => {
               <User size={18} />
             </div>
             <button
+              type="button"
               onClick={handleLogout}
               className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
               title="退出登录"

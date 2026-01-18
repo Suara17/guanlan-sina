@@ -69,6 +69,7 @@ const LoginPage: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Back button */}
         <button
+          type="button"
           onClick={handleBackToLanding}
           className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors mb-8 group"
         >

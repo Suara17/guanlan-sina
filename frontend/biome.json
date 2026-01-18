@@ -39,7 +39,8 @@
       "!**/node_modules",
       "!**/dist",
       "!**/*.gen.ts",
-      "!**/*.gen.js"
+      "!**/*.gen.js",
+      "!**/src/client"
     ]
   }
 }

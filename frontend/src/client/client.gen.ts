@@ -21,4 +21,13 @@ export type CreateClientConfig<T extends DefaultClientOptions = ClientOptions> =
 		override?: Config<DefaultClientOptions & T>,
 	) => Config<Required<DefaultClientOptions> & T>;
 
-export const client = createClient(createConfig<ClientOptions>());
+export const client = createClient({
+  ...createConfig<ClientOptions>(),
+  // 设置认证token，供SDK的security配置使用
+  auth: () => {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('access_token') || undefined
+    }
+    return undefined
+  },
+});

@@ -30,6 +30,7 @@ const SinanAnalysis: React.FC = () => {
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <button
+          type="button"
           onClick={() => navigate('/')}
           className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
         >
@@ -43,7 +44,7 @@ const SinanAnalysis: React.FC = () => {
             </span>
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            关联工单：#WO-20240523-01 | 异常设备：#5 贴片机
+            关联工单：WO-20240523-01 | 异常设备：#5 贴片机
           </p>
         </div>
       </div>
@@ -59,7 +60,8 @@ const SinanAnalysis: React.FC = () => {
           <div className="flex-1 relative bg-slate-50 rounded-xl border border-slate-100 overflow-hidden flex items-center justify-center">
             {/* CSS Visualization for Knowledge Graph */}
             <div className="relative w-full h-full p-10">
-              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" role="img" aria-labelledby="knowledge-graph-title">
+                <title id="knowledge-graph-title">知识图谱可视化 - 显示异常传播路径和根因分析</title>
                 <path
                   d="M150,200 L350,150"
                   stroke="#cbd5e1"
@@ -107,7 +109,7 @@ const SinanAnalysis: React.FC = () => {
 
           <div className="mt-6 p-4 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-900 leading-relaxed">
             <span className="font-bold">AI 分析总结：</span>
-            结合设备运行日志（Log-302）与震动传感器数据，系统排除了“物料尺寸”问题。当前真空度曲线呈现周期性泄露特征，92%
+            结合设备运行日志（Log-302）与震动传感器数据，系统排除了"物料尺寸"问题。当前真空度曲线呈现周期性泄露特征，92%
             概率指向吸嘴老化磨损。
           </div>
         </div>
@@ -156,6 +158,7 @@ const SinanAnalysis: React.FC = () => {
 
                   <div className="flex gap-3">
                     <button
+                      type="button"
                       className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors ${
                         sol.type === 'recommended'
                           ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200'
@@ -166,6 +169,7 @@ const SinanAnalysis: React.FC = () => {
                     </button>
                     {sol.type === 'recommended' && (
                       <button
+                        type="button"
                         disabled
                         className="px-4 py-2.5 bg-green-100 text-green-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100"
                       >
@@ -183,10 +187,11 @@ const SinanAnalysis: React.FC = () => {
             <div>
               <h3 className="font-bold mb-1">解锁更多高级算法</h3>
               <p className="text-sm text-slate-400">
-                当前仅启用了基础诊断，升级以获得“预测性维护”功能。
+                当前仅启用了基础诊断，升级以获得“预测性维护”功能�?{' '}
               </p>
             </div>
             <button
+              type="button"
               onClick={() => navigate('/marketplace')}
               className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium transition-colors"
             >

@@ -109,7 +109,7 @@ const KernelConnect: React.FC = () => {
                       <div>
                         <p className="font-medium text-slate-900">{dev.name}</p>
                         <p className="text-xs text-slate-500">
-                          {dev.ip} • {dev.type}
+                          {dev.ip} · {dev.type}
                         </p>
                       </div>
                     </div>
@@ -143,7 +143,7 @@ const KernelConnect: React.FC = () => {
             <div className="w-full max-w-3xl text-left animate-in zoom-in-95 duration-300">
               <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-lg flex items-center gap-3 mb-6">
                 <CheckCircle className="text-emerald-600" size={20} />
-                <span className="text-emerald-800 font-medium">设备连接成功，数据通道已打通。</span>
+                <span className="text-emerald-800 font-medium">设备连接成功，数据通道已打通</span>
               </div>
 
               <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
@@ -166,10 +166,10 @@ const KernelConnect: React.FC = () => {
                     <AlertCircle size={16} className="text-amber-500" /> 发现潜在问题
                   </h5>
                   <div className="p-3 bg-amber-50 border border-amber-100 rounded text-sm text-amber-800">
-                    1. <strong>S7-1200 PLC</strong> 检测到周期性通信延迟，可能影响控制精度。
+                    1. <strong>S7-1200 PLC</strong> 检测到周期性通信延迟，可能影响控制精度{' '}
                   </div>
                   <div className="p-3 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800">
-                    <strong>建议：</strong> 前往“能力商店”订阅“工业网络优化”模块以解决此问题。
+                    <strong>建议</strong> 前往"能力商店"订阅"工业网络优化"模块以解决此问题{' '}
                   </div>
                 </div>
               </div>

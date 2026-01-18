@@ -54,7 +54,7 @@ const ALERTS: AlertItem[] = [
     id: '4',
     time: '11:20',
     level: 'warning',
-    location: '#1 上料机',
+    location: '#1 上料站',
     message: '料盘余量不足 10%',
   },
 ]
@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
           {payload.name === '不良品' ? '8%' : ''}
         </text>
         <text x={cx} y={cy + 25} dy={8} textAnchor="middle" fill="#94a3b8" className="text-xs">
-          不良率
+          不良品{' '}
         </text>
         <Sector
           cx={cx}
@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-slate-800">SMT 智能产线 A03</h1>
             <p className="text-xs text-slate-500 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> 运行中
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> 运行中{' '}
               <span className="w-px h-3 bg-slate-300"></span>
               工单: #WO-20240523-01
             </p>
@@ -174,7 +174,7 @@ const Dashboard: React.FC = () => {
                   <span className="w-3 h-3 bg-blue-500 rounded-sm"></span> 实际产量
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-3 h-3 bg-red-400 rounded-sm"></span> 异常差值
+                  <span className="w-3 h-3 bg-red-400 rounded-sm"></span> 异常差异{' '}
                 </span>
               </div>
             </div>
@@ -243,7 +243,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="absolute bottom-4 left-0 right-0 text-center">
                 <span className="text-xs font-medium text-red-500 bg-red-50 px-2 py-1 rounded-full">
-                  环比昨日 ↑0.8%
+                  环比昨日 ↓3.8%
                 </span>
               </div>
             </div>
@@ -281,7 +281,7 @@ const Dashboard: React.FC = () => {
           {/* Alert Stream */}
           <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex-1 overflow-hidden flex flex-col">
             <h3 className="font-bold text-slate-800 mb-4 flex items-center justify-between">
-              <span>异常信息流</span>
+              <span>异常信息</span>
               <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
                 3 待处理
               </span>
@@ -325,7 +325,7 @@ const Dashboard: React.FC = () => {
           <div className="h-64 relative">
             <SinanAvatar
               mode={sinanMode}
-              alertMessage="#5 贴片机 不良品率飙升至 8%！疑似吸嘴故障。"
+              alertMessage="#5 贴片机不良品率飙升至8%！疑似吸嘴故障"
               className="h-full justify-end pb-4"
             />
           </div>

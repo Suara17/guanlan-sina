@@ -79,10 +79,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
+        <button
+          type="button"
           className="fixed inset-0 bg-black/20 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
-        ></div>
+          aria-label="关闭侧边栏"
+        ></button>
       )}
     </div>
   )

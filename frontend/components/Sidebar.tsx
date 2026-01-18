@@ -51,6 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => onNavigate(item.path)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                 isActive
@@ -70,7 +71,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
       </div>
 
       <div className="p-4 border-t border-slate-800">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+        <button
+          type="button"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+        >
           <Settings size={20} />
           <span className="font-medium text-sm">系统设置</span>
         </button>

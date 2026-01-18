@@ -1,5 +1,5 @@
 import type React from 'react'
-import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
 import {
   loginAccessTokenApiV1LoginAccessTokenPost,
   readUserMeApiV1UsersMeGet,
@@ -49,12 +49,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   // 更新认证状态
-  const updateAuthState = (updates: Partial<AuthState>) => {
+  const updateAuthState = useCallback((updates: Partial<AuthState>) => {
     setAuthState((prev) => ({ ...prev, ...updates }))
-  }
+  }, [])
 
   // 检查token是否有效
-  const validateToken = async (token: string): Promise<boolean> => {
+  const validateToken = useCallback(async (): Promise<boolean> => {
     try {
       await testTokenApiV1LoginTestTokenPost()
       return true
@@ -62,10 +62,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Token validation failed:', error)
       return false
     }
-  }
+  }, [])
 
   // 获取用户信息
-  const fetchUserInfo = async (): Promise<UserPublic | null> => {
+  const fetchUserInfo = useCallback(async (): Promise<UserPublic | null> => {
     try {
       const response = await readUserMeApiV1UsersMeGet()
       return response.data || null
@@ -73,10 +73,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Failed to fetch user info:', error)
       return null
     }
-  }
+  }, [])
 
   // 检查认证状态
-  const checkAuth = async (): Promise<void> => {
+  const checkAuth = useCallback(async (): Promise<void> => {
     const token = localStorage.getItem('access_token')
 
     if (!token) {
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       // 验证token
-      const isValid = await validateToken(token)
+      const isValid = await validateToken()
       if (!isValid) {
         throw new Error('Invalid token')
       }
@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error: null,
       })
     }
-  }
+  }, [updateAuthState, validateToken, fetchUserInfo])
 
   // 登录函数
   const login = async (username: string, password: string): Promise<boolean> => {
@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('access_token', tokenData.access_token)
 
       // 验证token并获取用户信息
-      const isValid = await validateToken(tokenData.access_token)
+      const isValid = await validateToken()
       if (!isValid) {
         throw new Error('Token validation failed after login')
       }

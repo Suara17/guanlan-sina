@@ -90,13 +90,17 @@ const Marketplace: React.FC = () => {
                   <span className="font-bold text-slate-900">{cap.price}</span>
                   {cap.subscribed ? (
                     <button
+                      type="button"
                       disabled
                       className="px-4 py-2 bg-green-50 text-green-700 text-sm font-medium rounded-lg flex items-center gap-2 cursor-default"
                     >
-                      <Check size={16} /> 已订阅
+                      <Check size={16} /> 已订阅{' '}
                     </button>
                   ) : (
-                    <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 shadow-md shadow-blue-200 flex items-center gap-2">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 shadow-md shadow-blue-200 flex items-center gap-2"
+                    >
                       <ShoppingBag size={16} /> 订阅
                     </button>
                   )}
@@ -112,7 +116,7 @@ const Marketplace: React.FC = () => {
             <span className="text-2xl text-slate-400">+</span>
           </div>
           <h3 className="font-medium text-slate-600">更多能力即将上线</h3>
-          <p className="text-xs text-slate-400 mt-1">第三方开发者正在接入...</p>
+          <p className="text-xs text-slate-400 mt-1">第三方开发者正在接入..</p>
         </div>
       </div>
     </div>

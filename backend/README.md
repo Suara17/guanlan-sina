@@ -1,172 +1,439 @@
-# FastAPI 项目 - 后端
+# Guanlan-Sina 后端服务
 
-## 要求
+## 项目概述
 
-* [Docker](https://www.docker.com/)。
-* [uv](https://docs.astral.sh/uv/) 用于 Python 包和环境管理。
+Guanlan-Sina 是一个智能生产管理系统，专注于制造业的生产监控、异常检测、质量管理和解决方案推荐。后端服务基于 FastAPI 框架构建，提供 RESTful API 接口，支持用户认证、生产数据管理、异常分析和案例库管理等功能。
 
-## Docker Compose
+### 核心功能
 
-按照 [../development.md](../development.md) 中的指南使用 Docker Compose 启动本地开发环境。
+- **用户管理**：用户注册、登录、权限管理、角色控制
+- **生产管理**：产线管理、工作站管理、生产计划、生产记录
+- **质量管理**：质量指标、缺陷详情、良率分析
+- **异常分析**：异常检测、根因诊断、解决方案推荐
+- **案例库**：案例收集、经验积累、知识复用
+- **审计日志**：操作记录、安全审计
 
-## 一般工作流程
+### 技术栈
 
-默认情况下，依赖项使用 [uv](https://docs.astral.sh/uv/) 管理，请前往那里并安装它。
+- **Web 框架**：FastAPI 0.114+
+- **数据库**：PostgreSQL + SQLModel + Alembic
+- **缓存/消息队列**：Redis + Celery
+- **认证**：JWT (PyJWT) + Passlib (bcrypt)
+- **测试**：Pytest + Coverage
+- **代码质量**：Ruff + MyPy
+- **包管理**：uv
 
-从 `./backend/` 您可以使用以下命令安装所有依赖项：
+## 环境要求
 
-```console
-$ uv sync
+- Python 3.10+
+- Docker & Docker Compose
+- uv (Python 包管理器)
+
+## 快速开始
+
 ```
 
-然后您可以使用以下命令激活虚拟环境：
+#### 3. 配置环境变量
 
-```console
-$ source .venv/bin/activate
+在项目根目录创建 `.env` 文件（参考 `.env.example`），配置以下关键参数：
+
+```env
+PROJECT_NAME=Guanlan-Sina
+POSTGRES_SERVER=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=changethis
+POSTGRES_DB=guanlan
+REDIS_URL=redis://localhost:6379/0
+FIRST_SUPERUSER=admin@example.com
+FIRST_SUPERUSER_PASSWORD=changethis
 ```
 
-确保您的编辑器使用正确的 Python 虚拟环境，解释器位于 `backend/.venv/bin/python`。
-
-在 `./backend/app/models.py` 中修改或添加数据和 SQL 表的 SQLModel 模型，在 `./backend/app/api/` 中添加 API 端点，在 `./backend/app/crud.py` 中添加 CRUD（创建、读取、更新、删除）工具。
-
-## VS Code
-
-已经有配置可以通过 VS Code 调试器运行后端，以便您可以使用断点、暂停和探索变量等。
-
-该设置也已配置，以便您可以通过 VS Code Python 测试选项卡运行测试。
-
-## Docker Compose Override
-
-在开发期间，您可以更改 Docker Compose 设置，这些设置只会影响文件 `docker-compose.override.yml` 中的本地开发环境。
-
-对该文件的更改只影响本地开发环境，而不影响生产环境。因此，您可以添加有助于开发工作流程的"临时"更改。
-
-例如，包含后端代码的目录在 Docker 容器中同步，将您更改的代码实时复制到容器内的目录中。这允许您立即测试您的更改，而无需再次构建 Docker 镜像。这应该只在开发期间完成，对于生产环境，您应该使用最新版本的后端代码构建 Docker 镜像。但在开发期间，它允许您非常快速地迭代。
-
-还有一个命令覆盖，运行 `fastapi run --reload` 而不是默认的 `fastapi run`。它启动单个服务器进程（而不是多个，就像生产环境那样），并在代码更改时重新加载进程。请记住，如果您有语法错误并保存 Python 文件，它将中断并退出，容器将停止。之后，您可以通过修复错误并再次运行来重新启动容器：
-
-```console
-$ docker compose watch
-```
-
-还有一个注释掉的 `command` 覆盖，您可以取消注释并注释默认的那个。它使后端容器运行一个"什么都不做"的进程，但保持容器存活。这允许您进入正在运行的容器并在其中执行命令，例如 Python 解释器来测试已安装的依赖项，或者启动在检测到更改时重新加载的开发服务器。
-
-要使用 `bash` 会话进入容器，您可以使用以下命令启动堆栈：
-
-```console
-$ docker compose watch
-```
-
-然后在另一个终端中，`exec` 进入正在运行的容器：
-
-```console
-$ docker compose exec backend bash
-```
-
-您应该看到类似以下的输出：
-
-```console
-root@7f2607af31c3:/app#
-```
-
-这意味着您在容器内的 `bash` 会话中，作为 `root` 用户，在 `/app` 目录下，这个目录里面有另一个名为 "app" 的目录，这就是您的代码在容器内的位置：`/app/app`。
-
-在那里，您可以使用 `fastapi run --reload` 命令运行调试实时重新加载服务器。
-
-```console
-$ fastapi run --reload app/main.py
-```
-
-...它看起来像：
-
-```console
-root@7f2607af31c3:/app# fastapi run --reload app/main.py
-```
-
-然后按 Enter 键。这运行实时重新加载服务器，在检测到代码更改时自动重新加载。
-
-但是，如果它没有检测到更改但有语法错误，它只会因错误而停止。但由于容器仍然存活并且您在 Bash 会话中，您可以在修复错误后快速重新启动它，运行相同的命令（"向上箭头"和"Enter"）。
-
-...前面的细节就是让容器什么都不做地存活，然后在 Bash 会话中让它运行实时重新加载服务器的原因。
-
-## 后端测试
-
-要测试后端，请运行：
-
-```console
-$ bash ./scripts/test.sh
-```
-
-测试使用 Pytest 运行，在 `./backend/tests/` 中修改和添加测试。
-
-如果您使用 GitHub Actions，测试将自动运行。
-
-### 测试运行堆栈
-
-如果您的堆栈已经启动，您只想运行测试，您可以使用：
+#### 4. 数据库迁移
 
 ```bash
+alembic upgrade head
+```
+
+### 超级管理员凭据
+
+前端登录时使用的默认超级管理员凭据：
+
+- **邮箱**: `admin@example.com`
+- **密码**: `changethis`
+
+⚠️ **安全提示**: 在生产环境中，请务必修改 `.env` 文件中的 `FIRST_SUPERUSER_PASSWORD` 为强密码。
+
+## Docker 部署
+
+### 启动所有服务
+
+在项目根目录执行：
+
+```bash
+# 启动所有服务（后台运行）
+docker compose up -d
+
+# 查看服务状态
+docker compose ps
+
+# 查看日志
+docker compose logs -f
+
+# 开发模式（带热重载）
+docker compose watch
+```
+
+### 停止所有服务
+
+```bash
+# 停止所有服务
+docker compose down
+
+# 停止并删除数据卷
+docker compose down -v
+
+# 停止并删除容器、网络、卷和镜像
+docker compose down --rmi all -v
+```
+
+### 单独管理服务
+
+```bash
+# 启动特定服务
+docker compose up -d postgres redis
+
+# 停止特定服务
+docker compose stop backend
+
+# 重启特定服务
+docker compose restart backend
+
+# 进入后端容器
+docker compose exec backend bash
+
+# 在容器内运行开发服务器
+docker compose exec backend fastapi run --reload app/main.py
+```
+
+### Adminer 数据库管理
+
+Adminer 是一个轻量级的数据库管理工具，可以方便地管理 PostgreSQL 数据库。
+
+```bash
+# 使用 Docker Compose 启动 Adminer 服务（端口 8080）
+docker compose up -d adminer
+
+# 访问 Adminer 界面
+# 浏览器打开: http://localhost:8080
+# 登录信息:
+#   系统: PostgreSQL
+#   服务器: db
+#   用户名: app (根据 .env 配置)
+#   密码: changethis (根据 .env 配置)
+#   数据库: app (根据 .env 配置)
+
+# 停止 Adminer
+docker compose stop adminer
+
+# 查看 Adminer 日志
+docker compose logs -f adminer
+```
+
+### 删除服务
+
+```bash
+# 删除所有容器
+docker compose rm -f
+
+# 删除特定服务容器
+docker compose rm -f backend
+
+# 删除所有容器、网络和卷
+docker compose down -v
+
+# 完全清理（包括镜像）
+docker compose down --rmi all -v
+```
+
+## API 端点
+
+### 认证相关
+- `POST /api/v1/login/access-token` - 用户登录
+- `POST /api/v1/login/test-token` - 测试令牌
+- `POST /api/v1/login/recover-password` - 恢复密码
+- `POST /api/v1/login/reset-password` - 重置密码
+
+### 用户管理
+- `GET /api/v1/users/` - 获取用户列表
+- `POST /api/v1/users/` - 创建用户
+- `GET /api/v1/users/{user_id}` - 获取用户详情
+- `PUT /api/v1/users/{user_id}` - 更新用户
+- `DELETE /api/v1/users/{user_id}` - 删除用户
+- `GET /api/v1/users/me` - 获取当前用户信息
+- `PUT /api/v1/users/me` - 更新当前用户信息
+
+### 生产管理
+- `GET /api/v1/production/lines` - 获取产线列表
+- `POST /api/v1/production/lines` - 创建产线
+- `GET /api/v1/production/lines/{line_id}` - 获取产线详情
+- `GET /api/v1/production/dashboard` - 获取生产看板数据
+- `GET /api/v1/production/plans` - 获取生产计划
+- `POST /api/v1/production/plans` - 创建生产计划
+- `GET /api/v1/production/records` - 获取生产记录
+- `POST /api/v1/production/records` - 创建生产记录
+
+### 异常管理
+- `GET /api/v1/anomalies/` - 获取异常列表
+- `POST /api/v1/anomalies/` - 创建异常
+- `GET /api/v1/anomalies/{anomaly_id}` - 获取异常详情
+- `PUT /api/v1/anomalies/{anomaly_id}` - 更新异常
+- `POST /api/v1/anomalies/{anomaly_id}/diagnose` - 诊断异常
+
+### 解决方案管理
+- `GET /api/v1/solutions/` - 获取解决方案列表
+- `POST /api/v1/solutions/` - 创建解决方案
+- `GET /api/v1/solutions/{solution_id}` - 获取解决方案详情
+- `PUT /api/v1/solutions/{solution_id}` - 更新解决方案
+
+### 案例库管理
+- `GET /api/v1/cases/` - 获取案例列表
+- `POST /api/v1/cases/` - 创建案例
+- `GET /api/v1/cases/{case_id}` - 获取案例详情
+- `PUT /api/v1/cases/{case_id}` - 更新案例
+
+## 数据库迁移
+
+### 创建迁移
+
+```bash
+# 进入后端容器或激活虚拟环境后执行
+alembic revision --autogenerate -m "描述迁移内容"
+```
+
+### 执行迁移
+
+```bash
+# 升级到最新版本
+alembic upgrade head
+
+# 降级到指定版本
+alembic downgrade <revision_id>
+
+# 查看迁移历史
+alembic history
+
+# 查看当前版本
+alembic current
+```
+
+## 测试
+
+### 运行所有测试
+
+```bash
+# 本地环境
+bash ./scripts/test.sh
+
+# Docker 环境
 docker compose exec backend bash scripts/tests-start.sh
 ```
 
-该 `/app/scripts/tests-start.sh` 脚本只是在确保堆栈的其余部分正在运行之后调用 `pytest`。如果您需要将额外的参数传递给 `pytest`，您可以将它们传递给该命令，它们将被转发。
-
-例如，要在第一个错误时停止：
+### 运行特定测试
 
 ```bash
-docker compose exec backend bash scripts/tests-start.sh -x
+# 运行特定测试文件
+pytest tests/api/test_users.py
+
+# 运行特定测试函数
+pytest tests/api/test_users.py::test_create_user
+
+# 在第一个错误时停止
+pytest -x
+
+# 显示详细输出
+pytest -v
+
+# 生成覆盖率报告
+pytest --cov=app --cov-report=html
 ```
 
-### 测试覆盖率
+### 查看测试覆盖率
 
-运行测试时，会生成一个文件 `htmlcov/index.html`，您可以在浏览器中打开它以查看测试的覆盖率。
+测试完成后，在浏览器中打开 `htmlcov/index.html` 查看覆盖率报告。
 
-## 迁移
+## 代码质量
 
-由于在本地开发期间，您的应用目录作为卷挂载在容器内，您也可以在容器内使用 `alembic` 命令运行迁移，迁移代码将在您的应用目录中（而不仅仅是在容器内）。因此，您可以将其添加到您的 git 存储库中。
+### 代码格式化
 
-确保您为模型创建一个"修订"，并且每次更改它们时都使用该修订"升级"您的数据库。因为这将更新数据库中的表。否则，您的应用程序将出现错误。
-
-* 在后端容器中启动交互式会话：
-
-```console
-$ docker compose exec backend bash
+```bash
+bash ./scripts/format.sh
 ```
 
-* Alembic 已配置为从 `./backend/app/models.py` 导入您的 SQLModel 模型。
+### 代码检查
 
-* 更改模型后（例如，添加一列），在容器内，创建一个修订，例如：
-
-```console
-$ alembic revision --autogenerate -m "Add column last_name to User model"
+```bash
+bash ./scripts/lint.sh
 ```
 
-* 将在 alembic 目录中生成的文件提交到 git 存储库。
+### 类型检查
 
-* 创建修订后，在数据库中运行迁移（这是实际更改数据库的内容）：
-
-```console
-$ alembic upgrade head
+```bash
+mypy app/
 ```
 
-如果您根本不想使用迁移，请取消注释 `./backend/app/core/db.py` 中以以下内容结尾的行：
+## 项目结构
 
-```python
-SQLModel.metadata.create_all(engine)
+```
+backend/
+├── app/
+│   ├── __init__.py
+│   ├── main.py                 # FastAPI 应用入口
+│   ├── models.py               # SQLModel 数据模型
+│   ├── crud.py                 # CRUD 操作
+│   ├── utils.py                # 工具函数
+│   ├── worker.py               # Celery 任务
+│   ├── backend_pre_start.py    # 后端预启动脚本
+│   ├── initial_data.py         # 初始数据
+│   ├── seed_data.py            # 种子数据
+│   ├── tests_pre_start.py      # 测试预启动脚本
+│   ├── api/                    # API 路由
+│   │   ├── main.py
+│   │   ├── deps.py             # 依赖注入
+│   │   └── routes/             # 路由模块
+│   │       ├── login.py        # 登录认证
+│   │       ├── users.py        # 用户管理
+│   │       ├── production.py   # 生产管理
+│   │       ├── anomalies.py    # 异常管理
+│   │       ├── solutions.py    # 解决方案
+│   │       ├── cases.py        # 案例库
+│   │       ├── items.py        # 示例项目
+│   │       ├── utils.py        # 工具接口
+│   │       └── private.py      # 私有接口
+│   ├── core/                   # 核心配置
+│   │   ├── config.py           # 配置管理
+│   │   ├── db.py               # 数据库连接
+│   │   ├── security.py         # 安全相关
+│   │   └── celery_app.py       # Celery 配置
+│   ├── alembic/                # 数据库迁移
+│   │   ├── env.py
+│   │   └── versions/           # 迁移版本
+│   └── websocket/              # WebSocket 相关
+├── tests/                      # 测试文件
+│   ├── api/
+│   ├── crud/
+│   ├── utils/
+│   └── websocket/
+├── scripts/                    # 脚本文件
+│   ├── format.sh               # 格式化脚本
+│   ├── lint.sh                 # 代码检查脚本
+│   ├── test.sh                 # 测试脚本
+│   ├── prestart.sh             # 预启动脚本
+│   └── tests-start.sh          # 测试启动脚本
+├── Dockerfile                  # Docker 镜像配置
+├── pyproject.toml              # 项目配置
+├── alembic.ini                 # Alembic 配置
+└── README.md                   # 项目文档
 ```
 
-并注释 `scripts/prestart.sh` 文件中包含以下内容的行：
+## 开发指南
 
-```console
-$ alembic upgrade head
+### 添加新的 API 端点
+
+1. 在 `app/api/routes/` 中创建新的路由文件
+2. 在 `app/api/main.py` 中注册路由
+3. 在 `app/models.py` 中定义数据模型
+4. 在 `app/crud.py` 中添加 CRUD 操作
+5. 在 `tests/api/` 中添加测试
+
+### 修改数据模型
+
+1. 在 `app/models.py` 中修改模型
+2. 创建新的数据库迁移：`alembic revision --autogenerate -m "描述"`
+3. 执行迁移：`alembic upgrade head`
+4. 更新相关的 CRUD 操作和 API 端点
+
+### 添加 Celery 任务
+
+1. 在 `app/worker.py` 中定义任务函数
+2. 在 `app/core/celery_app.py` 中配置任务路由
+3. 启动 Celery Worker 处理任务
+
+## VS Code 配置
+
+项目已配置 VS Code 调试和测试支持：
+
+- 使用 F5 启动调试器，可以设置断点、暂停和探索变量
+- 通过 VS Code Python 测试选项卡运行测试
+- 确保编辑器使用正确的 Python 解释器：`backend/.venv/bin/python`
+
+## 环境变量说明
+
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `PROJECT_NAME` | 项目名称 | - |
+| `API_V1_STR` | API 版本前缀 | `/api/v1` |
+| `SECRET_KEY` | JWT 密钥 | 自动生成 |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | 访问令牌过期时间（分钟） | 11520 |
+| `FRONTEND_HOST` | 前端主机地址 | `http://localhost:3000` |
+| `ENVIRONMENT` | 运行环境 | `local` |
+| `BACKEND_CORS_ORIGINS` | CORS 允许的源 | `[]` |
+| `SENTRY_DSN` | Sentry DSN | `None` |
+| `REDIS_URL` | Redis 连接地址 | `redis://localhost:6379/0` |
+| `POSTGRES_SERVER` | PostgreSQL 服务器地址 | - |
+| `POSTGRES_PORT` | PostgreSQL 端口 | `5432` |
+| `POSTGRES_USER` | PostgreSQL 用户名 | - |
+| `POSTGRES_PASSWORD` | PostgreSQL 密码 | - |
+| `POSTGRES_DB` | PostgreSQL 数据库名 | - |
+| `SMTP_HOST` | SMTP 服务器地址 | `None` |
+| `SMTP_PORT` | SMTP 端口 | `587` |
+| `SMTP_USER` | SMTP 用户名 | `None` |
+| `SMTP_PASSWORD` | SMTP 密码 | `None` |
+| `EMAILS_FROM_EMAIL` | 发件人邮箱 | `None` |
+| `EMAILS_FROM_NAME` | 发件人名称 | 项目名称 |
+| `FIRST_SUPERUSER` | 首个超级管理员邮箱 | - |
+| `FIRST_SUPERUSER_PASSWORD` | 首个超级管理员密码 | - |
+
+## 故障排查
+
+### 数据库连接失败
+
+检查 PostgreSQL 服务是否运行：
+```bash
+docker compose ps postgres
 ```
 
-如果您不想从默认模型开始，并且从一开始就想删除/修改它们，而没有任何先前的修订，您可以删除 `./backend/app/alembic/versions/` 下的修订文件（`.py` Python 文件）。然后如上所述创建第一个迁移。
+### Redis 连接失败
 
-## 电子邮件模板
+检查 Redis 服务是否运行：
+```bash
+docker compose ps redis
+```
 
-电子邮件模板位于 `./backend/app/email-templates/`。这里有两个目录：`build` 和 `src`。`src` 目录包含用于构建最终电子邮件模板的源文件。`build` 目录包含应用程序使用的最终电子邮件模板。
+### 迁移失败
 
-在继续之前，确保您在 VS Code 中安装了 [MJML 扩展](https://marketplace.visualstudio.com/items?itemName=attilabuti.vscode-mjml)。
+检查数据库连接配置是否正确，然后重新运行迁移：
+```bash
+alembic upgrade head
+```
 
-安装 MJML 扩展后，您可以在 `src` 目录中创建一个新的电子邮件模板。创建新的电子邮件模板后，并在编辑器中打开 `.mjml` 文件，使用 `Ctrl+Shift+P` 打开命令面板并搜索 `MJML: Export to HTML`。这将把 `.mjml` 文件转换为 `.html` 文件，现在您可以将它保存在 build 目录中。
+### 测试失败
+
+确保所有服务都在运行：
+```bash
+docker compose up -d
+```
+
+然后重新运行测试。
+
+## 许可证
+
+本项目采用 MIT 许可证。
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 联系方式
+
+如有问题，请通过 GitHub Issues 联系。

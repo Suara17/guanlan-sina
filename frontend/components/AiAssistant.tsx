@@ -1,5 +1,6 @@
 import { MessageSquare, Sparkles, X } from 'lucide-react'
 import type React from 'react'
+import { useState } from 'react'
 import { analyzeSystemHealth } from '../services/geminiService'
 
 interface AiAssistantProps {
@@ -21,7 +22,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
     setLoading(true)
     setMessages((prev) => [
       ...prev,
-      { id: `user-${Date.now()}`, role: 'user', content: '请分析当前产线健康状况并给出建议。' },
+      { id: `user-${Date.now()}`, role: 'user', content: '请分析当前产线健康状况并给出建议' },
     ])
 
     const analysis = await analyzeSystemHealth(contextData)
