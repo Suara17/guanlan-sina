@@ -44,7 +44,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   })
 
   // 调试日志
-  console.log('AuthProvider render:', { isLoading: authState.isLoading, isAuthenticated: authState.isAuthenticated })
+  console.log('AuthProvider render:', {
+    isLoading: authState.isLoading,
+    isAuthenticated: authState.isAuthenticated,
+  })
 
   // 清除错误
   const clearError = () => {

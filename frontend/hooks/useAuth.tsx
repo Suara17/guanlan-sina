@@ -13,7 +13,7 @@ export const useAuth = (): AuthContextType => {
     // 在开发环境中提供更详细的错误信息
     const error = new Error(
       'useAuth must be used within an AuthProvider. ' +
-      'Make sure your component is wrapped with <AuthProvider>.'
+        'Make sure your component is wrapped with <AuthProvider>.'
     )
     // 在生产环境中抛出错误，在开发环境中记录到控制台
     if (process.env.NODE_ENV === 'development') {

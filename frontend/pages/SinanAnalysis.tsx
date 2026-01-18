@@ -60,8 +60,14 @@ const SinanAnalysis: React.FC = () => {
           <div className="flex-1 relative bg-slate-50 rounded-xl border border-slate-100 overflow-hidden flex items-center justify-center">
             {/* CSS Visualization for Knowledge Graph */}
             <div className="relative w-full h-full p-10">
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" role="img" aria-labelledby="knowledge-graph-title">
-                <title id="knowledge-graph-title">知识图谱可视化 - 显示异常传播路径和根因分析</title>
+              <svg
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                role="img"
+                aria-labelledby="knowledge-graph-title"
+              >
+                <title id="knowledge-graph-title">
+                  知识图谱可视化 - 显示异常传播路径和根因分析
+                </title>
                 <path
                   d="M150,200 L350,150"
                   stroke="#cbd5e1"

@@ -32,7 +32,12 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
         className={`absolute bottom-28 w-64 bg-white p-4 rounded-2xl rounded-br-none shadow-xl border border-blue-100 transition-all duration-300 transform origin-bottom-right cursor-pointer
         ${mode === 'alert' ? 'opacity-100 scale-100' : isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}`}
         onClick={() => mode === 'alert' && navigate('/sinan-analysis')}
-        onKeyDown={(e) => { if (mode === 'alert' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); navigate('/sinan-analysis'); } }}
+        onKeyDown={(e) => {
+          if (mode === 'alert' && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault()
+            navigate('/sinan-analysis')
+          }
+        }}
       >
         <div className="flex items-start gap-3">
           {mode === 'alert' ? (
@@ -74,7 +79,12 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => mode === 'alert' && navigate('/sinan-analysis')}
-        onKeyDown={(e) => { if (mode === 'alert' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); navigate('/sinan-analysis'); } }}
+        onKeyDown={(e) => {
+          if (mode === 'alert' && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault()
+            navigate('/sinan-analysis')
+          }
+        }}
       >
         {/* Head */}
         <div className="absolute inset-0 bg-white rounded-3xl border-2 border-slate-200 shadow-lg flex flex-col items-center justify-center overflow-hidden">
