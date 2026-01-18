@@ -78,11 +78,6 @@ backend/app/
 └── worker.py              # Celery后台任务
 ```
 
-**关键设计模式:**
-- **依赖注入**: 通过`deps.py`提供`get_db`和`get_current_user`等依赖
-- **配置管理**: 使用`pydantic-settings`从`.env`读取配置,支持环境变量覆盖
-- **异步任务**: Celery + Redis处理后台任务(如数据聚合、报告生成)
-- **认证**: JWT token-based认证,通过HTTP Bearer header传递
 
 ### 前端架构 (React + TypeScript)
 
@@ -146,11 +141,6 @@ BACKEND_CORS_ORIGINS=http://localhost:5173
 # Redis和Celery
 REDIS_URL=redis://localhost:6379/0
 
-# SMTP(可选,用于邮件功能)
-SMTP_HOST=
-SMTP_USER=
-SMTP_PASSWORD=
-EMAILS_FROM_EMAIL=
 
 # Sentry(可选,用于错误追踪)
 SENTRY_DSN=
@@ -202,54 +192,51 @@ npm run test                               # 运行测试
 # 手动运行: uv run pre-commit run --all-files
 ```
 
-## 常见问题
-
-### 数据库连接失败
-- 确认PostgreSQL容器正在运行: `docker ps | grep postgres`
-- 检查`.env`中的数据库配置
-- 确认数据库迁移已应用: `uv run alembic current`
-
-### CORS错误
-- 检查`backend/app/core/config.py`中的`BACKEND_CORS_ORIGINS`配置
-- 确认前端地址(如`http://localhost:5173`)在CORS列表中
-
-### 前端API调用失败
-- 确认后端服务正在运行(localhost:8000)
-- 检查浏览器控制台的网络请求URL
-- 确认`VITE_API_URL`环境变量配置正确
-
-### Celery任务不执行
-- 确认Redis正在运行: `docker ps | grep redis`
-- 启动Celery worker: `cd backend && uv run celery -A app.worker.celery_app worker --loglevel=info`
-
-## 核心业务概念
-
-### 司南助手
-- **定位**: AI驱动的虚拟助手,负责异常提醒、归因分析、解决方案推荐
-- **实现**: WebSocket实时推送 + 前端动画组件
-- **集成**: 调用格物(知识图谱归因)和天筹(优化决策)模块
-
-### 生产可视化面板
-- **核心指标**: 计划vs实时产量、整体不良品率、异常信息流
-- **数据源**: `/api/v1/production/metrics`接口
-- **实时更新**: WebSocket推送或前端轮询
-
-### 原子能力模块化
-- **视觉检测**: MSA-YOLO算法容器
-- **知识图谱**: 格物归因分析
-- **优化引擎**: 天筹决策优化
-- **仿真引擎**: 浑天仿真模拟
-
 ### API版本控制
 - 所有API端点前缀: `/api/v1/`
 - OpenAPI文档: `http://localhost:8000/docs` (Swagger UI)
 - 替代文档: `http://localhost:8000/redoc` (ReDoc)
 
-## 项目特色
+## 项目文档索引
 
-1. **模板基础**: 基于[tiangolo/full-stack-fastapi-postgresql](https://github.com/tiangolo/full-stack-fastapi-postgresql)模板
-2. **类型安全**: 前后端全类型化,自动生成TypeScript客户端
-3. **容器化**: 完整的Docker Compose配置,支持一键部署
-4. **可观测性**: 集成Sentry错误追踪和性能监控
-5. **邮件功能**: 支持SMTP邮件发送(如密码重置、告警通知)
-6. **异步任务**: Celery处理后台任务,如数据聚合、报告生成
+### 后端文档
+
+| 文档路径 | 说明 |
+|---------|------|
+| [backend/README.md](./backend/README.md) | 后端项目说明，包含Docker Compose开发环境配置、工作流程、测试、迁移等 |
+| [backend/app/README.md](./backend/app/README.md) | 后端应用核心目录说明，包含模块结构、数据模型、API路由等 |
+| [backend/app/api/README.md](./backend/app/api/README.md) | API路由目录说明，包含所有API端点定义和依赖注入 |
+| [backend/app/core/README.md](./backend/app/core/README.md) | 核心配置目录说明，包含配置管理、数据库连接、安全认证、Celery配置 |
+| [backend/app/alembic/README.md](./backend/app/alembic/README.md) | 数据库迁移目录说明，包含Alembic配置和版本脚本管理 |
+| [backend/tests/README.md](./backend/tests/README.md) | 后端测试目录说明，包含pytest测试框架使用和测试最佳实践 |
+| [backend/scripts/README.md](./backend/scripts/README.md) | 后端脚本目录说明，包含代码格式化、检查、测试等辅助脚本 |
+
+### 前端文档
+
+| 文档路径 | 说明 |
+|---------|------|
+| [frontend/README.md](./frontend/README.md) | 前端项目说明，包含技术栈、项目结构、快速开始、开发指南等 |
+| [frontend/components/README.md](./frontend/components/README.md) | React组件说明文档，包含所有组件的功能、Props和依赖关系 |
+| [frontend/pages/README.md](./frontend/pages/README.md) | 页面组件说明文档，包含所有页面的功能、数据可视化和路由映射 |
+| [frontend/src/README.md](./frontend/src/README.md) | API客户端说明文档，包含自动生成的客户端代码、类型定义和使用示例 |
+
+### 工作流文档
+
+| 文档路径 | 说明 |
+|---------|------|
+| [.spec-workflow/user-templates/README.md](./.spec-workflow/user-templates/README.md) | Spec Workflow自定义模板说明，包含如何创建和使用自定义模板 |
+
+### 项目根目录文档
+
+| 文档路径 | 说明 |
+|---------|------|
+| [03-deployment.md](./03-deployment.md) | 部署指南 |
+| [04-development.md](./04-development.md) | 开发指南 |
+| [05-项目本地开发环境启动问题总结.md](./05-项目本地开发环境启动问题总结.md) | 本地开发环境启动问题总结 |
+| [06-前端-后端集成问题修复文档.md](./06-前端-后端集成问题修复文档.md) | 前端-后端集成问题修复文档 |
+| [07-启动指南.md](./07-启动指南.md) | 项目启动指南 |
+| [08-连通性测试说明.md](./08-连通性测试说明.md) | 连通性测试说明 |
+| [09-PostgreSQL数据库配置与表扩展指南.md](./09-PostgreSQL数据库配置与表扩展指南.md) | PostgreSQL数据库配置与表扩展指南 |
+| [10-数据表字段说明.md](./10-数据表字段说明.md) | 数据表字段说明 |
+| [11-后端服务验证与修复总结.md](./11-后端服务验证与修复总结.md) | 后端服务验证与修复总结 |
+| [12-数据库管理指南.md](./12-数据库管理指南.md) | 数据库管理指南 |
