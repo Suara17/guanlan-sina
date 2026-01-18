@@ -2,9 +2,17 @@ import { AlertCircle, CheckCircle, Loader2, Server, Wifi } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
 
+interface Device {
+  id: number
+  name: string
+  ip: string
+  status: string
+  type: string
+}
+
 const KernelConnect: React.FC = () => {
   const [scanning, setScanning] = useState(false)
-  const [devices, setDevices] = useState<any[]>([])
+  const [devices, setDevices] = useState<Device[]>([])
   const [step, setStep] = useState(1)
 
   const startScan = () => {
@@ -75,6 +83,7 @@ const KernelConnect: React.FC = () => {
               </h3>
               <p className="text-slate-500 mb-8">系统将自动发现支持 Modbus/OPC UA 协议的设备。</p>
               <button
+                type="button"
                 onClick={startScan}
                 disabled={scanning}
                 className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium transition-all"
@@ -113,12 +122,14 @@ const KernelConnect: React.FC = () => {
               </div>
               <div className="flex justify-end gap-3">
                 <button
+                  type="button"
                   onClick={() => setStep(1)}
                   className="px-5 py-2 text-slate-600 hover:bg-slate-50 rounded-lg"
                 >
                   重试
                 </button>
                 <button
+                  type="button"
                   onClick={() => setStep(3)}
                   className="px-5 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg"
                 >

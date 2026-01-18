@@ -1,7 +1,7 @@
 export interface NavItem {
   id: string
   label: string
-  icon: any // Lucide Icon
+  icon: React.ComponentType<{ size?: number; className?: string }>
   path: string
 }
 

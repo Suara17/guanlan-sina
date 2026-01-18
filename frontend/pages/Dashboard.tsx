@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Clock, Factory } from 'lucide-react'
+import { Clock, Factory } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import {
@@ -75,7 +75,16 @@ const Dashboard: React.FC = () => {
     return () => clearTimeout(timer)
   }, [])
 
-  const renderActiveShape = (props: any) => {
+  const renderActiveShape = (props: {
+    cx: number
+    cy: number
+    innerRadius: number
+    outerRadius: number
+    startAngle: number
+    endAngle: number
+    fill: string
+    payload: { name: string }
+  }) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props
     return (
       <g>
@@ -195,9 +204,9 @@ const Dashboard: React.FC = () => {
                   />
                   <Bar dataKey="planned" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={20} />
                   <Bar dataKey="actual" radius={[4, 4, 0, 0]} barSize={20}>
-                    {PRODUCTION_DATA.map((entry, index) => (
+                    {PRODUCTION_DATA.map((entry) => (
                       <Cell
-                        key={`cell-${index}`}
+                        key={`cell-${entry.time}`}
                         fill={entry.actual < entry.planned * 0.95 ? '#f87171' : '#3b82f6'}
                       />
                     ))}

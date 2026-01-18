@@ -5,7 +5,7 @@ import {
   readUserMeApiV1UsersMeGet,
   testTokenApiV1LoginTestTokenPost,
 } from '../src/client/sdk.gen'
-import { Token, type UserPublic } from '../src/client/types.gen'
+import type { UserPublic } from '../src/client/types.gen'
 
 // 认证状态类型
 interface AuthState {
@@ -167,7 +167,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
 
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login failed:', error)
 
       let errorMessage = '登录失败，请稍后重试'
@@ -210,7 +210,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // 初始化时检查认证状态
   useEffect(() => {
     checkAuth()
-  }, [])
+  }, [checkAuth])
 
   // 提供上下文值
   const contextValue: AuthContextType = {

@@ -1,17 +1,17 @@
 import { MessageSquare, Sparkles, X } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
 import { analyzeSystemHealth } from '../services/geminiService'
 
 interface AiAssistantProps {
-  contextData: any
+  contextData: Record<string, unknown>
 }
 
 const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [messages, setMessages] = useState<{ role: 'user' | 'ai'; content: string }[]>([
+  const [messages, setMessages] = useState<{ id: string; role: 'user' | 'ai'; content: string }[]>([
     {
+      id: 'welcome',
       role: 'ai',
       content: '您好！我是天工·弈控的智能助手。我可以帮您分析产线数据或推荐优化算法。',
     },
@@ -21,12 +21,12 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
     setLoading(true)
     setMessages((prev) => [
       ...prev,
-      { role: 'user', content: '请分析当前产线健康状况并给出建议。' },
+      { id: `user-${Date.now()}`, role: 'user', content: '请分析当前产线健康状况并给出建议。' },
     ])
 
     const analysis = await analyzeSystemHealth(contextData)
 
-    setMessages((prev) => [...prev, { role: 'ai', content: analysis }])
+    setMessages((prev) => [...prev, { id: `ai-${Date.now()}`, role: 'ai', content: analysis }])
     setLoading(false)
   }
 
@@ -39,15 +39,15 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
               <Sparkles size={18} />
               <span className="font-semibold">AI 智囊团</span>
             </div>
-            <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 rounded p-1">
+            <button type="button" onClick={() => setIsOpen(false)} className="hover:bg-white/20 rounded p-1">
               <X size={16} />
             </button>
           </div>
 
           <div className="h-80 overflow-y-auto p-4 space-y-4 bg-slate-50">
-            {messages.map((msg, idx) => (
+            {messages.map((msg) => (
               <div
-                key={idx}
+                key={msg.id}
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
@@ -74,6 +74,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
 
           <div className="p-4 bg-white border-t border-slate-100">
             <button
+              type="button"
               onClick={handleAnalyze}
               disabled={loading}
               className="w-full py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium rounded-lg text-sm transition-colors flex justify-center items-center gap-2"
@@ -86,6 +87,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
       )}
 
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-lg shadow-blue-600/30 text-white flex items-center justify-center hover:scale-105 transition-all"
       >

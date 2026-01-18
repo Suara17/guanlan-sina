@@ -3,7 +3,7 @@ import { GoogleGenAI } from '@google/genai'
 const apiKey = process.env.API_KEY || ''
 const ai = new GoogleGenAI({ apiKey })
 
-export const analyzeSystemHealth = async (metrics: any): Promise<string> => {
+export const analyzeSystemHealth = async (metrics: Record<string, unknown>): Promise<string> => {
   if (!apiKey) {
     return 'API Key 未配置。请在环境变量中设置 API_KEY 以启用 AI 诊断功能。'
   }
