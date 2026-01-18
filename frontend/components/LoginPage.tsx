@@ -16,6 +16,7 @@ const LoginPage: React.FC = () => {
     password: '',
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -23,21 +24,24 @@ const LoginPage: React.FC = () => {
       ...prev,
       [name]: value,
     }))
-    // Clear error when user starts typing
+    // Clear errors when user starts typing
     if (error) clearError()
+    if (validationError) setValidationError(null)
   }
 
   const validateForm = (): boolean => {
+    setValidationError(null) // Clear previous validation error
+
     if (!formData.username.trim()) {
-      setError('请输入邮箱地址')
+      setValidationError('请输入邮箱地址')
       return false
     }
     if (!formData.password.trim()) {
-      setError('请输入密码')
+      setValidationError('请输入密码')
       return false
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.username)) {
-      setError('请输入有效的邮箱地址')
+      setValidationError('请输入有效的邮箱地址')
       return false
     }
     return true
@@ -91,9 +95,9 @@ const LoginPage: React.FC = () => {
           <p className="text-center text-slate-600 mb-8">请输入您的账号信息</p>
 
           {/* Error Message */}
-          {error && (
+          {(error || validationError) && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
+              {validationError || error}
             </div>
           )}
 

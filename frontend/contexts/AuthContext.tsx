@@ -43,6 +43,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error: null,
   })
 
+  // 调试日志
+  console.log('AuthProvider render:', { isLoading: authState.isLoading, isAuthenticated: authState.isAuthenticated })
+
   // 清除错误
   const clearError = () => {
     setAuthState((prev) => ({ ...prev, error: null }))
