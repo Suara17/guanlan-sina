@@ -58,3 +58,22 @@ export interface SolutionOption {
   duration: string
   risk: 'low' | 'medium' | 'high'
 }
+
+// New Types for Tianchou Optimization
+export interface TaskItem {
+  id: string
+  name: string
+  resource: string
+  start: number // minutes from 08:00
+  duration: number
+  status: 'baseline' | 'optimized' | 'bottleneck' | 'drift'
+}
+
+export type AssetMode = 'light' | 'heavy'
+
+export interface EconomicMetric {
+  label: string
+  cost: number
+  risk: number
+  gain: number
+}

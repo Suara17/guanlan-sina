@@ -9,10 +9,12 @@ import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 import { AuthProvider } from './contexts/AuthContext'
 import Dashboard from './pages/Dashboard'
+import Huntian from './pages/Huntian'
 import KernelConnect from './pages/KernelConnect'
 import Marketplace from './pages/Marketplace'
 import ScenarioBuilder from './pages/ScenarioBuilder'
 import SinanAnalysis from './pages/SinanAnalysis'
+import Tianchou from './pages/Tianchou'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -25,6 +27,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return '生产可视化'
       case '/app/sinan':
         return '司南智能诊断'
+      case '/app/huntian':
+        return '浑天仿真验证'
+      case '/app/tianchou':
+        return '天筹优化决策'
       case '/app/kernel':
         return 'OS 内核接入'
       case '/app/marketplace':
@@ -115,6 +121,8 @@ const App: React.FC = () => {
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/sinan" element={<SinanAnalysis />} />
+                    <Route path="/huntian" element={<Huntian />} />
+                    <Route path="/tianchou" element={<Tianchou />} />
                     <Route path="/kernel" element={<KernelConnect />} />
                     <Route path="/marketplace" element={<Marketplace />} />
                     <Route path="/builder" element={<ScenarioBuilder />} />

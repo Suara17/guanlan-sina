@@ -45,7 +45,22 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     statement = select(User).offset(skip).limit(limit)
     users = session.exec(statement).all()
 
-    return UsersPublic(data=users, count=count)
+    # Convert User objects to UserPublic objects
+    user_public_list = [
+        UserPublic(
+            id=user.id,
+            email=user.email,
+            username=user.username,
+            is_active=user.is_active,
+            is_superuser=user.is_superuser,
+            full_name=user.full_name,
+            phone=user.phone,
+            role=user.role,
+        )
+        for user in users
+    ]
+
+    return UsersPublic(data=user_public_list, count=count)
 
 
 @router.post(

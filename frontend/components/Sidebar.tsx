@@ -1,4 +1,14 @@
-import { Activity, Cable, Cuboid, LayoutDashboard, Settings, Sparkles, Store } from 'lucide-react'
+import {
+  Activity,
+  Cable,
+  Cpu,
+  Cuboid,
+  LayoutDashboard,
+  MonitorPlay,
+  Settings,
+  Sparkles,
+  Store,
+} from 'lucide-react'
 import type React from 'react'
 import type { NavItem } from '../types'
 
@@ -16,6 +26,8 @@ const NAV_ITEMS: NavItem[] = [
     path: '/app/',
   },
   { id: 'sinan', label: '司南智控', icon: Sparkles, path: '/app/sinan' },
+  { id: 'huntian', label: '浑天仿真', icon: MonitorPlay, path: '/app/huntian' },
+  { id: 'tianchou', label: '天筹优化', icon: Cpu, path: '/app/tianchou' },
   { id: 'kernel', label: 'OS 内核接入', icon: Cable, path: '/app/kernel' },
   {
     id: 'marketplace',

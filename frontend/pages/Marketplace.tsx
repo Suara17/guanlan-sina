@@ -5,7 +5,7 @@ import type { Capability } from '../types'
 const CAPABILITIES: Capability[] = [
   {
     id: '1',
-    title: 'MSA-YOLO 视觉检测',
+    title: '洞微·视觉检测',
     description: '基于深度学习的表面缺陷检测算法，毫秒级响应。',
     category: 'Vision',
     price: '¥599/月',
@@ -14,21 +14,21 @@ const CAPABILITIES: Capability[] = [
   },
   {
     id: '2',
-    title: '天筹·运筹优化引擎',
-    description: '针对排程调度的求解器，提升产线吞吐量 15% 以上。',
-    category: 'Optimization',
-    price: '¥1,200/月',
-    subscribed: true,
-    iconName: 'Cpu',
-  },
-  {
-    id: '3',
     title: '格物·知识图谱',
     description: '设备故障根因分析与推理，建立设备维护知识库。',
     category: 'Data',
     price: '¥800/月',
     subscribed: false,
     iconName: 'Network',
+  },
+  {
+    id: '3',
+    title: '天筹·运筹优化',
+    description: '针对排程调度的求解器，提升产线吞吐量 15% 以上。',
+    category: 'Optimization',
+    price: '¥1,200/月',
+    subscribed: true,
+    iconName: 'Cpu',
   },
   {
     id: '4',

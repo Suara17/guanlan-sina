@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     // 检查token是否过期
-    if (expiresAt && Date.now() > parseInt(expiresAt)) {
+    if (expiresAt && Date.now() > parseInt(expiresAt, 10)) {
       // token已过期，清除存储
       localStorage.removeItem('access_token')
       localStorage.removeItem('token_expires_at')
@@ -170,7 +170,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // 存储token和过期时间（24小时）
-      const expiresAt = Date.now() + (24 * 60 * 60 * 1000) // 24小时后过期
+      const expiresAt = Date.now() + 24 * 60 * 60 * 1000 // 24小时后过期
       localStorage.setItem('access_token', tokenData.access_token)
       localStorage.setItem('token_expires_at', expiresAt.toString())
 
@@ -238,7 +238,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // 获取token过期时间
   const getTokenExpiryTime = (): number | null => {
     const expiresAt = localStorage.getItem('token_expires_at')
-    return expiresAt ? parseInt(expiresAt) : null
+    return expiresAt ? parseInt(expiresAt, 10) : null
   }
 
   // 初始化时检查认证状态

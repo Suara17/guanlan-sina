@@ -26,8 +26,8 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
       <style>{robotStyle}</style>
 
       {/* Chat Bubble */}
-      <div
-        role="button"
+      <button
+        type="button"
         tabIndex={mode === 'alert' ? 0 : -1}
         className={`absolute bottom-28 w-64 bg-white p-4 rounded-2xl rounded-br-none shadow-xl border border-blue-100 transition-all duration-300 transform origin-bottom-right cursor-pointer
         ${mode === 'alert' ? 'opacity-100 scale-100' : isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}`}
@@ -72,8 +72,8 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
       </div>
 
       {/* Robot Avatar */}
-      <div
-        role="button"
+      <button
+        type="button"
         tabIndex={mode === 'alert' ? 0 : -1}
         className="relative w-32 h-32 animate-float cursor-pointer group"
         onMouseEnter={() => setIsHovered(true)}
