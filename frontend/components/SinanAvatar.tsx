@@ -67,11 +67,11 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
                 <ChevronRight size={12} />
               </button>
             )}
-          </div>
-        </div>
-      </div>
+           </div>
+         </div>
+       </button>
 
-      {/* Robot Avatar */}
+       {/* Robot Avatar */}
       <button
         type="button"
         tabIndex={mode === 'alert' ? 0 : -1}
@@ -116,7 +116,7 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
 
         {/* Shadow */}
         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-2 bg-black/10 rounded-full blur-sm"></div>
-      </div>
+      </button>
     </div>
   )
 }
