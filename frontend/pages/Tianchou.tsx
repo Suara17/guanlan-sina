@@ -395,7 +395,7 @@ const Tianchou: React.FC = () => {
               </p>
               <button
                 type="button"
-                onClick={() => navigate('/simulation')}
+                onClick={() => navigate('/app/huntian')}
                 className="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-lg"
               >
                 <MonitorPlay size={14} /> 去仿真验证 (浑天)
