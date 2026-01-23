@@ -3,6 +3,13 @@ export interface NavItem {
   label: string
   icon: React.ComponentType<{ size?: number; className?: string }>
   path: string
+  group?: string // 功能分组
+}
+
+export interface NavGroup {
+  id: string
+  label: string
+  items: NavItem[]
 }
 
 export interface Metric {
