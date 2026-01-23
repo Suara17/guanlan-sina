@@ -1,8 +1,9 @@
-import { ArrowLeft, Cpu, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import TiangongLogo from './TiangongLogo'
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate()
@@ -85,9 +86,7 @@ const LoginPage: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
           {/* Logo/Icon */}
           <div className="flex justify-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <Cpu className="w-8 h-8 text-white" />
-            </div>
+            <TiangongLogo size={64} animate={true} variant="light" />
           </div>
 
           {/* Title */}

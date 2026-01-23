@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>天工·弈控 - Favicon 生成器</title>
+  <style>
+    body {
+      font-family: system-ui;
+      padding: 20px;
+      background: #0f172a;
+      color: white;
+    }
+    canvas {
+      border: 1px solid #334155;
+      margin: 10px;
+      background: white;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    .preview {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .preview-item {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 天工·弈控 Favicon 生成器</h1>
+    <p>基于齿轮LOGO自动生成不同尺寸的favicon文件</p>
+
+    <div>
+      <button onclick="generateAll()">生成所有尺寸</button>
+      <button onclick="downloadAll()">下载全部</button>
+    </div>
+
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <script>
+    const sizes = [
+      { size: 16, name: 'favicon-16x16.png' },
+      { size: 32, name: 'favicon-32x32.png' },
+      { size: 180, name: 'apple-touch-icon.png' },
+      { size: 192, name: 'android-chrome-192x192.png' },
+      { size: 512, name: 'android-chrome-512x512.png' }
+    ];
+
+    function drawGearLogo(ctx, size) {
+      const centerX = size / 2;
+      const centerY = size / 2;
+      const scale = size / 32; // 基于32px viewBox缩放
+
+      // 设置高质量渲染
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      // 绘制发光背景
+      const glowGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, size * 0.65);
+      glowGradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
+      glowGradient.addColorStop(1, 'rgba(37, 99, 235, 0.1)');
+      ctx.fillStyle = glowGradient;
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.save();
+      ctx.translate(centerX, centerY);
+
+      // 绘制12个齿
+      const teethCount = 12;
+      const outerRadius = 14 * scale;
+      const innerRadius = 11 * scale;
+      const toothWidth = 8; // 角度
+
+      for (let i = 0; i < teethCount; i++) {
+        const angle = (i * 30 * Math.PI) / 180;
+        const leftAngle = ((i * 30 - toothWidth/2) * Math.PI) / 180;
+        const rightAngle = ((i * 30 + toothWidth/2) * Math.PI) / 180;
+
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(leftAngle) * innerRadius, Math.sin(leftAngle) * innerRadius);
+        ctx.lineTo(Math.cos(leftAngle) * outerRadius, Math.sin(leftAngle) * outerRadius);
+        ctx.lineTo(Math.cos(rightAngle) * outerRadius, Math.sin(rightAngle) * outerRadius);
+        ctx.lineTo(Math.cos(rightAngle) * innerRadius, Math.sin(rightAngle) * innerRadius);
+        ctx.closePath();
+
+        const gearGradient = ctx.createLinearGradient(-outerRadius, -outerRadius, outerRadius, outerRadius);
+        gearGradient.addColorStop(0, '#60A5FA');
+        gearGradient.addColorStop(0.5, '#3B82F6');
+        gearGradient.addColorStop(1, '#2563EB');
+        ctx.fillStyle = gearGradient;
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(96, 165, 250, 0.6)';
+        ctx.lineWidth = 0.5 * scale;
+        ctx.stroke();
+      }
+
+      // 绘制主圆环
+      const mainGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 10.5 * scale);
+      mainGradient.addColorStop(0, '#3B82F6');
+      mainGradient.addColorStop(0.7, '#2563EB');
+      mainGradient.addColorStop(1, '#1E40AF');
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 10.5 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = mainGradient;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
+      ctx.lineWidth = 0.8 * scale;
+      ctx.stroke();
+
+      // 绘制中心孔
+      const holeGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 5 * scale);
+      holeGradient.addColorStop(0, '#1E293B');
+      holeGradient.addColorStop(1, '#0F172A');
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 5 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = holeGradient;
+      ctx.fill();
+      ctx.strokeStyle = '#1E40AF';
+      ctx.lineWidth = 0.5 * scale;
+      ctx.stroke();
+
+      // 绘制中心三角形
+      const triangleGradient = ctx.createLinearGradient(0, -4 * scale, 0, 5 * scale);
+      triangleGradient.addColorStop(0, '#60A5FA');
+      triangleGradient.addColorStop(1, '#3B82F6');
+
+      ctx.beginPath();
+      ctx.moveTo(0, -4 * scale);
+      ctx.lineTo(3 * scale, 1 * scale);
+      ctx.lineTo(-3 * scale, 1 * scale);
+      ctx.closePath();
+      ctx.fillStyle = triangleGradient;
+      ctx.fill();
+
+      // 绘制三个内部圆孔
+      [0, 120, 240].forEach(angle => {
+        const rad = (angle * Math.PI) / 180;
+        const x = Math.cos(rad) * 7.5 * scale;
+        const y = Math.sin(rad) * 7.5 * scale;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 1.2 * scale, 0, Math.PI * 2);
+        ctx.fillStyle = '#0F172A';
+        ctx.fill();
+        ctx.strokeStyle = '#3B82F6';
+        ctx.lineWidth = 0.3 * scale;
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+
+    function generateAll() {
+      const preview = document.getElementById('preview');
+      preview.innerHTML = '';
+
+      sizes.forEach(({ size, name }) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // 绘制白色背景(可选,透明背景则删除此行)
+        // ctx.fillStyle = 'white';
+        // ctx.fillRect(0, 0, size, size);
+
+        drawGearLogo(ctx, size);
+
+        const container = document.createElement('div');
+        container.className = 'preview-item';
+        container.innerHTML = `
+          <div>${name}</div>
+          <div style="font-size: 12px; color: #94a3b8;">${size}x${size}</div>
+        `;
+        container.appendChild(canvas);
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.textContent = '下载';
+        downloadBtn.onclick = () => downloadCanvas(canvas, name);
+        container.appendChild(downloadBtn);
+
+        preview.appendChild(container);
+      });
+    }
+
+    function downloadCanvas(canvas, filename) {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    function downloadAll() {
+      document.querySelectorAll('canvas').forEach((canvas, index) => {
+        setTimeout(() => {
+          downloadCanvas(canvas, sizes[index].name);
+        }, index * 200);
+      });
+    }
+
+    // 页面加载时自动生成
+    window.onload = generateAll;
+  </script>
+</body>
+</html>

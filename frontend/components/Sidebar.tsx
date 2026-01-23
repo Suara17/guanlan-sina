@@ -16,6 +16,7 @@ import {
 import type React from 'react'
 import { useState } from 'react'
 import type { NavGroup, NavItem } from '../types'
+import TiangongLogo from './TiangongLogo'
 
 interface SidebarProps {
   currentPath: string
@@ -122,11 +123,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
     >
       {/* Logo 区域 + 工厂切换器 */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
-        {!collapsed && (
+        {/* 折叠时仅显示LOGO图标(居中) */}
+        {collapsed ? (
+          <TiangongLogo size={32} className="mx-auto" />
+        ) : (
+          /* 展开时显示完整LOGO + 标题 + 工厂切换 */
           <div className="flex items-center flex-1 min-w-0">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-blue-500/30 flex-shrink-0">
-              <span className="font-bold text-white text-lg">T</span>
-            </div>
+            <TiangongLogo size={32} className="mr-3 flex-shrink-0" />
             <div className="flex-1 min-w-0 relative">
               <button
                 type="button"
