@@ -25,6 +25,16 @@ body {
   animation: spin 15s linear infinite reverse;
 }
 
+/* 自定义动画 - 更慢的旋转（菱形容器） */
+.animate-spin-slower {
+  animation: spin 30s linear infinite;
+}
+
+/* 自定义动画 - 反向抵消旋转（内层容器） */
+.animate-spin-counter {
+  animation: spin 30s linear infinite reverse;
+}
+
 /* 自定义动画 - 浮动效果 */
 @keyframes float {
   0%, 100% {

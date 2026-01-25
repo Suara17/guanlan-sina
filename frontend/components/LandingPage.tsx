@@ -137,42 +137,203 @@ const LandingPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* 右侧装饰：增强的工业科技可视化 */}
+            {/* 右侧装饰：优化后的工业科技可视化 */}
             <div className="hidden lg:block relative h-[500px]">
-                {/* 主要六边形框架 */}
+                {/* 主要框架容器 */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                    {/* 外层旋转环 */}
-                    <div className="absolute w-[420px] h-[420px] border-2 border-blue-400/30 rounded-full animate-spin-slow"></div>
-                    <div className="absolute w-[380px] h-[380px] border border-cyan-400/20 rounded-full animate-spin-reverse"></div>
+                    {/* 外层旋转环 - 增强动态效果 */}
+                    <div className="absolute w-[420px] h-[420px] border-2 border-blue-400/30 rounded-full animate-spin-slow">
+                        {/* 装饰性断点 */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-blue-400 rounded-full"></div>
+                    </div>
+                    <div className="absolute w-[380px] h-[380px] border border-cyan-400/20 rounded-full animate-spin-reverse">
+                        {/* 装饰性断点 */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-cyan-400 rounded-full"></div>
+                    </div>
 
-                    {/* 中心六边形 */}
-                    <div className="relative w-72 h-72 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-sm border border-white/20 rounded-3xl rotate-45 flex items-center justify-center shadow-2xl">
-                        <div className="w-60 h-60 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-2xl -rotate-45 flex items-center justify-center">
+                    {/* 中心菱形（主视觉焦点）- 添加缓慢旋转 */}
+                    <div className="relative w-72 h-72 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-sm border border-white/20 rounded-3xl rotate-45 flex items-center justify-center shadow-2xl animate-spin-slower">
+                        <div className="-rotate-45 flex items-center justify-center animate-spin-counter">
                             <Layers className="text-blue-400" size={80} />
                         </div>
                     </div>
 
-                    {/* 四个卫星节点 */}
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/50 animate-float">
-                        <Eye className="text-white" size={28} />
+                    {/* 四个卫星节点 - 高级玻璃态设计 + 科技纹理 */}
+                    {/* 上方：洞微 (Eye) - 感知层 */}
+                    <div
+                        className="group/node absolute left-1/2 -translate-x-1/2 cursor-pointer"
+                        style={{ top: 'calc(50% - 180px)' }}
+                    >
+                        {/* 外层光晕 */}
+                        <div className="absolute inset-0 w-16 h-16 bg-blue-500/20 rounded-full blur-xl group-hover/node:bg-blue-400/40 transition-all duration-500"></div>
+
+                        {/* 主容器 */}
+                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden transition-all duration-300 group-hover/node:scale-110">
+                            {/* 背景渐变 */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/80 via-blue-600/70 to-cyan-600/60 backdrop-blur-md"></div>
+
+                            {/* 玻璃态光泽 */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent"></div>
+
+                            {/* 科技网格纹理 */}
+                            <div className="absolute inset-0 opacity-20" style={{
+                                backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
+                                backgroundSize: '4px 4px'
+                            }}></div>
+
+                            {/* 边框 */}
+                            <div className="absolute inset-0 border border-white/30 rounded-2xl group-hover/node:border-white/50 transition-colors duration-300"></div>
+
+                            {/* 图标 */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Eye className="text-white drop-shadow-lg transition-transform duration-300 group-hover/node:scale-110" size={24} />
+                            </div>
+                        </div>
+
+                        {/* 悬浮标签 */}
+                        <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 text-xs text-blue-300 whitespace-nowrap font-medium">
+                            洞微·感知
+                        </div>
                     </div>
-                    <div className="absolute top-1/2 -translate-y-1/2 -right-6 w-20 h-20 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl shadow-cyan-500/50 animate-float delay-300">
-                        <Cpu className="text-white" size={28} />
+
+                    {/* 右侧：天筹 (Cpu) - 决策层 */}
+                    <div
+                        className="group/node absolute top-1/2 -translate-y-1/2 cursor-pointer"
+                        style={{ right: 'calc(50% - 180px)' }}
+                    >
+                        {/* 外层光晕 */}
+                        <div className="absolute inset-0 w-16 h-16 bg-cyan-500/20 rounded-full blur-xl group-hover/node:bg-cyan-400/40 transition-all duration-500"></div>
+
+                        {/* 主容器 */}
+                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden transition-all duration-300 group-hover/node:scale-110">
+                            {/* 背景渐变 */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/80 via-cyan-600/70 to-blue-600/60 backdrop-blur-md"></div>
+
+                            {/* 玻璃态光泽 */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent"></div>
+
+                            {/* 科技网格纹理 */}
+                            <div className="absolute inset-0 opacity-20" style={{
+                                backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
+                                backgroundSize: '4px 4px'
+                            }}></div>
+
+                            {/* 边框 */}
+                            <div className="absolute inset-0 border border-white/30 rounded-2xl group-hover/node:border-white/50 transition-colors duration-300"></div>
+
+                            {/* 图标 */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Cpu className="text-white drop-shadow-lg transition-transform duration-300 group-hover/node:scale-110" size={24} />
+                            </div>
+                        </div>
+
+                        {/* 悬浮标签 */}
+                        <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 text-xs text-cyan-300 whitespace-nowrap font-medium">
+                            天筹·决策
+                        </div>
                     </div>
-                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl shadow-purple-500/50 animate-float delay-500">
-                        <MonitorPlay className="text-white" size={28} />
+
+                    {/* 下方：浑天 (MonitorPlay) - 验证层 */}
+                    <div
+                        className="group/node absolute left-1/2 -translate-x-1/2 cursor-pointer"
+                        style={{ bottom: 'calc(50% - 180px)' }}
+                    >
+                        {/* 外层光晕 */}
+                        <div className="absolute inset-0 w-16 h-16 bg-violet-500/20 rounded-full blur-xl group-hover/node:bg-violet-400/40 transition-all duration-500"></div>
+
+                        {/* 主容器 */}
+                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden transition-all duration-300 group-hover/node:scale-110">
+                            {/* 背景渐变 */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/80 via-violet-600/70 to-cyan-600/60 backdrop-blur-md"></div>
+
+                            {/* 玻璃态光泽 */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent"></div>
+
+                            {/* 科技网格纹理 */}
+                            <div className="absolute inset-0 opacity-20" style={{
+                                backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
+                                backgroundSize: '4px 4px'
+                            }}></div>
+
+                            {/* 边框 */}
+                            <div className="absolute inset-0 border border-white/30 rounded-2xl group-hover/node:border-white/50 transition-colors duration-300"></div>
+
+                            {/* 图标 */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <MonitorPlay className="text-white drop-shadow-lg transition-transform duration-300 group-hover/node:scale-110" size={24} />
+                            </div>
+                        </div>
+
+                        {/* 悬浮标签 */}
+                        <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 text-xs text-violet-300 whitespace-nowrap font-medium">
+                            浑天·验证
+                        </div>
                     </div>
-                    <div className="absolute top-1/2 -translate-y-1/2 -left-6 w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-500/50 animate-float delay-700">
-                        <Database className="text-white" size={28} />
+
+                    {/* 左侧：数据层 (Database) */}
+                    <div
+                        className="group/node absolute top-1/2 -translate-y-1/2 cursor-pointer"
+                        style={{ left: 'calc(50% - 180px)' }}
+                    >
+                        {/* 外层光晕 */}
+                        <div className="absolute inset-0 w-16 h-16 bg-blue-400/20 rounded-full blur-xl group-hover/node:bg-blue-300/40 transition-all duration-500"></div>
+
+                        {/* 主容器 */}
+                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden transition-all duration-300 group-hover/node:scale-110">
+                            {/* 背景渐变 */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-400/80 via-blue-500/70 to-cyan-500/60 backdrop-blur-md"></div>
+
+                            {/* 玻璃态光泽 */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent"></div>
+
+                            {/* 科技网格纹理 */}
+                            <div className="absolute inset-0 opacity-20" style={{
+                                backgroundImage: 'repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
+                                backgroundSize: '4px 4px'
+                            }}></div>
+
+                            {/* 边框 */}
+                            <div className="absolute inset-0 border border-white/30 rounded-2xl group-hover/node:border-white/50 transition-colors duration-300"></div>
+
+                            {/* 图标 */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Database className="text-white drop-shadow-lg transition-transform duration-300 group-hover/node:scale-110" size={24} />
+                            </div>
+                        </div>
+
+                        {/* 悬浮标签 */}
+                        <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 text-xs text-blue-300 whitespace-nowrap font-medium">
+                            数据·基座
+                        </div>
                     </div>
                 </div>
 
-                {/* 连接线 */}
-                <svg className="absolute inset-0 w-full h-full opacity-30">
-                    <line x1="50%" y1="15%" x2="50%" y2="50%" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse"/>
-                    <line x1="85%" y1="50%" x2="50%" y2="50%" stroke="#06b6d4" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse"/>
-                    <line x1="50%" y1="85%" x2="50%" y2="50%" stroke="#a855f7" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse"/>
-                    <line x1="15%" y1="50%" x2="50%" y2="50%" stroke="#10b981" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse"/>
+                {/* 连接线 - 统一蓝-青色系 + 移除持续脉冲动画 */}
+                <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none">
+                    <line x1="50%" y1="calc(50% - 180px)" x2="50%" y2="50%" stroke="url(#lineGradient1)" strokeWidth="2" strokeDasharray="5,5" />
+                    <line x1="calc(50% + 180px)" y1="50%" x2="50%" y2="50%" stroke="url(#lineGradient2)" strokeWidth="2" strokeDasharray="5,5" />
+                    <line x1="50%" y1="calc(50% + 180px)" x2="50%" y2="50%" stroke="url(#lineGradient3)" strokeWidth="2" strokeDasharray="5,5" />
+                    <line x1="calc(50% - 180px)" y1="50%" x2="50%" y2="50%" stroke="url(#lineGradient4)" strokeWidth="2" strokeDasharray="5,5" />
+
+                    {/* 渐变定义 */}
+                    <defs>
+                        <linearGradient id="lineGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#3b82f6" />
+                            <stop offset="100%" stopColor="#06b6d4" />
+                        </linearGradient>
+                        <linearGradient id="lineGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#06b6d4" />
+                            <stop offset="100%" stopColor="#0891b2" />
+                        </linearGradient>
+                        <linearGradient id="lineGradient3" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#0891b2" />
+                            <stop offset="100%" stopColor="#3b82f6" />
+                        </linearGradient>
+                        <linearGradient id="lineGradient4" x1="100%" y1="0%" x2="0%" y2="0%">
+                            <stop offset="0%" stopColor="#3b82f6" />
+                            <stop offset="100%" stopColor="#60a5fa" />
+                        </linearGradient>
+                    </defs>
                 </svg>
             </div>
         </div>
