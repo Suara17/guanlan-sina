@@ -5,3 +5,53 @@ body {
 	font-family: "Inter", system-ui, -apple-system, sans-serif;
 	background-color: #f8fafc; /* slate-50 */
 }
+
+/* 自定义动画 - 缓慢旋转 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin 20s linear infinite;
+}
+
+/* 自定义动画 - 反向旋转 */
+.animate-spin-reverse {
+  animation: spin 15s linear infinite reverse;
+}
+
+/* 自定义动画 - 浮动效果 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float.delay-300 {
+  animation-delay: 300ms;
+}
+
+.animate-float.delay-500 {
+  animation-delay: 500ms;
+}
+
+.animate-float.delay-700 {
+  animation-delay: 700ms;
+}
+
+/* 脉冲延迟动画 */
+.animate-pulse.delay-700 {
+  animation-delay: 700ms;
+}
