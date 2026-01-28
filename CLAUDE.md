@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **X (场景APP)**: 应用编排层 - 行业解决方案和低代码编排
 
 **技术栈:**
-- **后端**: Python 3.10+ (FastAPI, SQLModel, PostgreSQL, Redis, Celery)
+- **后端**: Python 3.10+ (FastAPI, SQLModel, PostgreSQL, Redis, Celery), uv (依赖管理)
 - **前端**: React 19 (Vite 6, TypeScript 5.8, Tailwind CSS, Biome, Recharts)
 - **AI/LLM**: Google GenAI (Gemini) 集成
 
@@ -19,10 +19,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 数据库和后端
 
 ```bash
-# 启动数据库(Docker)
-docker compose up db -d
+# 启动后端和数据库(Docker)
+docker compose up -d db backend
 
-# 后端开发 docker启动
+# 查看后端日志
+docker compose logs -f backend
 ```
 
 ### 前端
@@ -30,7 +31,7 @@ docker compose up db -d
 ```bash
 cd frontend
 npm install                          # 安装依赖
-npm run dev                          # 启动开发服务器(localhost:5173)
+npm run dev                          # 启动开发服务器(localhost:3000)
 npm run build                        # 生产构建
 npm run preview                      # 预览构建结果
 npm run generate-client              # 从OpenAPI规范生成类型化客户端
@@ -93,18 +94,28 @@ frontend/
 │   └── client/             # 自动生成的API客户端 (OpenAPI TS)
 ├── components/             # 通用组件
 │   ├── AiAssistant.tsx     # AI助手组件
+│   ├── AnomalyList.tsx     # 异常列表组件
+│   ├── DataDashboard.tsx   # 数据仪表盘
+│   ├── KnowledgeGraphCanvas.tsx # 知识图谱画布
 │   ├── LandingPage.tsx     # 落地页
+│   ├── LoadingSpinner.tsx  # 加载动画
 │   ├── LoginPage.tsx       # 登录页组件
+│   ├── NodeDetailPanel.tsx # 节点详情面板
+│   ├── ProductionLineSelector.tsx # 产线选择器
 │   ├── ProtectedRoute.tsx  # 路由保护
 │   ├── Sidebar.tsx         # 侧边栏
 │   ├── SinanAvatar.tsx     # 司南数字人
+│   ├── TiangongLogo.tsx    # 天工Logo
 │   └── TopBar.tsx          # 顶部导航
 ├── pages/                  # 页面视图
 │   ├── Dashboard.tsx       # 总览看板
+│   ├── Huntian.tsx         # 浑天(验证层)
 │   ├── KernelConnect.tsx   # 内核连接
+│   ├── KnowledgeGraph.tsx  # 知识图谱
 │   ├── Marketplace.tsx     # 能力市场
 │   ├── ScenarioBuilder.tsx # 场景编排
-│   └── SinanAnalysis.tsx   # 司南分析
+│   ├── SinanAnalysis.tsx   # 司南分析
+│   └── Tianchou.tsx        # 天筹(决策层)
 ├── services/
 │   └── geminiService.ts    # Google GenAI服务集成
 ├── contexts/

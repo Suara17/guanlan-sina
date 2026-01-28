@@ -1,6 +1,6 @@
 import { Clock, Factory } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -18,7 +18,7 @@ import AnomalyList from '../components/AnomalyList'
 import DataDashboard from '../components/DataDashboard'
 import ProductionLineSelector from '../components/ProductionLineSelector'
 import SinanAvatar from '../components/SinanAvatar'
-import { DASHBOARD_METRICS, PRODUCTION_LINES } from '../mockData'
+import { DASHBOARD_METRICS, PRODUCTION_LINES, getAnomaliesByLineType } from '../mockData'
 import type { DashboardMetrics, ProductionData, ProductionLine } from '../types'
 
 // Mock Data
@@ -41,13 +41,36 @@ const Dashboard: React.FC = () => {
   const [sinanMode, setSinanMode] = useState<'idle' | 'alert'>('idle')
   const [selectedLine, setSelectedLine] = useState<ProductionLine | null>(PRODUCTION_LINES[0]) // 默认选中第一条产线
 
-  // Simulate anomaly detection after a few seconds
+  // Get anomalies for the selected line
+  const currentAnomalies = useMemo(() => {
+    return selectedLine ? getAnomaliesByLineType(selectedLine.type) : []
+  }, [selectedLine])
+
+  // Determine alert message based on anomalies
+  const alertMessage = useMemo(() => {
+    if (currentAnomalies.length === 0) return "当前产线运行正常"
+
+    // Prioritize Critical > Error > Warning
+    const critical = currentAnomalies.find((a) => a.level === 'critical')
+    if (critical) return `${critical.location} ${critical.message}`
+
+    const error = currentAnomalies.find((a) => a.level === 'error')
+    if (error) return `${error.location} ${error.message}`
+
+    const warning = currentAnomalies.find((a) => a.level === 'warning')
+    if (warning) return `${warning.location} ${warning.message}`
+
+    return "检测到潜在异常风险"
+  }, [currentAnomalies])
+
+  // Update Sinan mode based on anomalies
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (currentAnomalies.length > 0) {
       setSinanMode('alert')
-    }, 2000)
-    return () => clearTimeout(timer)
-  }, [])
+    } else {
+      setSinanMode('idle')
+    }
+  }, [currentAnomalies])
 
   // 产线选择处理函数
   const handleLineSelect = (line: ProductionLine) => {
@@ -284,7 +307,7 @@ const Dashboard: React.FC = () => {
           <div className="h-64 relative">
             <SinanAvatar
               mode={sinanMode}
-              alertMessage="#5 贴片机不良品率飙升至8%！疑似吸嘴故障"
+              alertMessage={alertMessage}
               className="h-full justify-end pb-4"
             />
           </div>

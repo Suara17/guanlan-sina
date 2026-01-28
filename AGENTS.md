@@ -10,18 +10,21 @@
 - **X (场景APP)**: 应用编排层 - 行业解决方案和低代码编排
 
 **技术栈：**
-- **后端**: Python 3.10+ (FastAPI, SQLModel, PostgreSQL, Redis, Celery)
+- **后端**: Python 3.10+ (FastAPI, SQLModel, PostgreSQL, Redis, Celery), uv (依赖管理)
 - **前端**: React 19 (Vite 6, TypeScript 5.8, Tailwind CSS, Biome, Recharts)
 
 
 ### 后端开发命令
-cd backeend
-docker compose up -d db backend adminer
+```bash
+# 启动后端和数据库(Docker)
+docker compose up -d db backend
+```
+
 ### 单独管理服务
 
 ```bash
 # 启动特定服务
-docker compose up -d postgres redis
+docker compose up -d db
 
 # 停止特定服务
 docker compose stop backend
