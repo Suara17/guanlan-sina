@@ -14,8 +14,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import AnomalyList from '../components/AnomalyList'
+import DataDashboard from '../components/DataDashboard'
+import ProductionLineSelector from '../components/ProductionLineSelector'
 import SinanAvatar from '../components/SinanAvatar'
-import type { AlertItem, ProductionData } from '../types'
+import { DASHBOARD_METRICS, PRODUCTION_LINES } from '../mockData'
+import type { DashboardMetrics, ProductionData, ProductionLine } from '../types'
 
 // Mock Data
 const PRODUCTION_DATA: ProductionData[] = [
@@ -28,37 +32,6 @@ const PRODUCTION_DATA: ProductionData[] = [
   { time: '14:00', planned: 220, actual: 175 }, // Another drop
 ]
 
-const ALERTS: AlertItem[] = [
-  {
-    id: '1',
-    time: '14:32',
-    level: 'warning',
-    location: '#3 工位',
-    message: '生产节拍偏慢 (-15%)',
-  },
-  {
-    id: '2',
-    time: '14:15',
-    level: 'critical',
-    location: '#5 贴片机',
-    message: '连续3次检测到吸嘴漏气',
-  },
-  {
-    id: '3',
-    time: '13:45',
-    level: 'error',
-    location: '#2 机械臂',
-    message: '伺服电机温度过高 (75°C)',
-  },
-  {
-    id: '4',
-    time: '11:20',
-    level: 'warning',
-    location: '#1 上料站',
-    message: '料盘余量不足 10%',
-  },
-]
-
 const QUALITY_DATA = [
   { name: '良品', value: 92 },
   { name: '不良品', value: 8 },
@@ -66,6 +39,7 @@ const QUALITY_DATA = [
 
 const Dashboard: React.FC = () => {
   const [sinanMode, setSinanMode] = useState<'idle' | 'alert'>('idle')
+  const [selectedLine, setSelectedLine] = useState<ProductionLine | null>(PRODUCTION_LINES[0]) // 默认选中第一条产线
 
   // Simulate anomaly detection after a few seconds
   useEffect(() => {
@@ -74,6 +48,16 @@ const Dashboard: React.FC = () => {
     }, 2000)
     return () => clearTimeout(timer)
   }, [])
+
+  // 产线选择处理函数
+  const handleLineSelect = (line: ProductionLine) => {
+    setSelectedLine(line)
+  }
+
+  // 获取当前选中产线的数据
+  const dashboardMetrics = selectedLine
+    ? DASHBOARD_METRICS[selectedLine.id]
+    : DASHBOARD_METRICS[PRODUCTION_LINES[0].id]
 
   const renderActiveShape = (props: {
     cx: number
@@ -104,10 +88,10 @@ const Dashboard: React.FC = () => {
         <Sector
           cx={cx}
           cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius}
           startAngle={startAngle}
           endAngle={endAngle}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius}
           fill={fill}
         />
         <Sector
@@ -127,17 +111,16 @@ const Dashboard: React.FC = () => {
     <div className="p-4 md:p-6 min-h-full flex flex-col gap-6">
       {/* Header Info Bar */}
       <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm flex flex-wrap justify-between items-center gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-1">
           <div className="p-2 bg-green-50 text-green-700 rounded-lg border border-green-100">
             <Factory size={20} />
           </div>
-          <div>
-            <h1 className="text-lg font-bold text-slate-800">SMT 智能产线 A03</h1>
-            <p className="text-xs text-slate-500 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> 运行中{' '}
-              <span className="w-px h-3 bg-slate-300"></span>
-              工单: #WO-20240523-01
-            </p>
+          <div className="flex-1">
+            <ProductionLineSelector
+              lines={PRODUCTION_LINES}
+              selectedLine={selectedLine}
+              onSelect={handleLineSelect}
+            />
           </div>
         </div>
 
@@ -158,8 +141,11 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
-        {/* Left Column: KPIs & Charts */}
+        {/* Left Column: Data Dashboard & Charts */}
         <div className="lg:col-span-2 flex flex-col gap-6">
+          {/* 数据看板 */}
+          <DataDashboard metrics={dashboardMetrics} />
+
           {/* Production Monitor */}
           <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex-1">
             <div className="flex justify-between items-center mb-6">
@@ -251,18 +237,31 @@ const Dashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center gap-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">设备综合效率 (OEE)</span>
-                <span className="text-xl font-bold text-slate-800">82.5%</span>
+                <span className="text-xl font-bold text-slate-800">
+                  {((dashboardMetrics.completionRate + dashboardMetrics.efficiency) / 2).toFixed(1)}
+                  %
+                </span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '82.5%' }}></div>
+                <div
+                  className="bg-blue-600 h-2 rounded-full"
+                  style={{
+                    width: `${(dashboardMetrics.completionRate + dashboardMetrics.efficiency) / 2}%`,
+                  }}
+                ></div>
               </div>
 
               <div className="flex items-center justify-between mt-2">
                 <span className="text-sm text-slate-500">本班次完成率</span>
-                <span className="text-xl font-bold text-slate-800">94.2%</span>
+                <span className="text-xl font-bold text-slate-800">
+                  {dashboardMetrics.completionRate.toFixed(1)}%
+                </span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '94.2%' }}></div>
+                <div
+                  className="bg-emerald-500 h-2 rounded-full"
+                  style={{ width: `${dashboardMetrics.completionRate}%` }}
+                ></div>
               </div>
 
               <div className="flex items-center justify-between mt-2">
@@ -276,50 +275,10 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Alert Stream & Sinan */}
+        {/* Right Column: Anomaly List & Sinan */}
         <div className="flex flex-col gap-6">
-          {/* Alert Stream */}
-          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex-1 overflow-hidden flex flex-col">
-            <h3 className="font-bold text-slate-800 mb-4 flex items-center justify-between">
-              <span>异常信息</span>
-              <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
-                3 待处理
-              </span>
-            </h3>
-            <div className="flex-1 overflow-y-auto pr-2 space-y-4 relative">
-              {/* Vertical Line */}
-              <div className="absolute left-2 top-2 bottom-2 w-px bg-slate-200"></div>
-
-              {ALERTS.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="relative pl-6 group cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors"
-                >
-                  <div
-                    className={`absolute left-[5px] top-4 w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm z-10
-                                ${alert.level === 'critical' ? 'bg-red-500' : alert.level === 'error' ? 'bg-orange-500' : 'bg-yellow-400'}`}
-                  ></div>
-                  <div className="flex justify-between items-start">
-                    <span className="text-xs font-mono text-slate-400">{alert.time}</span>
-                    <span
-                      className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border
-                                    ${
-                                      alert.level === 'critical'
-                                        ? 'bg-red-50 border-red-100 text-red-600'
-                                        : alert.level === 'error'
-                                          ? 'bg-orange-50 border-orange-100 text-orange-600'
-                                          : 'bg-yellow-50 border-yellow-100 text-yellow-700'
-                                    }`}
-                    >
-                      {alert.level}
-                    </span>
-                  </div>
-                  <p className="font-medium text-slate-800 text-sm mt-1">{alert.location}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{alert.message}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* 异常列表 */}
+          {selectedLine && <AnomalyList lineType={selectedLine.type} />}
 
           {/* Sinan Assistant Area */}
           <div className="h-64 relative">

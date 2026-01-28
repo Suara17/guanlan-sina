@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -17,16 +18,39 @@ import {
 } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Bar, BarChart, ResponsiveContainer } from 'recharts'
 
 const Huntian: React.FC = () => {
+  const location = useLocation()
   const [speed, setSpeed] = useState<1 | 10 | 100>(1)
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [conflicts, setConflicts] = useState<string[]>([])
   const [showReport, setShowReport] = useState(false)
   const [isDeploying, setIsDeploying] = useState(false)
+  const [simulationMode, setSimulationMode] = useState<
+    'device_rearrangement' | 'route_optimization'
+  >('device_rearrangement')
+  const [devicePositions, setDevicePositions] = useState({
+    device1: { x: 100, y: 100 },
+    device2: { x: 300, y: 100 },
+  })
+  const [routePath, setRoutePath] = useState('M100,200 Q200,150 300,200 Q400,250 500,200')
   const timerRef = useRef<number | null>(null)
+
+  // 从路由 state 接收数据
+  useEffect(() => {
+    if (location.state) {
+      const { optimizationResult } = location.state as any
+      if (optimizationResult) {
+        // 根据优化结果设置仿真模式
+        if (optimizationResult.type) {
+          setSimulationMode(optimizationResult.type)
+        }
+      }
+    }
+  }, [location.state])
 
   // Simulation Logic
   useEffect(() => {
@@ -37,6 +61,15 @@ const Huntian: React.FC = () => {
           if (next >= 100) {
             setIsPlaying(false)
             setShowReport(true)
+            // 动画结束时执行设备重排或线路优化
+            if (simulationMode === 'device_rearrangement') {
+              setDevicePositions({
+                device1: { x: 300, y: 100 },
+                device2: { x: 100, y: 100 },
+              })
+            } else if (simulationMode === 'route_optimization') {
+              setRoutePath('M100,200 Q250,100 400,200 Q550,300 700,200')
+            }
             return 100
           }
           // Conflict trigger storyline
@@ -52,7 +85,7 @@ const Huntian: React.FC = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isPlaying, speed, conflicts, progress])
+  }, [isPlaying, speed, conflicts, progress, simulationMode])
 
   const resetSimulation = () => {
     setProgress(0)
@@ -60,6 +93,11 @@ const Huntian: React.FC = () => {
     setConflicts([])
     setShowReport(false)
     setIsDeploying(false)
+    setDevicePositions({
+      device1: { x: 100, y: 100 },
+      device2: { x: 300, y: 100 },
+    })
+    setRoutePath('M100,200 Q200,150 300,200 Q400,250 500,200')
   }
 
   const handlePushToExecution = () => {
@@ -97,6 +135,30 @@ const Huntian: React.FC = () => {
           </div>
 
           <div className="h-8 w-px bg-white/10 mx-2"></div>
+
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+              Simulation Mode
+            </span>
+            <div className="flex bg-white/5 border border-white/10 rounded-xl p-1">
+              <button
+                type="button"
+                onClick={() => setSimulationMode('device_rearrangement')}
+                className={`relative px-3 py-1 text-xs font-bold rounded-lg transition-all ${simulationMode === 'device_rearrangement' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                设备重排
+              </button>
+              <button
+                type="button"
+                onClick={() => setSimulationMode('route_optimization')}
+                className={`relative px-3 py-1 text-xs font-bold rounded-lg transition-all ${simulationMode === 'route_optimization' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                线路优化
+              </button>
+            </div>
+          </div>
+
+          <div className="h-6 w-px bg-white/10"></div>
 
           <div className="flex items-center gap-4">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
@@ -195,6 +257,47 @@ const Huntian: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {/* Device Rearrangement Animation */}
+          {simulationMode === 'device_rearrangement' && (
+            <>
+              <motion.div
+                animate={devicePositions.device1}
+                transition={{ duration: 2, ease: 'easeInOut' }}
+                className="absolute w-16 h-16 bg-blue-500 rounded-lg shadow-lg flex items-center justify-center text-white font-bold"
+              >
+                设备A
+              </motion.div>
+              <motion.div
+                animate={devicePositions.device2}
+                transition={{ duration: 2, ease: 'easeInOut' }}
+                className="absolute w-16 h-16 bg-green-500 rounded-lg shadow-lg flex items-center justify-center text-white font-bold"
+              >
+                设备B
+              </motion.div>
+            </>
+          )}
+
+          {/* Route Optimization Animation */}
+          {simulationMode === 'route_optimization' && (
+            <svg className="absolute inset-0 pointer-events-none">
+              <motion.path
+                d={routePath}
+                stroke="#3b82f6"
+                strokeWidth="4"
+                fill="none"
+                strokeDasharray="10,5"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 2, ease: 'easeInOut' }}
+              />
+              <circle r="6" fill="#3b82f6" className="animate-pulse">
+                <animateMotion dur="4s" repeatCount="indefinite">
+                  <mpath href="#routePath" />
+                </animateMotion>
+              </circle>
+            </svg>
+          )}
 
           {/* AGV Collision Highlight Layer */}
           {conflicts.map((conflict, i) => (

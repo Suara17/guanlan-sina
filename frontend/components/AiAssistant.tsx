@@ -1,6 +1,7 @@
 import { MessageSquare, Sparkles, X } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { analyzeSystemHealth } from '../services/geminiService'
 
 interface AiAssistantProps {
@@ -10,6 +11,9 @@ interface AiAssistantProps {
 const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const location = useLocation()
+  const pathname = location.pathname.toLowerCase()
+  const hidden = pathname.includes('tianchou')
   const [messages, setMessages] = useState<{ id: string; role: 'user' | 'ai'; content: string }[]>([
     {
       id: 'welcome',
@@ -32,7 +36,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+    <div className={`${hidden ? 'hidden' : ''} fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4`}>
       {isOpen && (
         <div className="w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-blue-100 overflow-hidden flex flex-col animate-in slide-in-from-bottom-5 duration-300">
           <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 flex justify-between items-center text-white">

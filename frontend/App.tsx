@@ -11,6 +11,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import Dashboard from './pages/Dashboard'
 import Huntian from './pages/Huntian'
 import KernelConnect from './pages/KernelConnect'
+import KnowledgeGraph from './pages/KnowledgeGraph'
 import Marketplace from './pages/Marketplace'
 import ScenarioBuilder from './pages/ScenarioBuilder'
 import SinanAnalysis from './pages/SinanAnalysis'
@@ -27,6 +28,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return '生产可视化'
       case '/app/sinan':
         return '司南智能诊断'
+      case '/app/gewu':
+        return '格物图谱分析'
       case '/app/huntian':
         return '浑天仿真验证'
       case '/app/tianchou':
@@ -121,6 +124,7 @@ const App: React.FC = () => {
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/sinan" element={<SinanAnalysis />} />
+                    <Route path="/gewu" element={<KnowledgeGraph />} />
                     <Route path="/huntian" element={<Huntian />} />
                     <Route path="/tianchou" element={<Tianchou />} />
                     <Route path="/kernel" element={<KernelConnect />} />

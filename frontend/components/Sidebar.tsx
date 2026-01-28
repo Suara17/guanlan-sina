@@ -9,6 +9,7 @@ import {
   Factory,
   LayoutDashboard,
   MonitorPlay,
+  Network,
   Settings,
   Sparkles,
   Store,
@@ -50,6 +51,13 @@ const NAV_GROUPS: NavGroup[] = [
     id: 'subscription',
     label: '订阅模块',
     items: [
+      {
+        id: 'gewu',
+        label: '格物图谱',
+        icon: Network,
+        path: '/app/gewu',
+        group: 'subscription',
+      },
       {
         id: 'tianchou',
         label: '天筹优化',

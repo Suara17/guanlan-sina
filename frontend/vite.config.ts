@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: '0.0.0.0',
+      allowedHosts: ['668wd4ta0871.vicp.fun'],
       proxy: {
         // 所有 /api 开头的请求都转发到本地后端
         '/api': {

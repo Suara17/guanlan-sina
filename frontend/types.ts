@@ -84,3 +84,93 @@ export interface EconomicMetric {
   risk: number
   gain: number
 }
+
+// ==================== 阶段一：新增类型定义 ====================
+
+// 产线类型
+export interface ProductionLine {
+  id: string
+  name: string // 例如: "SMT智能产线A01"
+  type: 'SMT' | 'PCB' | '3C'
+  status: 'running' | 'idle' | 'error'
+}
+
+// Dashboard 数据看板
+export interface DashboardMetrics {
+  completionRate: number // 当日计划完成率
+  actualProduction: number // 实际生产数
+  plannedProduction: number // 计划生产数
+  attendance: number // 出勤人数
+  efficiency: number // 工时效率
+  outputValue: number // 产值（单位：万元）
+}
+
+// 异常信息扩展
+export interface AnomalyDetail extends AlertItem {
+  lineType: 'SMT' | 'PCB' | '3C' // 所属产线类型
+  description: string // 详细描述
+  rootCause?: string // 根本原因
+  solutions?: string[] // 可能解决方案
+}
+
+// 知识图谱节点
+export interface KnowledgeNode {
+  id: string
+  type: 'phenomenon' | 'cause' | 'solution'
+  label: string
+  description: string
+  x?: number // D3布局计算后的坐标
+  y?: number
+}
+
+// 知识图谱关系
+export interface KnowledgeEdge {
+  id: string
+  source: string // 节点ID
+  target: string // 节点ID
+  type: 'leads_to' | 'caused_by' | 'solved_by'
+  label?: string
+}
+
+// 知识图谱完整数据
+export interface KnowledgeGraph {
+  nodes: KnowledgeNode[]
+  edges: KnowledgeEdge[]
+  anomalyId: string // 关联的异常ID
+}
+
+// 天筹决策结果
+export interface OptimizationResult {
+  anomalyId: string
+  phenomenon: string // 现象描述
+  rootCauses: string[] // 原因列表
+  solutions: SolutionOption[] // 解决方案
+  estimatedRepairTime: { min: number; max: number } // 预计维修时长（分钟）
+  successRate: number // 修复成功概率 (0-100)
+  continuousProductionRisk: number // 继续生产的流出风险 (0-100)
+  shutdownImpact: { delay: number; unit: 'hour' | 'day' } // 停线对交付影响
+  remedialActions?: string[] // 补救方案
+}
+
+// 浑天仿真配置
+export interface SimulationConfig {
+  type: 'device_rearrangement' | 'route_optimization' // 仿真类型
+  duration: number // 仿真时长（小时）
+  speed: 1 | 10 | 100 // 播放倍速
+}
+
+// 设备重排动画数据
+export interface DeviceMove {
+  deviceId: string
+  fromPosition: { x: number; y: number }
+  toPosition: { x: number; y: number }
+  duration: number // 动画持续时间（毫秒）
+}
+
+// 线路优化动画数据
+export interface RouteOptimization {
+  routeId: string
+  oldPath: { x: number; y: number }[]
+  newPath: { x: number; y: number }[]
+  duration: number
+}

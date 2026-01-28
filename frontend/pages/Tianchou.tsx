@@ -1,17 +1,22 @@
 import {
   Activity,
-  DollarSign,
+  AlertOctagon,
+  AlertTriangle,
+  CheckCircle,
+  CheckCircle2,
+  Clock,
   Loader2,
-  MonitorPlay,
   Move,
   Play,
   Route,
   Sliders,
   Sparkles,
+  TrendingUp,
+  Zap,
 } from 'lucide-react'
 import type React from 'react'
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Area,
   AreaChart,
@@ -34,12 +39,317 @@ const DRIFT_DATA = [
   { time: '11:00', upstream: 90, bottleneck: 60, downstream: 85 }, // Drift moved to downstream (WIP accumulation)
 ]
 
+/**
+ * Metric Card Component
+ */
+const MetricCard = ({ title, value, sub, color, icon: Icon, trend }: any) => {
+  // Dynamic color mapping
+  const theme =
+    {
+      blue: 'border-slate-700 bg-slate-800 text-slate-200',
+      green: 'border-slate-700 bg-slate-800 text-slate-200',
+      red: 'border-slate-700 bg-slate-800 text-slate-200',
+      yellow: 'border-slate-700 bg-slate-800 text-slate-200',
+    }[color] || 'border-slate-700 bg-slate-800 text-slate-200'
+  const accentValue =
+    {
+      blue: 'text-sky-400',
+      green: 'text-emerald-400',
+      red: 'text-red-400',
+      yellow: 'text-amber-300',
+    }[color] || 'text-slate-100'
+  const accentBar =
+    {
+      blue: 'bg-sky-500',
+      green: 'bg-emerald-500',
+      red: 'bg-red-500',
+      yellow: 'bg-amber-500',
+    }[color] || 'bg-slate-600'
+  const iconTone =
+    {
+      blue: 'text-sky-400',
+      green: 'text-emerald-400',
+      red: 'text-red-400',
+      yellow: 'text-amber-300',
+    }[color] || 'text-slate-400'
+
+  return (
+    <div
+      className={`relative p-3 rounded-xl border ${theme} overflow-hidden group shadow-sm transition-all duration-200 hover:ring-1 hover:ring-slate-600/50`}
+    >
+      <div className={`absolute inset-x-0 top-0 h-1 ${accentBar}`}></div>
+      <div className="flex justify-between items-start mb-2">
+        <span className="text-slate-400 text-xs font-medium leading-tight">{title}</span>
+        {Icon && <Icon className={`w-4 h-4 ${iconTone}`} />}
+      </div>
+      <div className="flex items-end gap-2">
+        <span className={`text-2xl font-bold font-mono tracking-tight leading-none ${accentValue}`}>
+          {value}
+        </span>
+        {color === 'red' && (
+          <span className="px-1.5 py-0.5 rounded-md border border-red-500/40 bg-red-500/10 text-[10px] text-red-300 leading-none mb-0.5">
+            高
+          </span>
+        )}
+        {color === 'yellow' && (
+          <span className="px-1.5 py-0.5 rounded-md border border-amber-500/40 bg-amber-500/10 text-[10px] text-amber-200 leading-none mb-0.5">
+            警示
+          </span>
+        )}
+        {color === 'green' && (
+          <span className="px-1.5 py-0.5 rounded-md border border-emerald-500/40 bg-emerald-500/10 text-[10px] text-emerald-200 leading-none mb-0.5">
+            良好
+          </span>
+        )}
+        {trend && <span className="text-xs font-bold mb-0.5 text-green-600 leading-none">↗</span>}
+      </div>
+      <div className={`text-[10px] mt-2 font-mono flex items-center gap-1 ${color === 'red' ? 'text-red-300' : color === 'yellow' ? 'text-amber-200' : 'text-slate-400'}`}>
+        {color === 'red' || color === 'yellow' ? <AlertTriangle className="w-3 h-3 text-amber-300" /> : null}
+        {sub}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Plan Card Component
+ */
+const PlanCard = ({ title, recommend, description, metrics, loss, type, onClick }: any) => {
+  const isRecommended = type === 'A'
+
+  // Styles
+  const containerClasses = isRecommended
+    ? 'border border-slate-700/50 bg-slate-900/40 shadow-md ring-1 ring-sky-700/40 rounded-xl'
+    : 'border border-slate-700/50 bg-slate-900/40 hover:bg-slate-700/30 shadow-sm rounded-xl'
+
+  const glow = ''
+
+  return (
+    <div
+      onClick={onClick}
+      className={`relative p-4 cursor-pointer transition-all duration-200 group flex flex-col h-full ${containerClasses}`}
+    >
+      {glow && <div className={glow}></div>}
+
+      <div className="flex justify-between items-start mb-3 relative z-10">
+        <div className="flex items-center gap-2">
+          <h3
+            className={`text-base font-bold ${isRecommended ? 'text-sky-300' : 'text-slate-200'}`}
+          >
+            {title}
+          </h3>
+          {recommend && (
+            <span className="px-1.5 py-0.5 bg-amber-500/10 text-amber-300 text-[10px] font-semibold rounded border border-amber-500/40 flex items-center gap-1">
+              <Zap className="w-3 h-3 text-amber-300" /> 推荐
+            </span>
+          )}
+        </div>
+        {isRecommended ? (
+          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+        ) : type === 'B' ? (
+          <AlertTriangle className="w-5 h-5 text-amber-300" />
+        ) : (
+          <AlertOctagon className="w-5 h-5 text-red-400" />
+        )}
+      </div>
+
+      <p className="text-slate-300 text-xs mb-4 font-medium leading-relaxed">{description}</p>
+
+      <div className="space-y-3 relative z-10 flex-1">
+        <div className="flex items-center gap-2 text-xs">
+          <span className="w-14 text-slate-400">交付影响</span>
+          <div className="flex-1 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full ${metrics.deliveryColor}`}
+              style={{ width: metrics.delivery }}
+            ></div>
+          </div>
+          <span className="w-14 text-right font-mono text-slate-200">{metrics.deliveryVal}</span>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs">
+          <span className="w-14 text-slate-400">质量风险</span>
+          <div className="flex-1 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full ${metrics.riskColor}`}
+              style={{ width: metrics.risk }}
+            ></div>
+          </div>
+          <span className="w-14 text-right font-semibold text-slate-200">{metrics.riskVal}</span>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs">
+          <span className="w-14 text-slate-400">成本</span>
+          <div className="flex-1 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full ${metrics.costColor}`}
+              style={{ width: metrics.cost }}
+            ></div>
+          </div>
+          <span className="w-14 text-right font-semibold text-slate-200">{metrics.costVal}</span>
+        </div>
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-slate-700/50 flex justify-end items-center relative z-10">
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs text-slate-400">预计总损失</span>
+          <span className="text-lg font-mono font-bold text-slate-100">{loss}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Circular Progress Indicator for Loading State
+ */
+const ProgressRing = ({ progress }: { progress: number }) => {
+  const radius = 60
+  const stroke = 8
+  const normalizedRadius = radius - stroke * 2
+  const circumference = normalizedRadius * 2 * Math.PI
+  const strokeDashoffset = circumference - (progress / 100) * circumference
+
+  return (
+    <div className="relative flex items-center justify-center w-48 h-48">
+      <div className="absolute inset-0 rounded-full blur-2xl bg-sky-500/20"></div>
+      <div className="absolute inset-0 rounded-full blur-3xl bg-sky-400/10"></div>
+      <svg height={radius * 2} width={radius * 2} className="rotate-[-90deg] relative z-10">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#22d3ee" />
+            <stop offset="50%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#0ea5e9" />
+          </linearGradient>
+        </defs>
+        <circle
+          stroke="rgba(56,189,248,0.15)"
+          strokeWidth={stroke}
+          fill="transparent"
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+        <circle
+          stroke="url(#ringGrad)"
+          fill="transparent"
+          strokeWidth={stroke}
+          strokeDasharray={circumference + ' ' + circumference}
+          style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.1s linear' }}
+          strokeLinecap="round"
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+          className="shadow-[0_0_20px_rgba(56,189,248,0.8)]"
+        />
+      </svg>
+      <div className="absolute flex flex-col items-center justify-center z-20">
+        <span className="text-4xl font-bold font-mono text-white drop-shadow-[0_0_14px_rgba(56,189,248,0.8)]">
+          {Math.round(progress)}%
+        </span>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Loading Overlay View
+ */
+const LoadingView = ({ progress, awaitDismiss, onDismiss }: { progress: number; awaitDismiss?: boolean; onDismiss?: () => void }) => {
+  return (
+    <div
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center"
+      onClick={awaitDismiss ? onDismiss : undefined}
+    >
+      <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity duration-500"></div>
+      <div
+        className="relative bg-slate-900 border-2 border-sky-500/60 ring-4 ring-sky-500/10 p-10 rounded-2xl shadow-[0_0_60px_rgba(14,165,233,0.15)] max-w-3xl w-full flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-2xl text-slate-100 tracking-wide font-medium flex items-center gap-3">
+          <Activity className="w-6 h-6 text-sky-400 animate-spin" />
+          正在生成最优处置方案...
+        </h2>
+        <ProgressRing progress={progress} />
+        <div className="w-full max-w-md space-y-2.5">
+          <div className="flex justify-between items-center text-sm text-slate-200 font-mono bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+            <span className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${progress > 30 ? 'bg-sky-500 shadow-[0_0_6px_rgba(56,189,248,0.8)]' : 'bg-slate-500'}`}></span>
+              计算: 维修时长预测
+            </span>
+            <span className={`${progress > 30 ? 'text-sky-400' : 'text-slate-400'}`}>{progress > 30 ? 'DONE' : '...'}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm text-slate-200 font-mono bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+            <span className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${progress > 60 ? 'bg-sky-500 shadow-[0_0_6px_rgba(56,189,248,0.8)]' : 'bg-slate-500'}`}></span>
+              计算: 流出风险评估
+            </span>
+            <span className={`${progress > 60 ? 'text-sky-400' : 'text-slate-400'}`}>{progress > 60 ? 'DONE' : '...'}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm text-slate-200 font-mono bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+            <span className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${progress > 90 ? 'bg-sky-500 shadow-[0_0_6px_rgba(56,189,248,0.8)]' : 'bg-slate-500'}`}></span>
+              计算: 交付影响模拟
+            </span>
+            <span className={`${progress > 90 ? 'text-sky-400' : 'text-slate-400'}`}>{progress > 90 ? 'DONE' : '...'}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const Tianchou: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [assetMode, setAssetMode] = useState<AssetMode>('light')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [showOptimized, setShowOptimized] = useState(false)
-  const [weights, setWeights] = useState({ throughput: 70, cost: 40, risk: 20 })
+  const [showOptimized, setShowOptimized] = useState(true) // 默认显示优化结果
+  const [anomalyData, setAnomalyData] = useState<any>(null)
+  const [knowledgeGraph, setKnowledgeGraph] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [awaitDismiss, setAwaitDismiss] = useState(false)
+
+  // Mock data for demonstration
+  const mockAnomalyData = {
+    phenomenon: '设备振动异常，温度升高',
+    rootCauses: ['轴承磨损', '润滑不足', '冷却系统故障'],
+    solutions: [
+      {
+        name: '快速更换轴承',
+        description: '更换主轴承并补充润滑',
+        estimatedTime: '30分钟',
+        successRate: 85,
+      },
+      {
+        name: '系统性检查',
+        description: '全面检查冷却和润滑系统',
+        estimatedTime: '60分钟',
+        successRate: 95,
+      },
+    ],
+    id: 'anomaly-001',
+  }
+
+  // 从路由 state 接收数据，如果没有则使用mock数据
+  useEffect(() => {
+    if (location.state) {
+      const { anomaly, knowledgeGraph: graph } = location.state as any
+      if (anomaly) {
+        setAnomalyData(anomaly)
+      } else {
+        setAnomalyData(mockAnomalyData)
+      }
+      if (graph) {
+        setKnowledgeGraph(graph)
+      }
+    } else {
+      // 如果没有路由状态，使用mock数据
+      setAnomalyData(mockAnomalyData)
+    }
+  }, [location.state])
 
   const handleGenerate = () => {
     setIsGenerating(true)
@@ -47,6 +357,32 @@ const Tianchou: React.FC = () => {
       setIsGenerating(false)
       setShowOptimized(true)
     }, 1800)
+  }
+
+  const handleExecutePlan = (planType: string) => {
+    setSelectedPlan(planType)
+    setLoading(true)
+    setProgress(0)
+    setAwaitDismiss(false)
+
+    // Simulation of the loading process
+    const duration = 5000
+    const target = 96
+    const start = Date.now()
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start
+      const pct = Math.min(target, (elapsed / duration) * target)
+      setProgress(pct)
+      if (pct >= target) {
+        clearInterval(interval)
+        setAwaitDismiss(true)
+      }
+    }, 100)
+  }
+
+  const handleDismiss = () => {
+    setLoading(false)
+    setAwaitDismiss(false)
   }
 
   const economicData = useMemo(
@@ -59,351 +395,175 @@ const Tianchou: React.FC = () => {
   )
 
   return (
-    <div className="flex flex-col lg:flex-row h-full overflow-hidden bg-slate-50">
-      {/* Left Panel: Configuration & Asset Selection (25%) */}
-      <div className="w-full lg:w-80 bg-white border-r border-slate-200 p-6 overflow-y-auto flex flex-col gap-8 shadow-sm">
-        <div>
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-            <Activity size={14} /> 资产属性定义
-          </h2>
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg mb-6">
-            <button
-              type="button"
-              onClick={() => {
-                setAssetMode('light')
-                setShowOptimized(false)
-              }}
-              className={`py-2 text-xs font-bold rounded-md transition-all ${assetMode === 'light' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              轻资产 (组装)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAssetMode('heavy')
-                setShowOptimized(false)
-              }}
-              className={`py-2 text-xs font-bold rounded-md transition-all ${assetMode === 'heavy' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              重资产 (精加)
-            </button>
-          </div>
-
-          <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg mb-8">
-            <p className="text-[10px] text-blue-500 font-bold uppercase mb-1">重构策略类型</p>
-            <p className="text-xs font-medium text-blue-800 flex items-center gap-2">
-              {assetMode === 'light' ? (
-                <>
-                  <Move size={14} /> 空间重构：物理布局优化
-                </>
-              ) : (
-                <>
-                  <Route size={14} /> 逻辑重构：物流分流重排
-                </>
-              )}
-            </p>
-          </div>
-
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-            <Sliders size={14} /> 多目标优化权重
-          </h2>
-          <div className="space-y-6">
-            {[
-              { key: 'throughput', label: '吞吐量最大化', color: 'accent-blue-600' },
-              { key: 'cost', label: '重构成本最小化', color: 'accent-slate-600' },
-              { key: 'risk', label: '客诉风险规避', color: 'accent-red-500' },
-            ].map((item) => (
-              <div key={item.key} className="space-y-3">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-medium text-slate-700">{item.label}</span>
-                  <span className="font-mono font-bold">
-                    {weights[item.key as keyof typeof weights]}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={weights[item.key as keyof typeof weights]}
-                  onChange={(e) =>
-                    setWeights({ ...weights, [item.key]: parseInt(e.target.value, 10) })
-                  }
-                  className={`w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer ${item.color}`}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={isGenerating}
-          className="mt-auto w-full py-4 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50"
-        >
-          {isGenerating ? <Loader2 className="animate-spin" size={20} /> : <Play size={20} />}
-          启动决策计算
-        </button>
-      </div>
-
-      {/* Main Content Area (75%) */}
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-        {/* Top: Bottleneck Drift Monitoring */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-                瓶颈漂移实时监测 (WIP)
-              </h3>
-              <p className="text-xs text-slate-500">检测到由上游产能提升引发的下游在制品堆积</p>
-            </div>
-            <div className="flex gap-4 text-[10px] font-bold">
-              <span className="flex items-center gap-1 text-slate-400">
-                <span className="w-2 h-2 rounded-full bg-slate-300"></span> 上游检测
-              </span>
-              <span className="flex items-center gap-1 text-red-500">
-                <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> 漂移瓶颈
-              </span>
-              <span className="flex items-center gap-1 text-blue-500">
-                <span className="w-2 h-2 rounded-full bg-blue-400"></span> 下游产线
-              </span>
-            </div>
-          </div>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={DRIFT_DATA}>
-                <defs>
-                  <linearGradient id="colorBottleneck" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f87171" stopOpacity={0.1} />
-                    <stop offset="95%" stopColor="#f87171" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="time" hide />
-                <YAxis hide />
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '12px' }} />
-                <Area
-                  type="monotone"
-                  dataKey="upstream"
-                  stroke="#94a3b8"
-                  fill="transparent"
-                  strokeWidth={2}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="bottleneck"
-                  stroke="#ef4444"
-                  fill="url(#colorBottleneck)"
-                  strokeWidth={3}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="downstream"
-                  stroke="#3b82f6"
-                  fill="transparent"
-                  strokeWidth={2}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Center: Strategy Visualization Dual-Track */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 flex-1 min-h-[400px]">
-          {/* View A: Current State */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col">
-            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
-              当前瓶颈状态
-            </h4>
-            <div className="flex-1 border-2 border-dashed border-slate-100 rounded-xl relative overflow-hidden bg-slate-50/50 p-4">
-              {/* Simplified Factory Layout Grid */}
-              <div className="grid grid-cols-4 grid-rows-3 gap-4 h-full">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <div
-                    key={`workstation-${i}`}
-                    className={`rounded-lg border-2 flex items-center justify-center text-[10px] font-bold transition-all
-                                ${i === 6 ? 'bg-red-50 border-red-500 text-red-600 animate-pulse' : 'bg-white border-slate-200 text-slate-400'}`}
-                  >
-                    {i === 6 ? '瓶颈点: #3 工位' : `工序 ${i + 1}`}
+    <div className="h-full overflow-hidden bg-[#0b1220]">
+      {/* Main Content Area (Full Width) */}
+      <div className="h-full flex flex-col p-4 gap-4 relative">
+        {/* 解决方案列表 - 代码保留但暂时不显示 */}
+        {/* {anomalyData?.solutions && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Sparkles size={14} /> 解决方案列表
+            </h2>
+            <div className="space-y-3">
+              {anomalyData.solutions.map((solution: any, index: number) => (
+                <div key={index} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                  <h4 className="font-medium text-sm text-green-800 mb-1">{solution.name}</h4>
+                  <p className="text-xs text-green-700 mb-2">{solution.description}</p>
+                  <div className="flex justify-between text-xs text-green-600">
+                    <span>时长: {solution.estimatedTime}</span>
+                    <span>成功率: {solution.successRate}%</span>
                   </div>
-                ))}
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="bg-red-500/10 w-32 h-32 rounded-full blur-2xl"></div>
-              </div>
+                </div>
+              ))}
             </div>
           </div>
+        )} */}
 
-          {/* View B: Reconstruction Strategy */}
-          <div
-            className={`rounded-2xl border p-6 flex flex-col transition-all duration-700 ${
-              showOptimized
-                ? 'bg-white border-blue-500 shadow-xl'
-                : 'bg-slate-100 border-dashed border-slate-300'
-            }`}
-          >
-            {!showOptimized ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-4">
-                {isGenerating ? (
+        {/* Loading Overlay */}
+        {loading && <LoadingView progress={progress} awaitDismiss={awaitDismiss} onDismiss={handleDismiss} />}
+
+        {/* Top: KPI Cards */}
+        {showOptimized && (
+          <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-sm shrink-0">
+            <h3 className="font-bold text-sky-400 text-base mb-3 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-sky-400" />
+              关键性指标
+            </h3>
+            <div className="grid grid-cols-4 gap-4">
+              <MetricCard
+                title="预计维修时长"
+                value={
                   <>
-                    <Loader2 className="animate-spin text-blue-600" size={32} />
-                    <p className="font-bold animate-pulse text-blue-600">
-                      正在计算{assetMode === 'light' ? '空间重构' : '逻辑重构'}方案...
-                    </p>
+                    38 <span className="text-xs text-slate-300 ml-1">min</span>
                   </>
-                ) : (
-                  <p className="text-sm">点击左侧“启动决策”生成优化建议</p>
-                )}
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col animate-in fade-in duration-1000">
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-sm font-bold text-blue-700 uppercase tracking-widest">
-                    {assetMode === 'light' ? '空间重构方案 (物理搬移)' : '逻辑重构方案 (柔性路由)'}
-                  </h4>
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">
-                    最短路径 📉 -28%
-                  </span>
-                </div>
-                <div className="flex-1 border-2 border-blue-100 rounded-xl relative overflow-hidden bg-blue-50/30 p-4">
-                  {/* Animated Result Visualization */}
-                  <div className="grid grid-cols-4 grid-rows-3 gap-4 h-full">
-                    {Array.from({ length: 12 }).map((_, i) => {
-                      const isMoved = assetMode === 'light' && (i === 6 || i === 7)
-                      const isRoute = assetMode === 'heavy' && (i === 1 || i === 5 || i === 9)
-                      return (
-                        <div
-                          key={`result-cell-${i}`}
-                          className={`rounded-lg border-2 flex flex-col items-center justify-center text-[10px] font-bold transition-all
-                                            ${
-                                              isMoved
-                                                ? 'bg-blue-600 border-blue-600 text-white translate-x-2'
-                                                : isRoute
-                                                  ? 'bg-white border-blue-400 text-blue-600 border-dashed animate-pulse'
-                                                  : 'bg-white border-slate-200 text-slate-400'
-                                            }`}
-                        >
-                          {isMoved ? (
-                            <>
-                              <Move size={12} />
-                              位置调优
-                            </>
-                          ) : isRoute ? (
-                            <>
-                              <Route size={12} />
-                              AGV分流
-                            </>
-                          ) : (
-                            `工序 ${i + 1}`
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom: Economic Arbitration Model */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 flex flex-col">
-            <div className="flex items-center gap-2 mb-6">
-              <DollarSign className="text-emerald-500" />
-              <h3 className="font-bold text-slate-800">基于期望损失模型的经济性裁决</h3>
-            </div>
-            <div className="grid grid-cols-3 gap-4 flex-1">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">实施停机损失</p>
-                <p className="text-xl font-bold text-slate-700">
-                  ¥ {assetMode === 'light' ? '5,200' : '1,200'}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  预计耗时 {assetMode === 'light' ? '120min' : '15min'}
-                </p>
-              </div>
-              <div className="p-4 bg-red-50 rounded-xl border border-red-100">
-                <p className="text-[10px] font-bold text-red-400 uppercase mb-2">潜在客诉风险值</p>
-                <p className="text-xl font-bold text-red-600">
-                  ¥ {assetMode === 'light' ? '800' : '3,500'}
-                </p>
-                <p className="text-[10px] text-red-400 mt-1">基于当前交付延期概率计算</p>
-              </div>
-              <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                <p className="text-[10px] font-bold text-blue-400 uppercase mb-2">
-                  综合商业期望值 (ROI)
-                </p>
-                <p className="text-xl font-bold text-blue-600">+ 145%</p>
-                <p className="text-[10px] text-blue-400 mt-1">建议采纳方案</p>
-              </div>
+                }
+                sub="(±12)"
+                color="blue"
+                icon={Clock}
+              />
+              <MetricCard
+                title="修复成功概率"
+                value={<span className="text-emerald-400">82%</span>}
+                trend={true}
+                sub=""
+                color="green"
+                icon={TrendingUp}
+              />
+              <MetricCard
+                title="流出风险"
+                value={<span className="text-red-400">高 12%</span>}
+                sub="(若继续生产)"
+                color="red"
+                icon={AlertOctagon}
+              />
+              <MetricCard
+                title="交付影响"
+                value={<span className="text-amber-300">延迟 0.6天</span>}
+                sub="(若立刻停线)"
+                color="yellow"
+                icon={AlertTriangle}
+              />
             </div>
           </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col items-center justify-center">
-            <h4 className="text-xs font-bold text-slate-400 uppercase mb-4">成本与风险分布</h4>
-            <div className="h-32 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={economicData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={35}
-                    outerRadius={45}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {economicData.map((entry, index) => (
-                      <Cell key={`cell-${entry.name || index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+        )}
+        {/* Center: Plan Cards */}
+        {showOptimized && (
+          <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-sm flex-1 flex flex-col min-h-0">
+            <div className="flex items-center gap-2 mb-3 shrink-0">
+              <div className="h-3.5 w-1 bg-sky-500 rounded-full"></div>
+              <h3 className="text-base font-bold text-sky-400">处置方案</h3>
+              <span className="text-[11px] text-slate-400 font-mono">(按损失最小化排序)</span>
             </div>
-            <div className="flex gap-4 mt-2">
-              <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span> 收益
-              </div>
-              <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
-                <span className="w-2 h-2 rounded-full bg-slate-300"></span> 成本
-              </div>
-              <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
-                <span className="w-2 h-2 rounded-full bg-red-400"></span> 风险
-              </div>
+            <div className="grid grid-cols-3 gap-4 flex-1 h-full">
+              <PlanCard
+                type="A"
+                title="方案A"
+                recommend={true}
+                description="停线隔离 + 快速换件 + 首件确认"
+                metrics={{
+                  delivery: '30%',
+                  deliveryColor: 'bg-amber-400',
+                  deliveryVal: '0.3天',
+                  risk: '20%',
+                  riskColor: 'bg-emerald-500',
+                  riskVal: '低',
+                  cost: '60%',
+                  costColor: 'bg-amber-400',
+                  costVal: '中',
+                }}
+                loss="¥32k"
+                onClick={() => handleExecutePlan('A')}
+              />
+              <PlanCard
+                type="B"
+                title="方案B"
+                description="降速生产 + 100%在线检 + 并行排查"
+                metrics={{
+                  delivery: '60%',
+                  deliveryColor: 'bg-emerald-500',
+                  deliveryVal: '交付不延迟',
+                  risk: '50%',
+                  riskColor: 'bg-amber-400',
+                  riskVal: '中',
+                  cost: '80%',
+                  costColor: 'bg-orange-500',
+                  costVal: '高',
+                }}
+                loss="¥58k"
+              />
+              <PlanCard
+                type="C"
+                title="方案C"
+                description="继续生产 + 事后抽检返工"
+                metrics={{
+                  delivery: '10%',
+                  deliveryColor: 'bg-emerald-500',
+                  deliveryVal: '交付不延迟',
+                  risk: '90%',
+                  riskColor: 'bg-red-500',
+                  riskVal: '高',
+                  cost: '90%',
+                  costColor: 'bg-red-500',
+                  costVal: '不确定',
+                }}
+                loss="¥110k+"
+              />
             </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Floating Sinan Insight Overlay (when optimized) */}
-      {showOptimized && (
-        <div className="absolute top-20 right-8 w-80 bg-slate-900/90 backdrop-blur-md text-white p-5 rounded-2xl shadow-2xl border border-white/10 animate-in slide-in-from-right-4 duration-500 z-30">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-500 rounded-lg shrink-0">
-              <Sparkles size={18} />
+        {/* Footer Area */}
+        {showOptimized && (
+          <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 flex items-center justify-between shadow-sm shrink-0">
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-slate-300 font-semibold">依据</span>
+              <div className="text-xs text-slate-400 font-mono flex items-center gap-4">
+                <span>相比故障记录30次</span>
+                <span className="w-px h-3 bg-slate-500"></span>
+                <span>参数偏离: 温度+8°C、振动+12%</span>
+                <span className="w-px h-3 bg-slate-500"></span>
+                <span>近15分钟不良趋势上升</span>
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-blue-400 uppercase tracking-tighter mb-1">
-                司南智能推演
-              </p>
-              <p className="text-sm font-medium leading-relaxed mb-4">
-                {assetMode === 'light'
-                  ? "检测到组装段 WIP 堆积。建议采用'空间重构'：将 #3 工位前移 1.5 米，物理缩短搬运功，可消除 85% 的滞留环节。"
-                  : "检测到精加设备不可移动。建议采用'逻辑重构'：重调度 AGV-04 至 #2 备用路由，绕开过载节点，实现负载动态平衡。"}
-              </p>
+
+            <div className="flex gap-3 items-center">
+              <div className="text-xs text-red-400 mr-3">建议在5分钟内决策，超过将增加损失</div>
+              <button className="px-3 py-2 text-slate-200 hover:text-white border border-slate-600 hover:border-slate-500 rounded-lg bg-slate-700/50 transition-colors text-xs font-medium">
+                查看明细
+              </button>
+              <button className="px-3 py-2 text-slate-200 hover:text-white border border-slate-600 hover:border-slate-500 rounded-lg bg-slate-700/50 transition-colors text-xs font-medium">
+                导出记录
+              </button>
               <button
-                type="button"
-                onClick={() => navigate('/app/huntian')}
-                className="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-lg"
+                onClick={() => handleExecutePlan('A')}
+                className="px-5 py-2 text-white bg-sky-600 hover:bg-sky-500 rounded-lg shadow-sm transition-colors text-sm font-bold flex items-center gap-2"
               >
-                <MonitorPlay size={14} /> 去仿真验证 (浑天)
+                执行方案A
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

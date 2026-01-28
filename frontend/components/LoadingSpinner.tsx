@@ -22,7 +22,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 48,
   text = '加载中...',
   fullscreen = false,
-  variant = 'dark'
+  variant = 'dark',
 }) => {
   const content = (
     <div className="flex flex-col items-center justify-center gap-4">
@@ -39,7 +39,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
             height: size * 1.5,
             left: '50%',
             top: '50%',
-            transform: 'translate(-50%, -50%)'
+            transform: 'translate(-50%, -50%)',
           }}
         />
       </div>
@@ -47,7 +47,9 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       {/* 加载文字 */}
       {text && (
         <div className="flex items-center gap-2">
-          <span className={`font-medium ${variant === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
+          <span
+            className={`font-medium ${variant === 'light' ? 'text-slate-700' : 'text-slate-300'}`}
+          >
             {text}
           </span>
           <div className="flex gap-1">

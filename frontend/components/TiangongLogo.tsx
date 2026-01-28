@@ -22,51 +22,54 @@ const TiangongLogo: React.FC<TiangongLogoProps> = ({
   size = 32,
   className = '',
   animate = true,
-  variant = 'dark'
+  variant = 'dark',
 }) => {
   // 生成唯一ID避免多个实例的渐变定义冲突
   const uniqueId = useMemo(() => `logo-${Math.random().toString(36).substr(2, 9)}`, [])
 
   // 根据主题选择配色方案
-  const colors = variant === 'light' ? {
-    // 浅色背景(白色/浅灰) - 使用浅蓝色LOGO(高亮度)
-    gearLight: '#93C5FD',      // blue-300 (更浅)
-    gearMid: '#60A5FA',        // blue-400
-    gearDark: '#3B82F6',       // blue-500
-    mainStart: '#60A5FA',      // blue-400
-    mainMid: '#3B82F6',        // blue-500
-    mainEnd: '#2563EB',        // blue-600
-    holeStart: '#E0F2FE',      // blue-50
-    holeEnd: '#BAE6FD',        // blue-200
-    triangleStart: '#93C5FD',  // blue-300
-    triangleEnd: '#60A5FA',    // blue-400
-    strokeLight: '#93C5FD',    // blue-300
-    strokeDark: '#3B82F6',     // blue-500
-    innerStroke: '#2563EB',    // blue-600
-    innerHoleFill: '#DBEAFE',  // blue-100
-    innerHoleStroke: '#60A5FA', // blue-400
-    glowColor: 'rgba(96, 165, 250, 0.25)',
-    glowBlur: '0 0 12px rgba(96, 165, 250, 0.5)'
-  } : {
-    // 深色背景(深灰/黑色) - 使用深蓝色LOGO(低亮度,高对比)
-    gearLight: '#3B82F6',      // blue-500
-    gearMid: '#2563EB',        // blue-600
-    gearDark: '#1D4ED8',       // blue-700
-    mainStart: '#2563EB',      // blue-600
-    mainMid: '#1D4ED8',        // blue-700
-    mainEnd: '#1E40AF',        // blue-800
-    holeStart: '#1E293B',      // slate-800
-    holeEnd: '#0F172A',        // slate-900
-    triangleStart: '#3B82F6',  // blue-500
-    triangleEnd: '#2563EB',    // blue-600
-    strokeLight: '#3B82F6',    // blue-500
-    strokeDark: '#1D4ED8',     // blue-700
-    innerStroke: '#1E40AF',    // blue-800
-    innerHoleFill: '#0F172A',  // slate-900
-    innerHoleStroke: '#2563EB', // blue-600
-    glowColor: 'rgba(37, 99, 235, 0.3)',
-    glowBlur: '0 0 16px rgba(37, 99, 235, 0.7)'
-  }
+  const colors =
+    variant === 'light'
+      ? {
+          // 浅色背景(白色/浅灰) - 使用浅蓝色LOGO(高亮度)
+          gearLight: '#93C5FD', // blue-300 (更浅)
+          gearMid: '#60A5FA', // blue-400
+          gearDark: '#3B82F6', // blue-500
+          mainStart: '#60A5FA', // blue-400
+          mainMid: '#3B82F6', // blue-500
+          mainEnd: '#2563EB', // blue-600
+          holeStart: '#E0F2FE', // blue-50
+          holeEnd: '#BAE6FD', // blue-200
+          triangleStart: '#93C5FD', // blue-300
+          triangleEnd: '#60A5FA', // blue-400
+          strokeLight: '#93C5FD', // blue-300
+          strokeDark: '#3B82F6', // blue-500
+          innerStroke: '#2563EB', // blue-600
+          innerHoleFill: '#DBEAFE', // blue-100
+          innerHoleStroke: '#60A5FA', // blue-400
+          glowColor: 'rgba(96, 165, 250, 0.25)',
+          glowBlur: '0 0 12px rgba(96, 165, 250, 0.5)',
+        }
+      : {
+          // 深色背景(深灰/黑色) - 使用深蓝色LOGO(低亮度,高对比)
+          gearLight: '#3B82F6', // blue-500
+          gearMid: '#2563EB', // blue-600
+          gearDark: '#1D4ED8', // blue-700
+          mainStart: '#2563EB', // blue-600
+          mainMid: '#1D4ED8', // blue-700
+          mainEnd: '#1E40AF', // blue-800
+          holeStart: '#1E293B', // slate-800
+          holeEnd: '#0F172A', // slate-900
+          triangleStart: '#3B82F6', // blue-500
+          triangleEnd: '#2563EB', // blue-600
+          strokeLight: '#3B82F6', // blue-500
+          strokeDark: '#1D4ED8', // blue-700
+          innerStroke: '#1E40AF', // blue-800
+          innerHoleFill: '#0F172A', // slate-900
+          innerHoleStroke: '#2563EB', // blue-600
+          glowColor: 'rgba(37, 99, 235, 0.3)',
+          glowBlur: '0 0 16px rgba(37, 99, 235, 0.7)',
+        }
   return (
     <div
       className={`relative flex items-center justify-center ${className}`}
@@ -208,7 +211,7 @@ const TiangongLogo: React.FC<TiangongLogoProps> = ({
           left: '50%',
           top: '50%',
           transform: 'translate(-50%, -50%)',
-          background: `radial-gradient(circle, ${colors.glowColor} 0%, transparent 70%)`
+          background: `radial-gradient(circle, ${colors.glowColor} 0%, transparent 70%)`,
         }}
       />
     </div>

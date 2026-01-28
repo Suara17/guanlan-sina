@@ -59,13 +59,10 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
               {mode === 'alert' ? alertMessage : '产线运行平稳，今日产量已达标 85% ~'}
             </p>
             {mode === 'alert' && (
-              <button
-                type="button"
-                className="mt-2 text-xs font-semibold text-blue-600 flex items-center hover:underline"
-              >
+              <div className="mt-2 text-xs font-semibold text-blue-600 flex items-center">
                 查看分析与对策
                 <ChevronRight size={12} />
-              </button>
+              </div>
             )}
           </div>
         </div>

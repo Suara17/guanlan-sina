@@ -1,7 +1,5 @@
 {
   "permissions": {
-    "allow": [
-      "Skill(ui-ux-pro-max)"
-    ]
+    "allow": ["Skill(ui-ux-pro-max)"]
   }
 }
