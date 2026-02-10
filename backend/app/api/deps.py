@@ -12,6 +12,7 @@ from app.core import security
 from app.core.config import settings
 from app.core.db import engine
 from app.models import TokenPayload, User
+from app.services.neo4j_service import Neo4jService
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -55,3 +56,18 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
             status_code=403, detail="The user doesn't have enough privileges"
         )
     return current_user
+
+
+def get_neo4j_service() -> Neo4jService:
+    """获取 Neo4j 服务实例"""
+    if not settings.neo4j_enabled:
+        raise HTTPException(
+            status_code=503, detail="Neo4j service not configured"
+        )
+
+    return Neo4jService(
+        uri=settings.NEO4J_URI,
+        user=settings.NEO4J_USER,
+        password=settings.NEO4J_PASSWORD,
+        database=settings.NEO4J_DATABASE,
+    )

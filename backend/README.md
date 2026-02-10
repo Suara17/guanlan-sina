@@ -7,30 +7,53 @@ Guanlan-Sina 是一个智能生产管理系统，专注于制造业的生产监�
 ### 核心功能
 
 - **用户管理**：用户注册、登录、权限管理、角色控制
-- **生产管理**：产线管理、工作站管理、生产计划、生产记录
-- **质量管理**：质量指标、缺陷详情、良率分析
-- **异常分析**：异常检测、根因诊断、解决方案推荐
+- **生产管理**：产线管理、工作站管理、生产计划、生产记录、质量指标、缺陷详情
+- **异常分析**：异常检测、根因诊断、解决方案推荐、工作订单管理
 - **案例库**：案例收集、经验积累、知识复用
+- **知识图谱**：基于 Neo4j 的知识图谱系统，支持异常分析、相似性匹配、解决方案推荐和产线健康分析
 - **审计日志**：操作记录、安全审计
+- **Excel集成**：支持从Excel导入数据创建知识图谱
 
 ### 技术栈
 
-- **Web 框架**：FastAPI 0.114+
+- **Web 框架**：FastAPI 0.114+ (with Standard Distribution)
 - **数据库**：PostgreSQL + SQLModel + Alembic
+- **图数据库**：Neo4j (用于知识图谱)
 - **缓存/消息队列**：Redis + Celery
 - **认证**：JWT (PyJWT) + Passlib (bcrypt)
+- **Excel处理**：openpyxl
 - **测试**：Pytest + Coverage
-- **代码质量**：Ruff + MyPy
+- **代码质量**：Ruff + MyPy + basedpyright
 - **包管理**：uv
+- **邮件发送**：emails + Jinja2
 
 ## 环境要求
 
 - Python 3.10+
 - Docker & Docker Compose
 - uv (Python 包管理器)
+- Neo4j (可选，用于知识图谱功能)
 
 ## 快速开始
 
+#### 1. 克隆项目
+
+```bash
+git clone <repository-url>
+cd backend
+```
+
+#### 2. 安装 uv (如果尚未安装)
+
+```bash
+# Windows
+winget install uv
+
+# macOS
+brew install uv
+
+# 或者使用 pip
+pip install uv
 ```
 
 #### 3. 配置环境变量
@@ -47,12 +70,27 @@ POSTGRES_DB=guanlan
 REDIS_URL=redis://localhost:6379/0
 FIRST_SUPERUSER=admin@example.com
 FIRST_SUPERUSER_PASSWORD=changethis
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=password
 ```
 
-#### 4. 数据库迁移
+#### 4. 安装依赖并启动服务
 
 ```bash
+# 同步依赖
+uv sync
+
+# 激活虚拟环境
+source .venv/bin/activate  # Linux/Mac
+# 或
+.venv\Scripts\activate  # Windows
+
+# 数据库迁移
 alembic upgrade head
+
+# 启动开发服务器
+fastapi dev app/main.py
 ```
 
 ### 超级管理员凭据
@@ -177,7 +215,8 @@ docker compose down --rmi all -v
 - `GET /api/v1/production/lines` - 获取产线列表
 - `POST /api/v1/production/lines` - 创建产线
 - `GET /api/v1/production/lines/{line_id}` - 获取产线详情
-- `GET /api/v1/production/dashboard` - 获取生产看板数据
+- `GET /api/v1/production/overview` - 获取生产概览
+- `GET /api/v1/production/dashboard` - 获取生产看板数据（需要日期参数）
 - `GET /api/v1/production/plans` - 获取生产计划
 - `POST /api/v1/production/plans` - 创建生产计划
 - `GET /api/v1/production/records` - 获取生产记录
@@ -201,6 +240,16 @@ docker compose down --rmi all -v
 - `POST /api/v1/cases/` - 创建案例
 - `GET /api/v1/cases/{case_id}` - 获取案例详情
 - `PUT /api/v1/cases/{case_id}` - 更新案例
+
+### 知识图谱管理 (Neo4j)
+- `GET /api/v1/knowledge-graph/graph/line/{line_type}` - 获取特定产线的完整知识图谱
+- `GET /api/v1/knowledge-graph/analysis/anomaly/{sequence}` - 获取异常完整分析
+- `POST /api/v1/knowledge-graph/similarity/anomalies` - 基于异常现象查找相似问题
+- `GET /api/v1/knowledge-graph/recommendations/solutions` - 基于当前条件推荐解决方案
+- `GET /api/v1/knowledge-graph/health/line/{line_type}` - 分析产线健康状况
+- `GET /api/v1/knowledge-graph/statistics/solutions` - 获取解决方案统计信息
+- `GET /api/v1/knowledge-graph/analysis/root-causes/{line_type}` - 获取根本原因分析
+- `POST /api/v1/knowledge-graph/sync/anomalies` - 从 PostgreSQL 同步异常数据到 Neo4j
 
 ## 数据库迁移
 
@@ -282,6 +331,12 @@ bash ./scripts/lint.sh
 mypy app/
 ```
 
+### 静态类型检查
+
+```bash
+basedpyright
+```
+
 ## 项目结构
 
 ```
@@ -295,6 +350,7 @@ backend/
 │   ├── worker.py               # Celery 任务
 │   ├── backend_pre_start.py    # 后端预启动脚本
 │   ├── initial_data.py         # 初始数据
+│   ├── insert_production_lines.py # 插入产线数据
 │   ├── seed_data.py            # 种子数据
 │   ├── tests_pre_start.py      # 测试预启动脚本
 │   ├── api/                    # API 路由
@@ -308,17 +364,14 @@ backend/
 │   │       ├── solutions.py    # 解决方案
 │   │       ├── cases.py        # 案例库
 │   │       ├── items.py        # 示例项目
-│   │       ├── utils.py        # 工具接口
-│   │       └── private.py      # 私有接口
+│   │       ├── knowledge_graph.py # 知识图谱
+│   │       ├── private.py      # 私有接口
+│   │       └── utils.py        # 工具接口
 │   ├── core/                   # 核心配置
 │   │   ├── config.py           # 配置管理
-│   │   ├── db.py               # 数据库连接
-│   │   ├── security.py         # 安全相关
-│   │   └── celery_app.py       # Celery 配置
-│   ├── alembic/                # 数据库迁移
-│   │   ├── env.py
-│   │   └── versions/           # 迁移版本
-│   └── websocket/              # WebSocket 相关
+│   │   ├── celery_app.py       # Celery 配置
+│   └── services/               # 业务服务
+│       └── neo4j_service.py    # Neo4j 服务
 ├── tests/                      # 测试文件
 │   ├── api/
 │   ├── crud/
@@ -330,7 +383,11 @@ backend/
 │   ├── test.sh                 # 测试脚本
 │   ├── prestart.sh             # 预启动脚本
 │   └── tests-start.sh          # 测试启动脚本
+├── alembic/                    # 数据库迁移
+│   ├── env.py
+│   └── versions/               # 迁移版本
 ├── Dockerfile                  # Docker 镜像配置
+├── docker-compose.yml          # Docker Compose 配置
 ├── pyproject.toml              # 项目配置
 ├── alembic.ini                 # Alembic 配置
 └── README.md                   # 项目文档
@@ -358,6 +415,13 @@ backend/
 1. 在 `app/worker.py` 中定义任务函数
 2. 在 `app/core/celery_app.py` 中配置任务路由
 3. 启动 Celery Worker 处理任务
+
+### 知识图谱功能开发
+
+1. 在 `app/services/neo4j_service.py` 中实现 Neo4j 相关业务逻辑
+2. 在 `app/api/routes/knowledge_graph.py` 中定义 API 端点
+3. 在 `app/core/config.py` 中配置 Neo4j 连接参数
+4. 在 `app/api/main.py` 中注册知识图谱路由
 
 ## VS Code 配置
 
@@ -393,6 +457,10 @@ backend/
 | `EMAILS_FROM_NAME` | 发件人名称 | 项目名称 |
 | `FIRST_SUPERUSER` | 首个超级管理员邮箱 | - |
 | `FIRST_SUPERUSER_PASSWORD` | 首个超级管理员密码 | - |
+| `NEO4J_URI` | Neo4j 连接地址 | `bolt://localhost:7687` |
+| `NEO4J_USER` | Neo4j 用户名 | `neo4j` |
+| `NEO4J_PASSWORD` | Neo4j 密码 | `password` |
+| `NEO4J_DATABASE` | Neo4j 数据库名 | `neo4j` |
 
 ## 故障排查
 
@@ -410,6 +478,13 @@ docker compose ps postgres
 docker compose ps redis
 ```
 
+### Neo4j 连接失败
+
+检查 Neo4j 服务是否运行：
+```bash
+docker compose ps neo4j
+```
+
 ### 迁移失败
 
 检查数据库连接配置是否正确，然后重新运行迁移：
@@ -425,6 +500,19 @@ docker compose up -d
 ```
 
 然后重新运行测试。
+
+## 知识图谱功能
+
+本项目集成了基于 Neo4j 的知识图谱系统，支持以下功能：
+
+- **异常分析**：分析异常现象、根本原因和解决方案
+- **相似性匹配**：基于异常现象查找历史相似问题
+- **解决方案推荐**：根据产线类型和严重程度推荐最佳解决方案
+- **产线健康分析**：评估产线的整体健康状况
+- **统计分析**：提供解决方案使用情况和效果统计
+- **根因分析**：识别常见根本原因及其影响
+
+要启用知识图谱功能，请确保在环境变量中正确配置了 Neo4j 连接参数。
 
 ## 许可证
 

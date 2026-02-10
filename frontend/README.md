@@ -10,9 +10,13 @@
 
 - **生产可视化** - 实时监控产线状态、产量、质量等关键指标
 - **司南智控** - AI 驱动的异常诊断和决策优化
+- **格物图谱** - 知识图谱驱动的异常关联分析
+- **浑天仿真** - 数字孪生仿真验证系统
+- **天筹优化** - 智能决策优化引擎
 - **OS 内核接入** - 快速连接工业设备，建立数据通道
 - **能力商店** - 按需订阅工业算法，即插即用
 - **场景编排** - 可视化构建生产流程
+- **开发者生态** - OpenAPI 门户与开发者沙箱
 
 ## 技术栈
 
@@ -26,6 +30,11 @@
 - **Tailwind CSS** - 原子化 CSS 框架
 - **Lucide React** - 图标库
 - **Recharts** - 数据可视化图表库
+- **Framer Motion** - 动画库
+
+### 知识图谱与可视化
+- **D3.js** - 数据驱动文档可视化库
+- **SVG/Canvas** - 知识图谱渲染
 
 ### API 客户端
 - **@hey-api/openapi-ts** - OpenAPI 代码生成工具
@@ -40,18 +49,28 @@
 frontend/
 ├── components/          # React 组件
 │   ├── AiAssistant.tsx          # AI 智能助手
+│   ├── AnomalyList.tsx          # 异常列表组件
+│   ├── DataDashboard.tsx        # 数据仪表盘
+│   ├── KnowledgeGraphCanvas.tsx # 知识图谱画布
 │   ├── LandingPage.tsx          # 产品落地页
-│   ├── LoginPage.tsx            # 登录页面
+│   ├── LoadingSpinner.tsx       # 加载动画
+│   ├── LoginPage.tsx            # 登录页组件
+│   ├── NodeDetailPanel.tsx      # 节点详情面板
+│   ├── ProductionLineSelector.tsx # 产线选择器
 │   ├── ProtectedRoute.tsx       # 路由保护
-│   ├── Sidebar.tsx              # 侧边导航栏
-│   ├── SinanAvatar.tsx          # 司南机器人头像
-│   └── TopBar.tsx               # 顶部导航栏
+│   ├── Sidebar.tsx              # 侧边栏
+│   ├── SinanAvatar.tsx          # 司南数字人
+│   ├── TiangongLogo.tsx         # 天工Logo
+│   └── TopBar.tsx               # 顶部导航
 ├── pages/               # 页面组件
 │   ├── Dashboard.tsx            # 生产可视化仪表盘
-│   ├── KernelConnect.tsx        # OS 内核接入
-│   ├── Marketplace.tsx          # 能力商店
+│   ├── Huntian.tsx              # 浑天(验证层)
+│   ├── KernelConnect.tsx        # 内核连接
+│   ├── KnowledgeGraph.tsx       # 知识图谱
+│   ├── Marketplace.tsx          # 能力市场
 │   ├── ScenarioBuilder.tsx      # 场景编排
-│   └── SinanAnalysis.tsx        # 司南智能诊断中心
+│   ├── SinanAnalysis.tsx        # 司南分析
+│   └── Tianchou.tsx             # 天筹(决策层)
 ├── contexts/            # React Context
 │   └── AuthContext.tsx          # 认证上下文
 ├── hooks/               # 自定义 Hooks
@@ -177,9 +196,13 @@ function MyComponent() {
 | `/login` | LoginPage | 登录页面 |
 | `/app/` | Dashboard | 生产可视化仪表盘 |
 | `/app/sinan` | SinanAnalysis | 司南智能诊断中心 |
+| `/app/gewu` | KnowledgeGraph | 格物图谱分析 |
+| `/app/huntian` | Huntian | 浑天仿真验证 |
+| `/app/tianchou` | Tianchou | 天筹优化决策 |
 | `/app/kernel` | KernelConnect | OS 内核接入 |
 | `/app/marketplace` | Marketplace | 能力商店 |
 | `/app/builder` | ScenarioBuilder | 场景编排 |
+| `/app/ecosystem` | EcosystemPlaceholder | 开发者生态 |
 
 ## 可用脚本
 
@@ -229,6 +252,18 @@ function MyComponent() {
 
 前端通过 OpenAPI 规范与后端通信。后端 API 文档请参考后端项目。
 
+## 知识图谱功能
+
+### 知识图谱可视化
+- 使用 D3.js 实现动态图谱渲染
+- 支持节点拖拽、缩放和平移
+- 实时响应异常数据变化
+
+### 节点详情面板
+- 显示节点详细信息
+- 提供节点关联分析
+- 支持节点间关系追溯
+
 ## 常见问题
 
 ### 如何配置后端 API 地址？
@@ -247,4 +282,4 @@ function MyComponent() {
 
 ## 许可证
 
-Copyright © 2024 天工·弈控 智适应操作系统
+Copyright © 2026 天工·弈控 智适应操作系统

@@ -12,12 +12,19 @@
 **技术栈：**
 - **后端**: Python 3.10+ (FastAPI, SQLModel, PostgreSQL, Redis, Celery), uv (依赖管理)
 - **前端**: React 19 (Vite 6, TypeScript 5.8, Tailwind CSS, Biome, Recharts)
-
+- **数据库**: PostgreSQL (主数据库), Neo4j (知识图谱)
+- **AI/LLM**: Google GenAI (Gemini) 集成
 
 ### 后端开发命令
 ```bash
 # 启动后端和数据库(Docker)
 docker compose up -d db backend
+
+# 启动完整的开发环境(包括Neo4j知识图谱)
+docker compose up -d
+
+# 查看后端日志
+docker compose logs backend
 ```
 
 ### 单独管理服务
@@ -28,7 +35,11 @@ docker compose up -d db
 
 # 停止特定服务
 docker compose stop backend
+
+# 启动Neo4j知识图谱服务
+docker compose up -d neo4j
 ```
+
 ### Adminer 数据库管理
 
 Adminer 是一个轻量级的数据库管理工具，可以方便地管理 PostgreSQL 数据库。
@@ -36,6 +47,7 @@ Adminer 是一个轻量级的数据库管理工具，可以方便地管理 Postg
 ```bash
 # 使用 Docker Compose 启动 Adminer 服务（端口 8080）
 docker compose up -d adminer
+```
 
 ### 前端开发命令
 
@@ -57,7 +69,16 @@ npm run generate-client
 
 # 代码检查和格式化 (Biome)
 npm run lint
+```
 
+### 数据库迁移
+
+```bash
+cd backend
+uv run alembic revision --autogenerate -m "描述"  # 创建迁移
+uv run alembic upgrade head                       # 应用迁移
+uv run alembic downgrade -1                       # 回滚一步
+```
 
 ## 代码风格指南
 
@@ -325,23 +346,68 @@ Closes #123
 #### 后端目录结构
 ```
 backend/app/
-├── main.py              # FastAPI应用入口
-├── core/                # 核心配置
-├── api/routes/          # API路由
-├── models.py            # 数据模型
-├── crud.py              # CRUD操作
-└── tests/               # 测试文件
+├── main.py                 # FastAPI应用入口,配置CORS和路由
+├── core/
+│   ├── config.py           # Pydantic Settings配置
+│   ├── db.py               # 数据库会话管理
+│   ├── security.py         # JWT认证和密码哈希
+│   └── celery_app.py       # Celery异步任务配置
+├── api/
+│   ├── main.py             # API路由聚合器
+│   ├── deps.py             # 依赖注入
+│   └── routes/             # API路由模块
+│       ├── login.py        # 认证登录
+│       ├── users.py        # 用户管理
+│       ├── production.py   # 生产数据
+│       ├── anomalies.py    # 异常检测
+│       ├── solutions.py    # 解决方案
+│       ├── cases.py        # 案例管理
+│       ├── items.py        # 通用条目
+│       ├── private.py      # 私有路由
+│       ├── utils.py        # 工具路由
+│       └── knowledge_graph.py # 知识图谱路由
+├── models.py               # SQLModel数据库模型
+├── crud.py                 # CRUD操作
+└── worker.py               # Celery后台任务
 ```
 
 #### 前端目录结构
 ```
 frontend/
-├── components/          # React组件
-├── pages/               # 页面组件
-├── contexts/            # React Context
-├── hooks/               # 自定义Hooks
-├── services/            # API服务
-└── src/client/          # 生成的API客户端
+├── src/
+│   └── client/             # 自动生成的API客户端 (OpenAPI TS)
+├── components/             # 通用组件
+│   ├── AiAssistant.tsx     # AI助手组件
+│   ├── AnomalyList.tsx     # 异常列表组件
+│   ├── DataDashboard.tsx   # 数据仪表盘
+│   ├── KnowledgeGraphCanvas.tsx # 知识图谱画布
+│   ├── LandingPage.tsx     # 落地页
+│   ├── LoadingSpinner.tsx  # 加载动画
+│   ├── LoginPage.tsx       # 登录页组件
+│   ├── NodeDetailPanel.tsx # 节点详情面板
+│   ├── ProductionLineSelector.tsx # 产线选择器
+│   ├── ProtectedRoute.tsx  # 路由保护
+│   ├── Sidebar.tsx         # 侧边栏
+│   ├── SinanAvatar.tsx     # 司南数字人
+│   ├── TiangongLogo.tsx    # 天工Logo
+│   └── TopBar.tsx          # 顶部导航
+├── pages/                  # 页面视图
+│   ├── Dashboard.tsx       # 总览看板
+│   ├── Huntian.tsx         # 浑天(验证层)
+│   ├── KernelConnect.tsx   # 内核连接
+│   ├── KnowledgeGraph.tsx  # 知识图谱
+│   ├── Marketplace.tsx     # 能力市场
+│   ├── ScenarioBuilder.tsx # 场景编排
+│   ├── SinanAnalysis.tsx   # 司南分析
+│   └── Tianchou.tsx        # 天筹(决策层)
+├── services/
+│   └── geminiService.ts    # Google GenAI服务集成
+├── contexts/
+│   └── AuthContext.tsx     # 认证上下文(持久化登录)
+├── hooks/
+│   └── useAuth.tsx         # 认证Hook
+├── App.tsx                 # 根组件
+└── index.tsx               # 应用入口
 ```
 
 ### 开发工作流
@@ -368,8 +434,9 @@ frontend/
 - 数据库迁移要谨慎处理，避免数据丢失
 - 前端组件要考虑加载状态和错误状态
 - 环境变量不要硬编码在代码中
+- 注意Neo4j知识图谱服务的配置和连接
 
 ---
 
-*本文档版本: 1.0 | 更新日期: 2025-01-19 | 项目: 天工·弈控*</content>
+*本文档版本: 1.1 | 更新日期: 2026-02-10 | 项目: 天工·弈控*</content>
 <parameter name="filePath">AGENTS.md

@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **技术栈:**
 - **后端**: Python 3.10+ (FastAPI, SQLModel, PostgreSQL, Redis, Celery), uv (依赖管理)
 - **前端**: React 19 (Vite 6, TypeScript 5.8, Tailwind CSS, Biome, Recharts)
+- **数据库**: PostgreSQL (主数据库), Neo4j (知识图谱)
 - **AI/LLM**: Google GenAI (Gemini) 集成
 
 ## 开发命令
@@ -22,8 +23,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # 启动后端和数据库(Docker)
 docker compose up -d db backend
 
+# 启动完整开发环境(包含Neo4j知识图谱)
+docker compose up -d
+
 # 查看后端日志
 docker compose logs -f backend
+
+# 查看Neo4j知识图谱日志
+docker compose logs -f neo4j
 ```
 
 ### 前端
@@ -41,9 +48,10 @@ npm run lint                         # 运行Biome代码检查和格式化
 ### Docker Compose 完整环境
 
 ```bash
-docker compose watch                 # 启动完整开发环境(包含Traefik、Adminer等)
+docker compose up                    # 启动完整开发环境(包含Traefik、Adminer、Neo4j等)
 docker compose logs backend          # 查看后端日志
 docker compose logs frontend         # 查看前端日志
+docker compose logs neo4j            # 查看Neo4j知识图谱日志
 docker compose down                  # 停止所有服务
 ```
 
@@ -80,7 +88,8 @@ backend/app/
 │       ├── cases.py        # 案例管理
 │       ├── items.py        # 通用条目
 │       ├── private.py      # 私有路由
-│       └── utils.py        # 工具路由
+│       ├── utils.py        # 工具路由
+│       └── knowledge_graph.py # 知识图谱路由
 ├── models.py               # SQLModel数据库模型
 ├── crud.py                 # CRUD操作
 └── worker.py               # Celery后台任务
@@ -135,6 +144,7 @@ frontend/
 ### 数据库设计
 
 - **PostgreSQL**: 主数据库,存储业务数据
+- **Neo4j**: 知识图谱数据库,存储异常关联关系、根因分析等
 - **Alembic**: 数据库迁移工具
 - **SQLModel**: ORM层 (Pydantic + SQLAlchemy)
 
@@ -161,6 +171,13 @@ POSTGRES_PORT=5432
 POSTGRES_USER=app
 POSTGRES_PASSWORD=changethis
 POSTGRES_DB=app
+
+# Neo4j知识图谱配置
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=password
+NEO4J_DATABASE=neo4j
+NEO4J_BROWSER_URL=http://localhost:7474
 
 # 认证
 SECRET_KEY=changethis
@@ -233,3 +250,11 @@ npm run lint                # Biome Check
 | [03-deployment.md](./03-deployment.md) | 部署指南 |
 | [07-启动指南.md](./07-启动指南.md) | 项目启动指南 |
 | [12-数据库管理指南.md](./12-数据库管理指南.md) | 数据库管理与维护指南 |
+
+### 知识图谱相关
+
+| 文档路径 | 说明 |
+|---------|------|
+| [frontend/pages/KnowledgeGraph.tsx](./frontend/pages/KnowledgeGraph.tsx) | 知识图谱页面实现 |
+| [backend/app/api/routes/knowledge_graph.py](./backend/app/api/routes/knowledge_graph.py) | 知识图谱API路由 |
+| [backend/app/models.py](./backend/app/models.py) | 包含知识图谱相关的数据模型 |

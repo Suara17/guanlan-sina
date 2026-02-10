@@ -95,6 +95,19 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
+    # Neo4j 配置
+    NEO4J_URI: str = "bolt://localhost:7687"
+    NEO4J_USER: str = "neo4j"
+    NEO4J_PASSWORD: str = "password"
+    NEO4J_DATABASE: str = "neo4j"
+    NEO4J_BROWSER_URL: str = "http://localhost:7474"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def neo4j_enabled(self) -> bool:
+        """检查 Neo4j 是否已配置"""
+        return bool(self.NEO4J_URI and self.NEO4J_USER and self.NEO4J_PASSWORD)
+
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
             message = (
