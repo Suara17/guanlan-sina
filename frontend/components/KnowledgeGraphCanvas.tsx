@@ -17,11 +17,12 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
     if (!svgRef.current || !graphData.nodes.length) return
 
     const svg = d3.select(svgRef.current)
-    const width = 800
-    const height = 600
+    // 圆盘模式使用更大的画布
+    const width = isCompactView ? 1400 : 800
+    const height = isCompactView ? 900 : 600
 
-    // 紧凑模式下调整圆盘中心位置，向左偏移
-    const centerX = isCompactView ? width / 2 - 100 : width / 2 - 60
+    // 圆盘中心位置 - 紧凑模式居中，普通模式向左偏移避开详情面板
+    const centerX = isCompactView ? width / 2 : width / 2 - 60
     const centerY = height / 2
 
     // 清空之前的渲染
@@ -46,8 +47,8 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
     gradSolution.append('stop').attr('offset', '100%').attr('stop-color', '#22c55e')
 
     // 箭头标记
-    // 紧凑模式下使用更小的箭头
-    const arrowSize = isCompactView ? 0.5 : 1
+    // 紧凑模式下使用完整大小的箭头
+    const arrowSize = isCompactView ? 1.0 : 1
     defs.append('marker')
       .attr('id', 'arrowhead')
       .attr('viewBox', '-0 -5 10 10')
@@ -62,8 +63,8 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
 
     // 创建力导向图模拟
     // 紧凑模式下调整参数以适应更多节点
-    const linkDistance = isCompactView ? 80 : 180
-    const chargeStrength = isCompactView ? -400 : -1000
+    const linkDistance = isCompactView ? 70 : 180
+    const chargeStrength = isCompactView ? -250 : -1000
     const collideRadius = isCompactView ? 35 : 60
 
     const simulation = d3
@@ -79,16 +80,29 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
       .force('center', d3.forceCenter(centerX, centerY))
       .force('collide', d3.forceCollide().radius(collideRadius)) // 紧凑模式防止重叠半径更小
 
-    // 紧凑模式下添加径向约束力，形成圆形布局
+    // 紧凑模式下使用预计算的极坐标位置，确保均匀圆盘分布
     if (isCompactView) {
-      const maxRadius = Math.min(width, height) / 2 - 50 // 最大半径，留边距
+      const maxRadius = Math.min(width, height) / 2 - 60 // 减小边距，让圆盘更大
+      const nodeCount = graphData.nodes.length
 
+      // 预设置节点的初始位置为均匀圆盘分布
+      graphData.nodes.forEach((node: any, i: number) => {
+        // 使用 Vogel's method (sunflower seed pattern) 实现完美的圆盘填充
+        const goldenAngle = Math.PI * (3 - Math.sqrt(5)) // 黄金角 ~137.5°
+        const theta = i * goldenAngle
+
+        // 使用线性分布：让中心密集，外围稀疏
+        // i/nodeCount 是线性的，前面的节点在中心，后面的在外围
+        const r = (i / nodeCount) * maxRadius * 0.95
+
+        node.x = centerX + r * Math.cos(theta)
+        node.y = centerY + r * Math.sin(theta)
+      })
+
+      // 添加轻度径向力保持圆盘形状
       simulation.force('radial', d3.forceRadial((d: any, i: number) => {
-        // 根据节点索引计算目标半径，形成同心圆效果
-        const nodeCount = graphData.nodes.length
-        const layer = Math.floor(i / (nodeCount / 5)) // 分成5层
-        return (layer + 1) * (maxRadius / 5)
-      }, centerX, centerY).strength(0.5))
+        return (i / nodeCount) * maxRadius * 0.95
+      }, centerX, centerY).strength(0.15)) // 更弱的约束，让节点填充更密集
     }
 
     // 拖拽功能
@@ -110,7 +124,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
       })
 
     // 创建边
-    const strokeWidth = isCompactView ? 1 : 2
+    const strokeWidth = isCompactView ? 2 : 2
     const link = svg
       .append('g')
       .attr('class', 'links')
@@ -133,7 +147,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
       .attr('rx', 4)
       
     // 创建边标签
-    const edgeFontSize = isCompactView ? '8px' : '11px'
+    const edgeFontSize = isCompactView ? '11px' : '11px'
     const linkLabels = svg
       .append('g')
       .attr('class', 'link-labels')
@@ -168,8 +182,8 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
       .call(drag as any)
 
     // 渲染节点形状
-    // 紧凑模式下缩小节点尺寸
-    const nodeScale = isCompactView ? 0.6 : 1
+    // 紧凑模式下放大节点尺寸，铺满圆盘
+    const nodeScale = isCompactView ? 1.2 : 1
 
     node.each(function (d: KnowledgeNode) {
       const nodeGroup = d3.select(this)
@@ -213,9 +227,9 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
     })
 
     // 添加节点文本
-    // 紧凑模式下使用更小的字体
-    const fontSize = isCompactView ? '9px' : '13px'
-    const maxLabelLength = isCompactView ? 4 : 6
+    // 紧凑模式下使用更大的字体铺满圆盘
+    const fontSize = isCompactView ? '13px' : '13px'
+    const maxLabelLength = isCompactView ? 5 : 6
 
     node.each(function(d: KnowledgeNode) {
       const nodeGroup = d3.select(this)
@@ -314,10 +328,10 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
   }, [graphData, onNodeClick, selectedNodeId, isCompactView])
 
   return (
-    <svg 
-      ref={svgRef} 
+    <svg
+      ref={svgRef}
       className="w-full h-full"
-      viewBox="0 0 800 600"
+      viewBox={isCompactView ? "0 0 1400 900" : "0 0 800 600"}
       preserveAspectRatio="xMidYMid meet"
     />
   )
