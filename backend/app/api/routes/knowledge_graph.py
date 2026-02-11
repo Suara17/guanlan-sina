@@ -94,7 +94,9 @@ async def get_anomaly_analysis(
             cause = result.get("c")
             solution = result.get("s")
 
-            if cause and cause not in [c["description"] for c in anomaly_info["causes"]]:
+            if cause and cause not in [
+                c["description"] for c in anomaly_info["causes"]
+            ]:
                 anomaly_info["causes"].append(
                     {
                         "type": cause["type"],
@@ -103,7 +105,9 @@ async def get_anomaly_analysis(
                     }
                 )
 
-            if solution and solution not in [s["method"] for s in anomaly_info["solutions"]]:
+            if solution and solution not in [
+                s["method"] for s in anomaly_info["solutions"]
+            ]:
                 anomaly_info["solutions"].append(
                     {
                         "type": solution["type"],
@@ -211,7 +215,7 @@ async def analyze_line_health(
 
 @router.get("/statistics/solutions", response_model=List[Dict[str, Any]])
 async def get_solution_statistics(
-    neo4j_service: Neo4jService = Depends(get_neo4j_service)
+    neo4j_service: Neo4jService = Depends(get_neo4j_service),
 ):
     """获取解决方案统计信息"""
     try:
@@ -237,7 +241,7 @@ async def get_root_cause_analysis(
 
 @router.post("/sync/anomalies")
 async def sync_anomalies_to_neo4j(
-    neo4j_service: Neo4jService = Depends(get_neo4j_service)
+    neo4j_service: Neo4jService = Depends(get_neo4j_service),
 ):
     """从 PostgreSQL 同步异常数据到 Neo4j"""
     try:
@@ -250,3 +254,13 @@ async def sync_anomalies_to_neo4j(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"数据同步失败: {str(e)}")
+
+
+@router.get("/analysis/all-anomalies")
+async def get_all_anomalies(neo4j_service: Neo4jService = Depends(get_neo4j_service)):
+    """获取所有异常列表（用于知识图谱全景展示）"""
+    try:
+        results = neo4j_service.get_all_anomalies()
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取所有异常失败: {str(e)}")

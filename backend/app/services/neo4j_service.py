@@ -151,7 +151,9 @@ class Neo4jService:
                             cause_type=cause_name,
                             description=cause_info["description"][:200],
                             confidence=0.8 if cause_name == "直接原因" else 0.7,
-                            impact_level="HIGH" if cause_name == "直接原因" else "MEDIUM",
+                            impact_level="HIGH"
+                            if cause_name == "直接原因"
+                            else "MEDIUM",
                         )
 
                         # 创建临时解决方案节点
@@ -308,3 +310,30 @@ class Neo4jService:
         LIMIT 10
         """
         return self.execute_query(query, {"line_type": line_type})
+
+    def get_all_anomalies(self) -> List[Dict[str, Any]]:
+        """获取所有异常列表"""
+        query = """
+        MATCH (l:LineType)-[:HAS_ANOMALY]->(a:Anomaly)
+        OPTIONAL MATCH (a)-[:CAUSED_BY]->(c:Cause)
+        OPTIONAL MATCH (c)-[:SOLVED_BY]->(s:Solution)
+        RETURN
+            a.sequence as sequence,
+            a.name as name,
+            a.phenomenon as phenomenon,
+            a.severity as severity,
+            l.name as line_type,
+            collect(distinct {
+                type: c.type,
+                description: c.description,
+                confidence: c.confidence
+            }) as causes,
+            collect(distinct {
+                type: s.type,
+                method: s.method,
+                priority: s.priority,
+                success_rate: s.success_rate
+            }) as solutions
+        ORDER BY a.sequence
+        """
+        return self.execute_query(query)

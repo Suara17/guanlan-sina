@@ -1,10 +1,11 @@
-import { AlertTriangle, Settings, X } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Settings, X } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import KnowledgeGraphCanvas from '../components/KnowledgeGraphCanvas'
 import NodeDetailPanel from '../components/NodeDetailPanel'
-import { getAllKnowledgeGraphsMerged, getKnowledgeGraphByAnomalyId } from '../mockData'
+import { getAllKnowledgeGraphsMerged } from '../mockData'
+import { KnowledgeGraphAdapter } from '../services/dataAdapter'
 import type { KnowledgeGraph, KnowledgeNode } from '../types'
 
 const KnowledgeGraphPage: React.FC = () => {
@@ -16,55 +17,176 @@ const KnowledgeGraphPage: React.FC = () => {
   const [isDefaultView, setIsDefaultView] = useState(false)
   const [showDetailPanel, setShowDetailPanel] = useState(false)
   const [isCompactView, setIsCompactView] = useState(false)
+  const [dataSource, setDataSource] = useState<'neo4j' | 'mock'>('mock')
+  const [error, setError] = useState<string | null>(null)
+
+  // 将Neo4j返回的所有异常数据转换为知识图谱格式
+  const convertAnomaliesToGraph = (anomalies: any[]): KnowledgeGraph => {
+    const nodes: KnowledgeNode[] = []
+    const edges: Array<{
+      id: string
+      source: string
+      target: string
+      type: 'leads_to' | 'caused_by' | 'solved_by'
+      label?: string
+    }> = []
+
+    anomalies.forEach((anomaly, index) => {
+      // 创建现象节点
+      const phenomenonId = `phenomenon-${anomaly.sequence}`
+      nodes.push({
+        id: phenomenonId,
+        type: 'phenomenon',
+        label: `${anomaly.line_type}-异常${anomaly.sequence}`,
+        description: anomaly.phenomenon
+      })
+
+      // 处理原因节点
+      const causeNodeIds: string[] = []
+      if (anomaly.causes && Array.isArray(anomaly.causes)) {
+        anomaly.causes.forEach((cause: any, cIndex: number) => {
+          const causeId = `cause-${anomaly.sequence}-${cIndex}`
+          causeNodeIds.push(causeId)
+
+          nodes.push({
+            id: causeId,
+            type: 'cause',
+            label: cause.type || '原因',
+            description: cause.description || '未知原因'
+          })
+
+          // 现象到原因的关系
+          edges.push({
+            id: `edge-phenomenon-${anomaly.sequence}-cause-${cIndex}`,
+            source: phenomenonId,
+            target: causeId,
+            type: 'caused_by',
+            label: '导致'
+          })
+        })
+      }
+
+      // 处理解决方案节点
+      if (anomaly.solutions && Array.isArray(anomaly.solutions)) {
+        anomaly.solutions.forEach((solution: any, sIndex: number) => {
+          const solutionId = `solution-${anomaly.sequence}-${sIndex}`
+
+          nodes.push({
+            id: solutionId,
+            type: 'solution',
+            label: solution.type || '解决方案',
+            description: solution.method || '未知解决方案'
+          })
+
+          // 将解决方案连接到对应的原因（如果有的话）
+          if (causeNodeIds.length > 0) {
+            const targetCause = causeNodeIds[sIndex % causeNodeIds.length]
+            edges.push({
+              id: `edge-${targetCause}-${solutionId}`,
+              source: targetCause,
+              target: solutionId,
+              type: 'solved_by',
+              label: '解决'
+            })
+          }
+        })
+      }
+    })
+
+    return {
+      nodes,
+      edges,
+      anomalyId: 'all'
+    }
+  }
 
   useEffect(() => {
-    // 从URL参数获取异常ID
-    const searchParams = new URLSearchParams(location.search)
-    const anomalyId = searchParams.get('anomalyId')
-    const isDefault = false
+    const loadKnowledgeGraph = async () => {
+      try {
+        setLoading(true)
+        setError(null)
 
-    // 如果没有ID，展示所有知识图谱数据（紧凑模式）
-    if (!anomalyId) {
-      const allData = getAllKnowledgeGraphsMerged()
-      setGraphData(allData)
-      setIsDefaultView(false)
-      setIsCompactView(true)
-      setLoading(false)
-      return
-    }
+        // 从URL参数获取异常ID
+        const searchParams = new URLSearchParams(location.search)
+        const anomalyId = searchParams.get('anomalyId')
 
-    if (anomalyId) {
-      // 从Mock数据获取知识图谱
-      const data = getKnowledgeGraphByAnomalyId(anomalyId)
-      if (data) {
-        setGraphData(data)
-        setIsDefaultView(isDefault)
-        setIsCompactView(false)
-        // 默认选中第一个现象节点
-        const phenomenonNode = data.nodes.find((node) => node.type === 'phenomenon')
-        if (phenomenonNode) {
-          setSelectedNode(phenomenonNode)
-          setShowDetailPanel(true)
-        }
-      } else {
-        // 如果指定的ID找不到数据，尝试加载默认数据
-        if (!isDefault) {
-          const defaultData = getKnowledgeGraphByAnomalyId('smt-001')
-          if (defaultData) {
-            setGraphData(defaultData)
-            setIsDefaultView(true)
-            setIsCompactView(false)
-            const pNode = defaultData.nodes.find((node) => node.type === 'phenomenon')
-            if (pNode) {
-              setSelectedNode(pNode)
-              setShowDetailPanel(true)
+        // 如果没有ID，展示所有知识图谱数据（从Neo4j获取）
+        if (!anomalyId) {
+          // 首先检查Neo4j可用性
+          const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
+          
+          if (neo4jAvailable) {
+            try {
+              // 从Neo4j获取所有异常数据
+              const allAnomalies = await KnowledgeGraphAdapter.getAllAnomalies()
+              
+              if (allAnomalies && allAnomalies.length > 0) {
+                // 将所有异常数据转换为知识图谱格式
+                const mergedGraph = convertAnomaliesToGraph(allAnomalies)
+                setGraphData(mergedGraph)
+                setIsDefaultView(false)
+                setIsCompactView(true)
+                setDataSource('neo4j')
+                setLoading(false)
+                return
+              }
+            } catch (error) {
+              console.error('Failed to load all anomalies from Neo4j:', error)
             }
           }
+          
+          // 如果Neo4j不可用或查询失败，降级到模拟数据
+          const allData = getAllKnowledgeGraphsMerged()
+          setGraphData(allData)
+          setIsDefaultView(false)
+          setIsCompactView(true)
+          setDataSource('mock')
+          setLoading(false)
+          return
         }
+
+        // 首先检查Neo4j可用性
+        const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
+
+        let data: KnowledgeGraph | null = null
+
+        if (neo4jAvailable) {
+          // 尝试从Neo4j获取数据
+          data = await KnowledgeGraphAdapter.getKnowledgeGraph(anomalyId)
+          if (data) {
+            setDataSource('neo4j')
+          }
+        }
+
+        // 如果Neo4j失败或无数据，已在适配器内部降级到模拟数据
+        if (!data) {
+          setDataSource('mock')
+        }
+
+        if (data) {
+          setGraphData(data)
+          setIsDefaultView(false)
+          setIsCompactView(false)
+
+          // 默认选中第一个现象节点
+          const phenomenonNode = data.nodes.find((node) => node.type === 'phenomenon')
+          if (phenomenonNode) {
+            setSelectedNode(phenomenonNode)
+            setShowDetailPanel(true)
+          }
+        } else {
+          setError('无法加载知识图谱数据')
+        }
+      } catch (err) {
+        console.error('Failed to load knowledge graph:', err)
+        setError('数据加载失败，请稍后重试')
+        setDataSource('mock')
+      } finally {
+        setLoading(false)
       }
     }
 
-    setLoading(false)
+    loadKnowledgeGraph()
   }, [location.search])
 
   const handleNodeClick = (node: KnowledgeNode) => {
@@ -74,6 +196,73 @@ const KnowledgeGraphPage: React.FC = () => {
 
   const handleBackToDashboard = () => {
     navigate('/app/')
+  }
+
+  const handleRefresh = async () => {
+    const searchParams = new URLSearchParams(location.search)
+    const anomalyId = searchParams.get('anomalyId')
+
+    try {
+      setLoading(true)
+      setError(null)
+
+      if (!anomalyId) {
+        // 如果没有异常ID，刷新所有数据
+        const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
+        
+        if (neo4jAvailable) {
+          try {
+            // 从Neo4j获取所有异常数据
+            const allAnomalies = await KnowledgeGraphAdapter.getAllAnomalies()
+            
+            if (allAnomalies && allAnomalies.length > 0) {
+              // 将所有异常数据转换为知识图谱格式
+              const mergedGraph = convertAnomaliesToGraph(allAnomalies)
+              setGraphData(mergedGraph)
+              setDataSource('neo4j')
+            }
+          } catch (error) {
+            console.error('Failed to refresh all anomalies from Neo4j:', error)
+          }
+        }
+        
+        // 如果Neo4j不可用或查询失败，降级到模拟数据
+        if (!graphData || dataSource === 'mock') {
+          const allData = getAllKnowledgeGraphsMerged()
+          setGraphData(allData)
+          setDataSource('mock')
+        }
+      } else {
+        // 有异常ID的情况，按原有逻辑处理
+        const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
+        let data: KnowledgeGraph | null = null
+
+        if (neo4jAvailable) {
+          data = await KnowledgeGraphAdapter.getKnowledgeGraph(anomalyId)
+          if (data) {
+            setDataSource('neo4j')
+          }
+        }
+
+        if (!data) {
+          setDataSource('mock')
+        }
+
+        if (data) {
+          setGraphData(data)
+          const phenomenonNode = data.nodes.find((node) => node.type === 'phenomenon')
+          if (phenomenonNode) {
+            setSelectedNode(phenomenonNode)
+            setShowDetailPanel(true)
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to refresh knowledge graph:', err)
+      setError('刷新失败，请稍后重试')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleGenerateSolution = () => {
@@ -108,7 +297,9 @@ const KnowledgeGraphPage: React.FC = () => {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">加载知识图谱中...</p>
+          <p className="text-slate-600">
+            {dataSource === 'neo4j' ? '从知识图谱数据库加载...' : '加载知识图谱中...'}
+          </p>
         </div>
       </div>
     )
@@ -142,8 +333,21 @@ const KnowledgeGraphPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="flex flex-col items-center">
               <h1 className="text-xl font-bold text-slate-800">知识图谱</h1>
-              <p className="text-xs text-slate-500">异常ID: {graphData.anomalyId}</p>
+              <p className="text-xs text-slate-500">
+                {graphData.anomalyId === 'all' ? '全部异常数据' : `异常ID: ${graphData.anomalyId}`}
+              </p>
             </div>
+
+            {/* 数据源指示器 */}
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                dataSource === 'neo4j' ? 'bg-green-500' : 'bg-amber-500'
+              }`} />
+              <span className="text-xs text-slate-600">
+                {dataSource === 'neo4j' ? '实时数据' : '演示数据'}
+              </span>
+            </div>
+
             {isDefaultView && (
               <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1 rounded-md text-sm flex items-center gap-2">
                 <AlertTriangle size={14} />
@@ -153,6 +357,14 @@ const KnowledgeGraphPage: React.FC = () => {
           </div>
 
           <div className="absolute right-0 flex items-center gap-3">
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              className="text-slate-600 hover:text-slate-800 px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+              {loading ? '刷新中...' : '刷新数据'}
+            </button>
             <button
               onClick={handleBackToDashboard}
               className="text-slate-600 hover:text-slate-800 px-3 py-2 text-sm font-medium transition-colors"
@@ -169,6 +381,22 @@ const KnowledgeGraphPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 错误提示 */}
+      {error && (
+        <div className="bg-red-50 border-b border-red-200 px-6 py-3">
+          <div className="flex items-center gap-2 text-red-700">
+            <AlertTriangle size={16} />
+            <span className="text-sm">{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto text-red-500 hover:text-red-700"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 主要内容区域 - 相对定位容器 */}
       <div className="flex-1 relative overflow-hidden">
