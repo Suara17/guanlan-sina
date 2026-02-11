@@ -24,7 +24,7 @@ def migrate_excel_to_neo4j():
             raise Exception("Neo4j 未配置，请检查环境变量")
 
         # 读取 Excel 数据
-        excel_path = Path(__file__).parent.parent / "docs" / "data.xlsx"
+        excel_path = project_root.parent / "docs" / "知识图谱" / "data.xlsx"
         if not excel_path.exists():
             raise Exception(f"Excel 文件不存在: {excel_path}")
 
@@ -90,14 +90,14 @@ def migrate_excel_to_neo4j():
                 '''
                 )
 
-            print("✅ 数据迁移成功完成！")
+            print("数据迁移成功完成！")
             return True
 
         finally:
             neo4j_service.close()
 
     except Exception as e:
-        print(f"❌ 数据迁移失败: {e}")
+        print(f"数据迁移失败: {e}")
         import traceback
         traceback.print_exc()
         return False
