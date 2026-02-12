@@ -38,7 +38,7 @@ const KnowledgeGraphPage: React.FC = () => {
         id: phenomenonId,
         type: 'phenomenon',
         label: `${anomaly.line_type}-异常${anomaly.sequence}`,
-        description: anomaly.phenomenon
+        description: anomaly.phenomenon,
       })
 
       // 处理原因节点
@@ -52,7 +52,7 @@ const KnowledgeGraphPage: React.FC = () => {
             id: causeId,
             type: 'cause',
             label: cause.type || '原因',
-            description: cause.description || '未知原因'
+            description: cause.description || '未知原因',
           })
 
           // 现象到原因的关系
@@ -61,7 +61,7 @@ const KnowledgeGraphPage: React.FC = () => {
             source: phenomenonId,
             target: causeId,
             type: 'caused_by',
-            label: '导致'
+            label: '导致',
           })
         })
       }
@@ -75,7 +75,7 @@ const KnowledgeGraphPage: React.FC = () => {
             id: solutionId,
             type: 'solution',
             label: solution.type || '解决方案',
-            description: solution.method || '未知解决方案'
+            description: solution.method || '未知解决方案',
           })
 
           // 将解决方案连接到对应的原因（如果有的话）
@@ -86,7 +86,7 @@ const KnowledgeGraphPage: React.FC = () => {
               source: targetCause,
               target: solutionId,
               type: 'solved_by',
-              label: '解决'
+              label: '解决',
             })
           }
         })
@@ -96,7 +96,7 @@ const KnowledgeGraphPage: React.FC = () => {
     return {
       nodes,
       edges,
-      anomalyId: 'all'
+      anomalyId: 'all',
     }
   }
 
@@ -114,12 +114,12 @@ const KnowledgeGraphPage: React.FC = () => {
         if (!anomalyId) {
           // 首先检查Neo4j可用性
           const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
-          
+
           if (neo4jAvailable) {
             try {
               // 从Neo4j获取所有异常数据
               const allAnomalies = await KnowledgeGraphAdapter.getAllAnomalies()
-              
+
               if (allAnomalies && allAnomalies.length > 0) {
                 // 将所有异常数据转换为知识图谱格式
                 const mergedGraph = convertAnomaliesToGraph(allAnomalies)
@@ -134,7 +134,7 @@ const KnowledgeGraphPage: React.FC = () => {
               console.error('Failed to load all anomalies from Neo4j:', error)
             }
           }
-          
+
           // 如果Neo4j不可用或查询失败，降级到模拟数据
           const allData = getAllKnowledgeGraphsMerged()
           setGraphData(allData)
@@ -209,12 +209,12 @@ const KnowledgeGraphPage: React.FC = () => {
       if (!anomalyId) {
         // 如果没有异常ID，刷新所有数据
         const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
-        
+
         if (neo4jAvailable) {
           try {
             // 从Neo4j获取所有异常数据
             const allAnomalies = await KnowledgeGraphAdapter.getAllAnomalies()
-            
+
             if (allAnomalies && allAnomalies.length > 0) {
               // 将所有异常数据转换为知识图谱格式
               const mergedGraph = convertAnomaliesToGraph(allAnomalies)
@@ -225,7 +225,7 @@ const KnowledgeGraphPage: React.FC = () => {
             console.error('Failed to refresh all anomalies from Neo4j:', error)
           }
         }
-        
+
         // 如果Neo4j不可用或查询失败，降级到模拟数据
         if (!graphData || dataSource === 'mock') {
           const allData = getAllKnowledgeGraphsMerged()
@@ -340,9 +340,11 @@ const KnowledgeGraphPage: React.FC = () => {
 
             {/* 数据源指示器 */}
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${
-                dataSource === 'neo4j' ? 'bg-green-500' : 'bg-amber-500'
-              }`} />
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  dataSource === 'neo4j' ? 'bg-green-500' : 'bg-amber-500'
+                }`}
+              />
               <span className="text-xs text-slate-600">
                 {dataSource === 'neo4j' ? '实时数据' : '演示数据'}
               </span>

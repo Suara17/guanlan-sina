@@ -15,7 +15,7 @@ class CacheService {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      expiry: ttl
+      expiry: ttl,
     })
   }
 
@@ -78,7 +78,7 @@ class CacheService {
   getStats(): { size: number; keys: string[] } {
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
     }
   }
 }

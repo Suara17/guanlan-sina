@@ -18,7 +18,7 @@ import AnomalyList from '../components/AnomalyList'
 import DataDashboard from '../components/DataDashboard'
 import ProductionLineSelector from '../components/ProductionLineSelector'
 import SinanAvatar from '../components/SinanAvatar'
-import { DASHBOARD_METRICS, PRODUCTION_LINES, getAnomaliesByLineType } from '../mockData'
+import { DASHBOARD_METRICS, getAnomaliesByLineType, PRODUCTION_LINES } from '../mockData'
 import type { DashboardMetrics, ProductionData, ProductionLine } from '../types'
 
 // Mock Data
@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
 
   // Determine alert message based on anomalies
   const alertMessage = useMemo(() => {
-    if (currentAnomalies.length === 0) return "当前产线运行正常"
+    if (currentAnomalies.length === 0) return '当前产线运行正常'
 
     // Prioritize Critical > Error > Warning
     const critical = currentAnomalies.find((a) => a.level === 'critical')
@@ -60,7 +60,7 @@ const Dashboard: React.FC = () => {
     const warning = currentAnomalies.find((a) => a.level === 'warning')
     if (warning) return `${warning.location} ${warning.message}`
 
-    return "检测到潜在异常风险"
+    return '检测到潜在异常风险'
   }, [currentAnomalies])
 
   // Update Sinan mode based on anomalies

@@ -10,7 +10,12 @@ interface Props {
   isCompactView?: boolean
 }
 
-const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selectedNodeId, isCompactView = false }) => {
+const KnowledgeGraphCanvas: React.FC<Props> = ({
+  graphData,
+  onNodeClick,
+  selectedNodeId,
+  isCompactView = false,
+}) => {
   const svgRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
@@ -32,24 +37,43 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
     const defs = svg.append('defs')
 
     // 现象节点渐变 (红色)
-    const gradPhenom = defs.append('linearGradient').attr('id', 'grad-phenom').attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%')
+    const gradPhenom = defs
+      .append('linearGradient')
+      .attr('id', 'grad-phenom')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '100%')
+      .attr('y2', '100%')
     gradPhenom.append('stop').attr('offset', '0%').attr('stop-color', '#f87171')
     gradPhenom.append('stop').attr('offset', '100%').attr('stop-color', '#dc2626')
 
     // 原因节点渐变 (橙色)
-    const gradCause = defs.append('linearGradient').attr('id', 'grad-cause').attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%')
+    const gradCause = defs
+      .append('linearGradient')
+      .attr('id', 'grad-cause')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '100%')
+      .attr('y2', '100%')
     gradCause.append('stop').attr('offset', '0%').attr('stop-color', '#fb923c')
     gradCause.append('stop').attr('offset', '100%').attr('stop-color', '#ea580c')
 
     // 方案节点渐变 (蓝绿)
-    const gradSolution = defs.append('linearGradient').attr('id', 'grad-solution').attr('x1', '0%').attr('y1', '0%').attr('x2', '100%').attr('y2', '100%')
+    const gradSolution = defs
+      .append('linearGradient')
+      .attr('id', 'grad-solution')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '100%')
+      .attr('y2', '100%')
     gradSolution.append('stop').attr('offset', '0%').attr('stop-color', '#3b82f6')
     gradSolution.append('stop').attr('offset', '100%').attr('stop-color', '#22c55e')
 
     // 箭头标记
     // 紧凑模式下使用完整大小的箭头
     const arrowSize = isCompactView ? 1.0 : 1
-    defs.append('marker')
+    defs
+      .append('marker')
       .attr('id', 'arrowhead')
       .attr('viewBox', '-0 -5 10 10')
       .attr('refX', isCompactView ? 20 : 30) // 紧凑模式调整箭头位置
@@ -100,9 +124,18 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
       })
 
       // 添加轻度径向力保持圆盘形状
-      simulation.force('radial', d3.forceRadial((d: any, i: number) => {
-        return (i / nodeCount) * maxRadius * 0.95
-      }, centerX, centerY).strength(0.15)) // 更弱的约束，让节点填充更密集
+      simulation.force(
+        'radial',
+        d3
+          .forceRadial(
+            (d: any, i: number) => {
+              return (i / nodeCount) * maxRadius * 0.95
+            },
+            centerX,
+            centerY
+          )
+          .strength(0.15)
+      ) // 更弱的约束，让节点填充更密集
     }
 
     // 拖拽功能
@@ -145,7 +178,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
       .append('rect')
       .attr('fill', 'white')
       .attr('rx', 4)
-      
+
     // 创建边标签
     const edgeFontSize = isCompactView ? '11px' : '11px'
     const linkLabels = svg
@@ -161,10 +194,14 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
       .attr('dy', 4)
       .text((d: KnowledgeEdge) => {
         switch (d.type) {
-          case 'leads_to': return '导致'
-          case 'caused_by': return '源于'
-          case 'solved_by': return '解决'
-          default: return d.label || ''
+          case 'leads_to':
+            return '导致'
+          case 'caused_by':
+            return '源于'
+          case 'solved_by':
+            return '解决'
+          default:
+            return d.label || ''
         }
       })
 
@@ -196,7 +233,6 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
           .attr('fill', 'url(#grad-phenom)')
           .attr('stroke', selectedNodeId === d.id ? '#991b1b' : 'none')
           .attr('stroke-width', selectedNodeId === d.id ? 3 : 0)
-
       } else if (d.type === 'cause') {
         // 原因：圆角菱形 (旋转的圆角矩形)
         nodeGroup
@@ -210,7 +246,6 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
           .attr('fill', 'url(#grad-cause)')
           .attr('stroke', selectedNodeId === d.id ? '#c2410c' : 'none')
           .attr('stroke-width', selectedNodeId === d.id ? 3 : 0)
-
       } else if (d.type === 'solution') {
         // 方案：大圆角矩形
         nodeGroup
@@ -231,7 +266,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
     const fontSize = isCompactView ? '13px' : '13px'
     const maxLabelLength = isCompactView ? 5 : 6
 
-    node.each(function(d: KnowledgeNode) {
+    node.each(function (d: KnowledgeNode) {
       const nodeGroup = d3.select(this)
 
       // 所有节点文本都居中
@@ -245,16 +280,16 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
         .text(d.label)
         .call((text) => {
           // 简单的换行处理
-          text.each(function(d: KnowledgeNode) {
-              if (d.label.length > maxLabelLength) {
-                  const el = d3.select(this)
-                  const mid = Math.floor(d.label.length / 2)
-                  const first = d.label.substring(0, mid)
-                  const second = d.label.substring(mid)
-                  el.text('')
-                  el.append('tspan').attr('x', 0).attr('dy', '-0.2em').text(first)
-                  el.append('tspan').attr('x', 0).attr('dy', '1.2em').text(second)
-              }
+          text.each(function (d: KnowledgeNode) {
+            if (d.label.length > maxLabelLength) {
+              const el = d3.select(this)
+              const mid = Math.floor(d.label.length / 2)
+              const first = d.label.substring(0, mid)
+              const second = d.label.substring(mid)
+              el.text('')
+              el.append('tspan').attr('x', 0).attr('dy', '-0.2em').text(first)
+              el.append('tspan').attr('x', 0).attr('dy', '1.2em').text(second)
+            }
           })
         })
     })
@@ -306,7 +341,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
         .attr('y1', (d: any) => d.source.y)
         .attr('x2', (d: any) => d.target.x)
         .attr('y2', (d: any) => d.target.y)
-      
+
       // 更新连线标签背景位置
       const labelBgSize = isCompactView ? { width: 24, height: 16 } : { width: 30, height: 20 }
       linkLabelBgs
@@ -331,7 +366,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({ graphData, onNodeClick, selecte
     <svg
       ref={svgRef}
       className="w-full h-full"
-      viewBox={isCompactView ? "0 0 1400 900" : "0 0 800 600"}
+      viewBox={isCompactView ? '0 0 1400 900' : '0 0 800 600'}
       preserveAspectRatio="xMidYMid meet"
     />
   )

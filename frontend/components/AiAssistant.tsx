@@ -36,7 +36,9 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
   }
 
   return (
-    <div className={`${hidden ? 'hidden' : ''} fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4`}>
+    <div
+      className={`${hidden ? 'hidden' : ''} fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4`}
+    >
       {isOpen && (
         <div className="w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-blue-100 overflow-hidden flex flex-col animate-in slide-in-from-bottom-5 duration-300">
           <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 flex justify-between items-center text-white">

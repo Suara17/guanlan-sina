@@ -20,6 +20,8 @@ import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Bar, BarChart, ResponsiveContainer } from 'recharts'
+import AGVPathVisualizer from '../components/AGVPathVisualizer'
+import LayoutVisualizer from '../components/LayoutVisualizer'
 
 const Huntian: React.FC = () => {
   const location = useLocation()
@@ -30,7 +32,7 @@ const Huntian: React.FC = () => {
   const [showReport, setShowReport] = useState(false)
   const [isDeploying, setIsDeploying] = useState(false)
   const [simulationMode, setSimulationMode] = useState<
-    'device_rearrangement' | 'route_optimization'
+    'device_rearrangement' | 'route_optimization' | 'stress_test'
   >('device_rearrangement')
   const [devicePositions, setDevicePositions] = useState({
     device1: { x: 100, y: 100 },
@@ -38,15 +40,28 @@ const Huntian: React.FC = () => {
   })
   const [routePath, setRoutePath] = useState('M100,200 Q200,150 300,200 Q400,250 500,200')
   const timerRef = useRef<number | null>(null)
+  const [agvData, setAgvData] = useState<any>(null)
+  const [layoutData, setLayoutData] = useState<any>(null)
 
   // 从路由 state 接收数据
   useEffect(() => {
     if (location.state) {
       const { optimizationResult } = location.state as any
       if (optimizationResult) {
+        console.log('接收到优化结果:', optimizationResult)
         // 根据优化结果设置仿真模式
-        if (optimizationResult.type) {
-          setSimulationMode(optimizationResult.type)
+        if (optimizationResult.type === 'heavy') {
+          setSimulationMode('route_optimization')
+          // 设置 AGV 数据
+          if (optimizationResult.agvData) {
+            setAgvData(optimizationResult.agvData)
+          }
+        } else if (optimizationResult.type === 'light') {
+          setSimulationMode('device_rearrangement')
+          // 设置布局数据
+          if (optimizationResult.layoutData) {
+            setLayoutData(optimizationResult.layoutData)
+          }
         }
       }
     }
@@ -155,6 +170,13 @@ const Huntian: React.FC = () => {
               >
                 线路优化
               </button>
+              <button
+                type="button"
+                onClick={() => setSimulationMode('stress_test')}
+                className={`relative px-3 py-1 text-xs font-bold rounded-lg transition-all ${simulationMode === 'stress_test' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                压力测试
+              </button>
             </div>
           </div>
 
@@ -261,42 +283,65 @@ const Huntian: React.FC = () => {
           {/* Device Rearrangement Animation */}
           {simulationMode === 'device_rearrangement' && (
             <>
-              <motion.div
-                animate={devicePositions.device1}
-                transition={{ duration: 2, ease: 'easeInOut' }}
-                className="absolute w-16 h-16 bg-blue-500 rounded-lg shadow-lg flex items-center justify-center text-white font-bold"
-              >
-                设备A
-              </motion.div>
-              <motion.div
-                animate={devicePositions.device2}
-                transition={{ duration: 2, ease: 'easeInOut' }}
-                className="absolute w-16 h-16 bg-green-500 rounded-lg shadow-lg flex items-center justify-center text-white font-bold"
-              >
-                设备B
-              </motion.div>
+              {/* 使用 LayoutVisualizer 组件 */}
+              {layoutData ? (
+                <LayoutVisualizer layoutData={layoutData} isPlaying={isPlaying} />
+              ) : (
+                // 如果没有数据，显示原来的简单动画
+                <>
+                  <motion.div
+                    animate={devicePositions.device1}
+                    transition={{ duration: 2, ease: 'easeInOut' }}
+                    className="absolute w-16 h-16 bg-blue-500 rounded-lg shadow-lg flex items-center justify-center text-white font-bold"
+                  >
+                    设备A
+                  </motion.div>
+                  <motion.div
+                    animate={devicePositions.device2}
+                    transition={{ duration: 2, ease: 'easeInOut' }}
+                    className="absolute w-16 h-16 bg-green-500 rounded-lg shadow-lg flex items-center justify-center text-white font-bold"
+                  >
+                    设备B
+                  </motion.div>
+                </>
+              )}
             </>
           )}
 
           {/* Route Optimization Animation */}
           {simulationMode === 'route_optimization' && (
-            <svg className="absolute inset-0 pointer-events-none">
-              <motion.path
-                d={routePath}
-                stroke="#3b82f6"
-                strokeWidth="4"
-                fill="none"
-                strokeDasharray="10,5"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 2, ease: 'easeInOut' }}
-              />
-              <circle r="6" fill="#3b82f6" className="animate-pulse">
-                <animateMotion dur="4s" repeatCount="indefinite">
-                  <mpath href="#routePath" />
-                </animateMotion>
-              </circle>
-            </svg>
+            <>
+              {/* 使用 AGVPathVisualizer 组件 */}
+              {agvData ? (
+                <AGVPathVisualizer
+                  stations={agvData.stations}
+                  routes={agvData.agvRoutes}
+                  isPlaying={isPlaying}
+                  speed={speed}
+                  canvasWidth={1200}
+                  canvasHeight={800}
+                />
+              ) : (
+                // 如果没有数据，显示原来的简单动画
+                <svg className="absolute inset-0 pointer-events-none">
+                  <motion.path
+                    d={routePath}
+                    stroke="#3b82f6"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray="10,5"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 2, ease: 'easeInOut' }}
+                  />
+                  <circle r="6" fill="#3b82f6" className="animate-pulse">
+                    <animateMotion dur="4s" repeatCount="indefinite">
+                      <mpath href="#routePath" />
+                    </animateMotion>
+                  </circle>
+                </svg>
+              )}
+            </>
           )}
 
           {/* AGV Collision Highlight Layer */}

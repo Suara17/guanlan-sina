@@ -409,3 +409,113 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# --- Tianchou (Optimization & Decision) ---
+
+
+from enum import Enum
+
+
+class IndustryType(str, Enum):
+    """行业类型枚举"""
+    LIGHT = "light"  # 轻工业
+    HEAVY = "heavy"  # 重工业
+
+
+class TaskStatus(str, Enum):
+    """任务状态枚举"""
+    PENDING = "pending"  # 待执行
+    RUNNING = "running"  # 执行中
+    COMPLETED = "completed"  # 已完成
+    FAILED = "failed"  # 失败
+
+
+class OptimizationTask(SQLModel, table=True):
+    """优化任务主表"""
+    __tablename__ = "optimization_tasks"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(index=True, max_length=255)
+    industry_type: IndustryType
+
+    # 输入参数 (JSON存储)
+    input_params: dict = Field(default={}, sa_column=Column(JSONB))
+
+    # 任务状态
+    status: TaskStatus = Field(default=TaskStatus.PENDING)
+    progress: int = Field(default=0)  # 0-100
+
+    # 结果摘要
+    pareto_solution_count: int = Field(default=0)
+    recommended_solution_id: uuid.UUID | None = Field(default=None)
+
+    # 商业决策权重
+    weights_cost: float | None = Field(default=None)
+    weights_time: float | None = Field(default=None)
+    weights_benefit: float | None = Field(default=None)
+
+    # 元数据
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    created_by: uuid.UUID | None = Field(default=None, foreign_key="users.id")
+
+    # 关联关系
+    solutions: list["ParetoSolution"] = Relationship(back_populates="task", cascade_delete=True)
+    decisions: list["DecisionRecord"] = Relationship(back_populates="task", cascade_delete=True)
+
+
+class ParetoSolution(SQLModel, table=True):
+    """帕累托最优解"""
+    __tablename__ = "pareto_solutions"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    task_id: uuid.UUID = Field(foreign_key="optimization_tasks.id", index=True)
+
+    # 技术指标 (Part 1)
+    f1: float  # 目标1
+    f2: float  # 目标2
+    f3: float | None = None  # 目标3 (轻工业)
+
+    # 商业指标 (Part 2)
+    total_cost: float = Field(default=0)
+    implementation_days: float = Field(default=0)
+    expected_benefit: float = Field(default=0)
+
+    # 方案详情 (JSON)
+    solution_data: dict = Field(default={}, sa_column=Column(JSONB))
+
+    # 设备/路径方案 (JSON)
+    technical_details: dict = Field(default={}, sa_column=Column(JSONB))
+
+    # 排名和评分
+    rank: int = Field(default=0)
+    topsis_score: float | None = None
+
+    # 关联
+    task: OptimizationTask = Relationship(back_populates="solutions")
+
+
+class DecisionRecord(SQLModel, table=True):
+    """决策记录 (AHP-TOPSIS)"""
+    __tablename__ = "decision_records"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    task_id: uuid.UUID = Field(foreign_key="optimization_tasks.id", index=True)
+
+    # AHP判断矩阵
+    ahp_matrix: dict = Field(default={}, sa_column=Column(JSONB))
+
+    # 计算权重
+    weights: dict = Field(default={}, sa_column=Column(JSONB))
+    consistency_ratio: float = Field(default=0)
+
+    # TOPSIS结果
+    best_solution_id: uuid.UUID | None = None
+    decision_scores: dict = Field(default={}, sa_column=Column(JSONB))
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    task: OptimizationTask = Relationship(back_populates="decisions")
+

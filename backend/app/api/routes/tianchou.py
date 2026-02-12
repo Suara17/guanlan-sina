@@ -164,16 +164,65 @@ def run_optimization_task(task_id: str, db: Session) -> None:
             results = dual_track.run_light_industry_optimization(input_data)
         else:
             # 重工业参数映射
+            station_count = api_params.get('station_count', 8)
+            task_count = api_params.get('task_count', station_count)  # 默认任务数等于工位数
+            agv_count = api_params.get('agv_count', 3)
+
+            # 生成默认的设备位置（如果未提供）
+            if 'station_coords' not in api_params or not api_params['station_coords']:
+                # 生成网格布局的设备位置
+                cols = int(np.ceil(np.sqrt(station_count)))
+                rows = int(np.ceil(station_count / cols))
+                device_positions = []
+                for i in range(station_count):
+                    row = i // cols
+                    col = i % cols
+                    x = 25 + col * 30  # 每个设备间隔30米
+                    y = 25 + row * 30
+                    device_positions.append([x, y])
+            else:
+                device_positions = api_params['station_coords']
+
+            # 生成默认的设备参数（如果未提供）
+            device_rates = api_params.get('device_rates', [8 + i % 8 for i in range(station_count)])
+            setup_times = api_params.get('setup_times', [0.5 + (i % 10) * 0.1 for i in range(station_count)])
+            device_capacities = api_params.get('device_capacities', [10 + i * 2 for i in range(station_count)])
+
+            # 生成默认的任务列表（如果未提供）
+            if 'tasks' not in api_params or not api_params['tasks']:
+                tasks = []
+                for j in range(task_count):
+                    # 每个任务包含3-5个工序
+                    num_operations = 3 + (j % 3)
+                    operations = []
+                    for op_idx in range(num_operations):
+                        # 随机选择设备
+                        device_id = (j + op_idx) % station_count
+                        operations.append({
+                            'device_id': device_id,
+                            'process_time': 2.0 + (op_idx % 5) * 0.5,  # 2.0-4.5小时
+                            'quantity': 10 + (j % 5) * 5  # 10-30件
+                        })
+                    tasks.append({
+                        'task_id': j,
+                        'quantity': 10 + (j % 5) * 5,
+                        'release_time': (j % 3) * 2.0,  # 0, 2, 4小时
+                        'deadline': 24.0 + j * 4.0,  # 24-60小时
+                        'operations': operations
+                    })
+            else:
+                tasks = api_params['tasks']
+
             input_data = {
-                'K': api_params.get('station_count', 8),  # 设备数量
-                'J': api_params.get('task_count', 8),     # 任务数量
-                'V': api_params.get('agv_count', 5),      # AGV数量
+                'K': station_count,  # 设备数量
+                'J': task_count,     # 任务数量
+                'V': agv_count,      # AGV数量
                 'T': api_params.get('time_horizon', 72),  # 时间周期
-                'device_positions': api_params.get('station_coords', [[25, 25], [50, 25], [75, 25], [100, 25], [25, 50], [50, 50], [75, 50], [100, 50]]),  # 设备位置
-                'device_rates': api_params.get('device_rates', [8, 10, 6, 5, 12, 10, 8, 15]),  # 设备速率
-                'setup_times': api_params.get('setup_times', [0.8, 0.5, 1.2, 1.5, 0.3, 0.8, 0.8, 0.2]),  # 换型时间
-                'device_capacities': api_params.get('device_capacities', [10, 15, 8, 6, 20, 12, 12, 25]),  # 设备容量
-                'tasks': api_params.get('tasks', []),  # 任务列表
+                'device_positions': device_positions,  # 设备位置
+                'device_rates': device_rates,  # 设备速率
+                'setup_times': setup_times,  # 换型时间
+                'device_capacities': device_capacities,  # 设备容量
+                'tasks': tasks,  # 任务列表
                 'AGV_speed': api_params.get('agv_speed', 3000),  # AGV速度
                 'AGV_capacity': api_params.get('agv_capacity', 500),  # AGV容量
                 'AGV_energy_rate': api_params.get('agv_energy_rate', 5),  # AGV能耗率
@@ -181,7 +230,7 @@ def run_optimization_task(task_id: str, db: Session) -> None:
                 'beta2': api_params.get('beta2', 0.35),  # 瓶颈设备利用率权重
                 'beta3': api_params.get('beta3', 0.30)   # 负载不均衡度权重
             }
-            
+
             results = dual_track.run_heavy_industry_optimization(input_data)
 
         task.progress = 50
