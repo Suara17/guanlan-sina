@@ -63,7 +63,7 @@ Neo4j Desktop 默认将数据库存储在 C 盘，占用系统盘空间。
 4. **设置初始密码**
    ```bash
    cd E:\neo4j-server\bin
-   neo4j-admin dbms set-initial-password password
+   neo4j-admin dbms set-initial-password 12345678
    ```
 
 5. **启动 Neo4j**
@@ -75,7 +75,7 @@ Neo4j Desktop 默认将数据库存储在 C 盘，占用系统盘空间。
 6. **访问浏览器界面**
    - http://localhost:7474
    - 用户名：`neo4j`
-   - 密码：`password`
+   - 密码：`12345678`
 
 ---
 
@@ -87,7 +87,7 @@ Neo4j Desktop 默认将数据库存储在 C 盘，占用系统盘空间。
 # Neo4j 配置 (Windows 本地安装)
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=password
+NEO4J_PASSWORD=12345678
 NEO4J_DATABASE=neo4j
 ```
 
@@ -109,7 +109,7 @@ neo4j.bat console
 启动 Neo4j 后，访问：
 - Neo4j Browser: http://localhost:7474
 - 用户名: neo4j
-- 密码: password
+- 密码: 12345678
 
 在浏览器中运行测试查询：
 ```cypher
@@ -147,7 +147,7 @@ netstat -ano | findstr ":7687"
 **A:** 重置密码：
 ```bash
 cd E:\neo4j-server\bin
-neo4j-admin dbms set-initial-password newpassword
+neo4j-admin dbms set-initial-password 12345678
 ```
 
 ### Q: 数据库启动慢

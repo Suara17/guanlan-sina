@@ -168,18 +168,21 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.middlewares=https-redirect
 
   neo4j:
-    image: neo4j:5.12-community
+    image: neo4j:4.4-community
     restart: always
     ports:
       - "7474:7474"  # Neo4j Browser
       - "7687:7687"  # Neo4j Bolt
     environment:
-      - NEO4J_AUTH=neo4j/password
+      - NEO4J_AUTH=neo4j/12345678
       - NEO4J_dbms_memory_pagecache_size=512M
       - NEO4J_dbms_memory_heap_initial__size=256m
       - NEO4J_dbms_memory_heap_max__size=512m
       # 接受许可协议（社区版）
       - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+      # 配置连接
+      - NEO4J_dbms_connector_bolt_advertised__address=0.0.0.0
+      - NEO4J_dbms_connector_http_advertised__address=0.0.0.0
       # 禁用认证警告
       - NEO4J_dbms_security_auth__minimum__password__length=8
     volumes:
