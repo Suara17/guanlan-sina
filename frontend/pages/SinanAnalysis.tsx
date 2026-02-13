@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle, Clock, GitGraph, ShieldAlert, Zap } from 'lucide-react'
+import { ArrowLeft, Clock, GitGraph, ShieldAlert, Zap } from 'lucide-react'
 import type React from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { SolutionOption } from '../types'
@@ -114,7 +114,7 @@ const SinanAnalysis: React.FC = () => {
           </div>
 
           <div className="mt-6 p-4 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-900 leading-relaxed">
-            <span className="font-bold">AI 分析总结：</span>
+            <span className="font-bold">分析总结：</span>
             结合设备运行日志（Log-302）与震动传感器数据，系统排除了"物料尺寸"问题。当前真空度曲线呈现周期性泄露特征，92%
             概率指向吸嘴老化磨损。
           </div>
@@ -165,6 +165,11 @@ const SinanAnalysis: React.FC = () => {
                   <div className="flex gap-3">
                     <button
                       type="button"
+                      onClick={() =>
+                        navigate('/app/zhixing', {
+                          state: { solutionId: sol.id, solutionName: sol.title },
+                        })
+                      }
                       className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors ${
                         sol.type === 'recommended'
                           ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200'
@@ -173,15 +178,6 @@ const SinanAnalysis: React.FC = () => {
                     >
                       {sol.type === 'recommended' ? '采纳并执行' : '选择此方案'}
                     </button>
-                    {sol.type === 'recommended' && (
-                      <button
-                        type="button"
-                        disabled
-                        className="px-4 py-2.5 bg-green-100 text-green-700 rounded-lg font-medium text-sm flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100"
-                      >
-                        <CheckCircle size={18} />
-                      </button>
-                    )}
                   </div>
                 </div>
               ))}

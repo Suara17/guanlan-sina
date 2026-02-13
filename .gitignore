@@ -26,3 +26,17 @@ openapi.json
 
 # 本地开发文档
 项目本地开发环境启动问题总结.md
+
+# Grok settings
+.grok/
+
+# Test directories
+test6/
+test/
+
+# OS generated files
+nul
+telemetry-id
+
+# Obsidian plugin
+docs/.obsidian/plugins/better-export-pdf/

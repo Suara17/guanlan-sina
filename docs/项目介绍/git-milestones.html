@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git 版本迭代里程碑</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', system-ui, sans-serif; }
+    code, .mono { font-family: 'JetBrains Mono', monospace; }
+    .commit-card:hover { transform: translateX(4px); box-shadow: 0 4px 20px rgba(59,130,246,0.15); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <header class="bg-white border-b border-slate-200 sticky top-0">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <h1 class="text-lg font-bold text-slate-900">Git 版本迭代里程碑</h1>
+      </div>
+      <span class="text-sm text-slate-400">2026-02-12</span>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-6 py-8">
+    <!-- 最新版本 -->
+    <section class="mb-8">
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
+        <span class="inline-flex items-center gap-1 bg-white/20 px-2 py-1 rounded text-xs font-medium mb-3">最新版本</span>
+        <h2 class="text-lg font-semibold mb-2">更新天筹算法集成和相关文档</h2>
+        <div class="flex items-center gap-3 text-blue-100 text-sm">
+          <code class="mono bg-white/20 px-2 py-0.5 rounded">e3e31dc</code>
+          <span>2026-02-12</span>
+          <span>Suara17</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 核心提交记录 -->
+    <section class="mb-8">
+      <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">核心提交</h3>
+      <div class="space-y-3">
+        
+        <div class="commit-card bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-2">
+            <code class="mono text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">e3e31dc</code>
+            <span class="text-xs text-slate-400">2026-02-12</span>
+          </div>
+          <p class="text-slate-800 text-sm font-medium">更新天筹算法集成和相关文档</p>
+        </div>
+
+        <div class="commit-card bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-2">
+            <code class="mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">93ac51a</code>
+            <span class="text-xs text-slate-400">2026-02-10</span>
+          </div>
+          <p class="text-slate-700 text-sm">知识图谱(Knowledge Graph)集成Neo4j功能实现</p>
+        </div>
+
+        <div class="commit-card bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-2">
+            <code class="mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">a124b46</code>
+            <span class="text-xs text-slate-400">2026-01-28</span>
+          </div>
+          <p class="text-slate-700 text-sm">优化知识图谱页面布局与交互，更新文档和项目说明</p>
+        </div>
+
+        <div class="commit-card bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-2">
+            <code class="mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">a50ea0c</code>
+            <span class="text-xs text-slate-400">2026-01-17</span>
+          </div>
+          <p class="text-slate-700 text-sm">添加完整的登录系统</p>
+        </div>
+
+        <div class="commit-card bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-2">
+            <code class="mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">5ac545c</code>
+            <span class="text-xs text-slate-400">2026-01-12</span>
+          </div>
+          <p class="text-slate-700 text-sm">实现观澜生产仪表板和司南决策支持核心</p>
+        </div>
+
+        <div class="commit-card bg-white rounded-lg p-4 shadow-sm border-l-4 border-l-green-500">
+          <div class="flex items-center justify-between mb-2">
+            <code class="mono text-xs text-green-600 bg-green-50 px-2 py-1 rounded">0d9caa3</code>
+            <span class="text-xs text-slate-400">2026-01-12</span>
+          </div>
+          <p class="text-slate-800 text-sm font-semibold">[初始提交] 观澜-司南可视化平台项目</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 功能模块 -->
+    <section class="mb-8">
+      <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">功能模块</h3>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="text-purple-600 font-medium text-sm">知识图谱</div>
+          <div class="text-xs text-slate-500 mt-1">Neo4j集成、数据迁移</div>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="text-orange-600 font-medium text-sm">天筹算法</div>
+          <div class="text-xs text-slate-500 mt-1">Huntian集成、参数优化</div>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="text-blue-600 font-medium text-sm">天工弈控</div>
+          <div class="text-xs text-slate-500 mt-1">Logo组件、UI优化</div>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="text-green-600 font-medium text-sm">用户认证</div>
+          <div class="text-xs text-slate-500 mt-1">登录系统、持久化</div>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="text-pink-600 font-medium text-sm">UI/UX</div>
+          <div class="text-xs text-slate-500 mt-1">落地页、可视化</div>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div class="text-slate-600 font-medium text-sm">代码质量</div>
+          <div class="text-xs text-slate-500 mt-1">Biome、格式化</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 回退命令 -->
+    <section>
+      <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">回退参考</h3>
+      <div class="bg-slate-900 rounded-lg p-4">
+        <code class="mono text-green-400 text-sm">git reset --hard &lt;commit-id&gt;</code>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <code class="mono text-xs bg-white px-2 py-1 rounded border">a124b46</code>
+        <code class="mono text-xs bg-white px-2 py-1 rounded border">a50ea0c</code>
+        <code class="mono text-xs bg-white px-2 py-1 rounded border">5ac545c</code>
+        <code class="mono text-xs bg-white px-2 py-1 rounded border">0d9caa3</code>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -16,6 +16,8 @@ import Marketplace from './pages/Marketplace'
 import ScenarioBuilder from './pages/ScenarioBuilder'
 import SinanAnalysis from './pages/SinanAnalysis'
 import Tianchou from './pages/Tianchou'
+import SubscriptionValue from './pages/SubscriptionValue'
+import Zhixing from './pages/Zhixing'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -34,6 +36,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return '浑天仿真验证'
       case '/app/tianchou':
         return '天筹优化决策'
+      case '/app/zhixing':
+        return '执行监控'
+      case '/app/subscription-value':
+        return '订阅价值复盘'
       case '/app/kernel':
         return 'OS 内核接入'
       case '/app/marketplace':
@@ -124,6 +130,8 @@ const App: React.FC = () => {
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/sinan" element={<SinanAnalysis />} />
+                    <Route path="/zhixing" element={<Zhixing />} />
+                    <Route path="/subscription-value" element={<SubscriptionValue />} />
                     <Route path="/gewu" element={<KnowledgeGraph />} />
                     <Route path="/huntian" element={<Huntian />} />
                     <Route path="/tianchou" element={<Tianchou />} />

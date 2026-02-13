@@ -1,6 +1,7 @@
 import { Clock, Factory } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Bar,
   BarChart,
@@ -38,6 +39,7 @@ const QUALITY_DATA = [
 ]
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate()
   const [sinanMode, setSinanMode] = useState<'idle' | 'alert'>('idle')
   const [selectedLine, setSelectedLine] = useState<ProductionLine | null>(PRODUCTION_LINES[0]) // 默认选中第一条产线
 
@@ -293,6 +295,34 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2">
                 <div className="bg-amber-500 h-2 rounded-full" style={{ width: '60%' }}></div>
+              </div>
+            </div>
+          </div>
+
+          {/* 订阅价值复盘 */}
+          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-slate-800">订阅价值复盘</h3>
+              <button
+                type="button"
+                onClick={() => navigate('/app/subscription-value')}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+              >
+                查看详情 →
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-slate-50 rounded-lg">
+                <p className="text-2xl font-bold text-slate-800">+35%</p>
+                <p className="text-xs text-slate-500 mt-1">OEE提升</p>
+              </div>
+              <div className="text-center p-4 bg-slate-50 rounded-lg">
+                <p className="text-2xl font-bold text-green-600">¥128.5万</p>
+                <p className="text-xs text-slate-500 mt-1">年度节省</p>
+              </div>
+              <div className="text-center p-4 bg-slate-50 rounded-lg">
+                <p className="text-2xl font-bold text-purple-600">3.2x</p>
+                <p className="text-xs text-slate-500 mt-1">ROI</p>
               </div>
             </div>
           </div>
