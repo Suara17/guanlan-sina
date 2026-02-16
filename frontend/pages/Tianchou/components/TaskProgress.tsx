@@ -97,7 +97,15 @@ export function TaskProgress({ task, onCancel }: Props) {
 
   // 从后端获取进化数据
   const fetchEvolutionData = useCallback(async () => {
-    if (!task.task_id) return
+    if (!task.task_id) {
+      // 无task_id时使用模拟数据并启动动画
+      if (task.status === TaskStatus.RUNNING && !isAnimating) {
+        setIsAnimating(true)
+        setAnimatedData(fullEvolutionData.slice(0, 3))
+        setCurrentGenIndex(3)
+      }
+      return
+    }
     
     try {
       const data = await tianchouService.getEvolutionHistory(task.task_id)
@@ -106,39 +114,54 @@ export function TaskProgress({ task, onCancel }: Props) {
       if (data.history && data.history.length > 0) {
         // 后端有数据，使用后端数据
         setAnimatedData(data.history)
+        setIsAnimating(false)
       } else {
         // 后端无数据，使用模拟数据
-        if (task.status === TaskStatus.RUNNING) {
+        if (task.status === TaskStatus.RUNNING && !isAnimating) {
           setAnimatedData(fullEvolutionData.slice(0, 3))
           setCurrentGenIndex(3)
           setIsAnimating(true)
-        } else {
+        } else if (task.status !== TaskStatus.RUNNING) {
           setAnimatedData(fullEvolutionData)
         }
       }
     } catch (error) {
       console.error('获取进化数据失败:', error)
       // 请求失败，使用模拟数据
-      if (task.status === TaskStatus.RUNNING) {
+      if (task.status === TaskStatus.RUNNING && !isAnimating) {
         setAnimatedData(fullEvolutionData.slice(0, 3))
         setCurrentGenIndex(3)
         setIsAnimating(true)
-      } else {
+      } else if (task.status !== TaskStatus.RUNNING) {
         setAnimatedData(fullEvolutionData)
       }
     }
-  }, [task.task_id, task.status])
+  }, [task.task_id, task.status, isAnimating])
 
-  // 动态显示数据
+  // 初始化数据
   useEffect(() => {
     fetchEvolutionData()
-    
-    // 任务运行中时，每2秒轮询一次
-    if (task.status === TaskStatus.RUNNING) {
+  }, [task.task_id, task.status])
+
+  // 任务运行中时，轮询后端数据
+  useEffect(() => {
+    if (task.status === TaskStatus.RUNNING && task.task_id) {
       const interval = setInterval(fetchEvolutionData, 2000)
       return () => clearInterval(interval)
     }
-  }, [fetchEvolutionData, task.status])
+  }, [task.status, task.task_id, fetchEvolutionData])
+
+  // 模拟数据逐步增加动画
+  useEffect(() => {
+    if (!isAnimating || currentGenIndex >= fullEvolutionData.length) return
+
+    const timer = setTimeout(() => {
+      setAnimatedData(prev => [...prev, fullEvolutionData[currentGenIndex]])
+      setCurrentGenIndex(prev => prev + 1)
+    }, 800)
+
+    return () => clearTimeout(timer)
+  }, [isAnimating, currentGenIndex])
 
   // 获取当前最新数据
   const currentData = animatedData.length > 0 ? animatedData[animatedData.length - 1] : null
