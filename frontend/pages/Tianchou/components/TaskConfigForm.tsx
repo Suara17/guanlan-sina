@@ -2,6 +2,7 @@
  * 任务配置表单组件
  */
 
+import type React from 'react'
 import { useState } from 'react'
 import { IndustryType, type OptimizationRequestParams } from '../types/tianchou'
 

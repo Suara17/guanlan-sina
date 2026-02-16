@@ -40,3 +40,5 @@ telemetry-id
 
 # Obsidian plugin
 docs/.obsidian/plugins/better-export-pdf/
+
+.docx

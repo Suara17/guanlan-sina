@@ -3,16 +3,22 @@
  */
 
 import { Eye } from 'lucide-react'
+import type React from 'react'
 import type { ParetoSolution } from '../types/tianchou'
 
-interface Props {
+export interface SolutionCardProps {
   solution: ParetoSolution
   isSelected: boolean
   onClick: () => void
   onViewSimulation?: (solution: ParetoSolution) => void
 }
 
-export function SolutionCard({ solution, isSelected, onClick, onViewSimulation }: Props) {
+const SolutionCard: React.FC<SolutionCardProps> = ({
+  solution,
+  isSelected,
+  onClick,
+  onViewSimulation,
+}) => {
   const handleViewSimulation = (e: React.MouseEvent) => {
     e.stopPropagation() // 阻止冒泡，避免触发卡片选中
     onViewSimulation?.(solution)
@@ -83,3 +89,5 @@ export function SolutionCard({ solution, isSelected, onClick, onViewSimulation }
     </div>
   )
 }
+
+export default SolutionCard

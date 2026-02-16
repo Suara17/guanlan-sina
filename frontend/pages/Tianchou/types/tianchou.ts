@@ -14,6 +14,24 @@ export enum TaskStatus {
   FAILED = 'failed',
 }
 
+export interface EvolutionHistoryItem {
+  generation: number
+  f1: number
+  f2: number
+  f3: number
+  diversity: number
+  mutpb: number
+  best_fitness?: number
+  elapsed_time: number
+}
+
+export interface EvolutionData {
+  task_id: string
+  status: TaskStatus
+  progress: number
+  history: EvolutionHistoryItem[]
+}
+
 export interface OptimizationTask {
   task_id: string
   name: string
@@ -99,52 +117,45 @@ export interface OptimizationRequestParams {
   benefit_multiplier?: number
 }
 
-/**
- * 传递给浑天页面的优化结果数据
- */
-export interface OptimizationResult {
-  type: 'light' | 'heavy' // 行业类型
-  solution: ParetoSolution // 选中的方案
-  taskId: string // 任务ID
-
-  // 轻工业数据
-  layoutData?: {
-    workshopDimensions: { length: number; width: number }
-    devices: Array<{
-      id: number
-      name: string
-      originalPosition: [number, number]
-      newPosition: [number, number]
-      size: { width: number; height: number }
-    }>
-    movedDevices: Array<{
-      deviceId: number
-      distance: number
-      cost: number
-    }>
-  }
-
-  // 重工业数据
-  agvData?: {
-    stations: Array<{
-      id: number
-      name: string
-      position: [number, number]
-    }>
-    agvRoutes: Array<{
-      agvId: number
-      route: Array<[number, number]>
-      completionTime: number
-      tasks: Array<{
-        from: number
-        to: number
-        startTime: number
-        endTime: number
-      }>
-    }>
-    metrics: {
-      totalCompletionTime: number
-      bottleneckUtilization: number
-    }
+// 优化结果类型 - 用于可视化
+export interface HeavyIndustryAGVData {
+  stations: Array<{ id: number; name: string; position: number[] }>
+  agvRoutes: Array<{
+    agvId: number
+    route: number[][]
+    completionTime: number
+    tasks: Array<{ from: number; to: number; startTime: number; endTime: number }>
+  }>
+  metrics: {
+    totalCompletionTime: number
+    bottleneckUtilization: number
   }
 }
+
+export interface LightIndustryLayoutData {
+  workshopDimensions: { length: number; width: number }
+  devices: Array<{
+    id: number
+    name: string
+    originalPosition: number[]
+    newPosition: number[]
+    size: { width: number; height: number }
+  }>
+  movedDevices: Array<{ deviceId: number; distance: number; cost: number }>
+}
+
+export interface HeavyIndustryResult {
+  type: 'heavy'
+  solution: ParetoSolution
+  taskId: string
+  agvData: HeavyIndustryAGVData
+}
+
+export interface LightIndustryResult {
+  type: 'light'
+  solution: ParetoSolution
+  taskId: string
+  layoutData: LightIndustryLayoutData
+}
+
+export type OptimizationResult = HeavyIndustryResult | LightIndustryResult

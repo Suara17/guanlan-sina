@@ -5,6 +5,7 @@
 import type {
   AHPResult,
   AHPWeights,
+  EvolutionData,
   OptimizationRequestParams,
   OptimizationTask,
   ParetoSolution,
@@ -123,6 +124,19 @@ export const tianchouService = {
 
     if (!response.ok) {
       throw new Error(`Failed to get task summary: ${response.statusText}`)
+    }
+
+    return response.json()
+  },
+
+  /**
+   * 获取算法进化过程数据
+   */
+  async getEvolutionHistory(taskId: string): Promise<EvolutionData> {
+    const response = await fetch(`${API_BASE}/tasks/${taskId}/evolution`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to get evolution history: ${response.statusText}`)
     }
 
     return response.json()

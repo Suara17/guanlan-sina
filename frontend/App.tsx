@@ -15,8 +15,8 @@ import KnowledgeGraph from './pages/KnowledgeGraph'
 import Marketplace from './pages/Marketplace'
 import ScenarioBuilder from './pages/ScenarioBuilder'
 import SinanAnalysis from './pages/SinanAnalysis'
-import Tianchou from './pages/Tianchou'
 import SubscriptionValue from './pages/SubscriptionValue'
+import Tianchou from './pages/Tianchou'
 import Zhixing from './pages/Zhixing'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

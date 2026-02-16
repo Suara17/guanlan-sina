@@ -138,38 +138,87 @@ def run_optimization_task(task_id: str, db: Session) -> None:
 
         # 参数映射：将API参数转换为算法期望的格式
         api_params = task.input_params
-        
+
         if task.industry_type == IndustryType.LIGHT:
             # 获取设备数量，确保所有相关数组长度一致
-            device_count = api_params.get('device_count', 25)
+            device_count = api_params.get("device_count", 25)
 
             # 轻工业参数映射
             input_data = {
-                'L': api_params.get('workshop_length', 80.0),  # 车间长度
-                'W': api_params.get('workshop_width', 60.0),   # 车间宽度
-                'N': device_count,       # 设备总数
-                'M': list(range(max(0, device_count - 5))),  # 可移动设备（默认除最后5个外都是可移动的）
-                'F': list(range(max(0, device_count - 5), device_count)),  # 固定设备（默认最后5个）
-                'device_sizes': np.array(api_params.get('device_sizes', [[3.0, 2.0]] * device_count), dtype=np.float64),  # 设备尺寸
-                'original_positions': np.array(api_params.get('original_positions', [[i * 3, 10] for i in range(device_count)]), dtype=np.float64),  # 原始位置
-                'move_costs': np.array(api_params.get('move_costs', [100.0] * device_count), dtype=np.float64),  # 移动成本
-                'safety_distances': np.array(api_params.get('safety_distances', [1.0] * device_count), dtype=np.float64),  # 安全距离
-                'aisle_areas': api_params.get('aisle_areas', [[30, 0, 20, 60]]),  # 通道区域
-                'f_matrix': np.array([[0 if i==j else 1 for j in range(device_count)] for i in range(device_count)], dtype=np.float64),  # 搬运频率矩阵
-                'w_matrix': np.array([[50 if i!=j else 0 for j in range(device_count)] for i in range(device_count)], dtype=np.float64),  # 搬运重量矩阵
-                'c_transport': api_params.get('c_transport', 0.08),  # 单位搬运成本
-                'product_lines': api_params.get('product_lines', {1: list(range(min(5, device_count))), 2: list(range(5, min(10, device_count))) if device_count > 5 else [], 3: list(range(10, min(15, device_count))) if device_count > 10 else [], 4: list(range(15, min(20, device_count))) if device_count > 15 else [], 5: list(range(20, device_count)) if device_count > 20 else []})  # 产品线信息
+                "L": api_params.get("workshop_length", 80.0),  # 车间长度
+                "W": api_params.get("workshop_width", 60.0),  # 车间宽度
+                "N": device_count,  # 设备总数
+                "M": list(
+                    range(max(0, device_count - 5))
+                ),  # 可移动设备（默认除最后5个外都是可移动的）
+                "F": list(
+                    range(max(0, device_count - 5), device_count)
+                ),  # 固定设备（默认最后5个）
+                "device_sizes": np.array(
+                    api_params.get("device_sizes", [[3.0, 2.0]] * device_count),
+                    dtype=np.float64,
+                ),  # 设备尺寸
+                "original_positions": np.array(
+                    api_params.get(
+                        "original_positions", [[i * 3, 10] for i in range(device_count)]
+                    ),
+                    dtype=np.float64,
+                ),  # 原始位置
+                "move_costs": np.array(
+                    api_params.get("move_costs", [100.0] * device_count),
+                    dtype=np.float64,
+                ),  # 移动成本
+                "safety_distances": np.array(
+                    api_params.get("safety_distances", [1.0] * device_count),
+                    dtype=np.float64,
+                ),  # 安全距离
+                "aisle_areas": api_params.get(
+                    "aisle_areas", [[30, 0, 20, 60]]
+                ),  # 通道区域
+                "f_matrix": np.array(
+                    [
+                        [0 if i == j else 1 for j in range(device_count)]
+                        for i in range(device_count)
+                    ],
+                    dtype=np.float64,
+                ),  # 搬运频率矩阵
+                "w_matrix": np.array(
+                    [
+                        [50 if i != j else 0 for j in range(device_count)]
+                        for i in range(device_count)
+                    ],
+                    dtype=np.float64,
+                ),  # 搬运重量矩阵
+                "c_transport": api_params.get("c_transport", 0.08),  # 单位搬运成本
+                "product_lines": api_params.get(
+                    "product_lines",
+                    {
+                        1: list(range(min(5, device_count))),
+                        2: list(range(5, min(10, device_count)))
+                        if device_count > 5
+                        else [],
+                        3: list(range(10, min(15, device_count)))
+                        if device_count > 10
+                        else [],
+                        4: list(range(15, min(20, device_count)))
+                        if device_count > 15
+                        else [],
+                        5: list(range(20, device_count)) if device_count > 20 else [],
+                    },
+                ),  # 产品线信息
             }
-            
+
             results = dual_track.run_light_industry_optimization(input_data)
         else:
             # 重工业参数映射
-            station_count = api_params.get('station_count', 8)
-            task_count = api_params.get('task_count', station_count)  # 默认任务数等于工位数
-            agv_count = api_params.get('agv_count', 3)
+            station_count = api_params.get("station_count", 8)
+            task_count = api_params.get(
+                "task_count", station_count
+            )  # 默认任务数等于工位数
+            agv_count = api_params.get("agv_count", 3)
 
             # 生成默认的设备位置（如果未提供）
-            if 'station_coords' not in api_params or not api_params['station_coords']:
+            if "station_coords" not in api_params or not api_params["station_coords"]:
                 # 生成网格布局的设备位置
                 cols = int(np.ceil(np.sqrt(station_count)))
                 rows = int(np.ceil(station_count / cols))
@@ -181,15 +230,21 @@ def run_optimization_task(task_id: str, db: Session) -> None:
                     y = 25 + row * 30
                     device_positions.append([x, y])
             else:
-                device_positions = api_params['station_coords']
+                device_positions = api_params["station_coords"]
 
             # 生成默认的设备参数（如果未提供）
-            device_rates = api_params.get('device_rates', [8 + i % 8 for i in range(station_count)])
-            setup_times = api_params.get('setup_times', [0.5 + (i % 10) * 0.1 for i in range(station_count)])
-            device_capacities = api_params.get('device_capacities', [10 + i * 2 for i in range(station_count)])
+            device_rates = api_params.get(
+                "device_rates", [8 + i % 8 for i in range(station_count)]
+            )
+            setup_times = api_params.get(
+                "setup_times", [0.5 + (i % 10) * 0.1 for i in range(station_count)]
+            )
+            device_capacities = api_params.get(
+                "device_capacities", [10 + i * 2 for i in range(station_count)]
+            )
 
             # 生成默认的任务列表（如果未提供）
-            if 'tasks' not in api_params or not api_params['tasks']:
+            if "tasks" not in api_params or not api_params["tasks"]:
                 tasks = []
                 for j in range(task_count):
                     # 每个任务包含3-5个工序
@@ -198,37 +253,41 @@ def run_optimization_task(task_id: str, db: Session) -> None:
                     for op_idx in range(num_operations):
                         # 随机选择设备
                         device_id = (j + op_idx) % station_count
-                        operations.append({
-                            'device_id': device_id,
-                            'process_time': 2.0 + (op_idx % 5) * 0.5,  # 2.0-4.5小时
-                            'quantity': 10 + (j % 5) * 5  # 10-30件
-                        })
-                    tasks.append({
-                        'task_id': j,
-                        'quantity': 10 + (j % 5) * 5,
-                        'release_time': (j % 3) * 2.0,  # 0, 2, 4小时
-                        'deadline': 24.0 + j * 4.0,  # 24-60小时
-                        'operations': operations
-                    })
+                        operations.append(
+                            {
+                                "device_id": device_id,
+                                "process_time": 2.0 + (op_idx % 5) * 0.5,  # 2.0-4.5小时
+                                "quantity": 10 + (j % 5) * 5,  # 10-30件
+                            }
+                        )
+                    tasks.append(
+                        {
+                            "task_id": j,
+                            "quantity": 10 + (j % 5) * 5,
+                            "release_time": (j % 3) * 2.0,  # 0, 2, 4小时
+                            "deadline": 24.0 + j * 4.0,  # 24-60小时
+                            "operations": operations,
+                        }
+                    )
             else:
-                tasks = api_params['tasks']
+                tasks = api_params["tasks"]
 
             input_data = {
-                'K': station_count,  # 设备数量
-                'J': task_count,     # 任务数量
-                'V': agv_count,      # AGV数量
-                'T': api_params.get('time_horizon', 72),  # 时间周期
-                'device_positions': device_positions,  # 设备位置
-                'device_rates': device_rates,  # 设备速率
-                'setup_times': setup_times,  # 换型时间
-                'device_capacities': device_capacities,  # 设备容量
-                'tasks': tasks,  # 任务列表
-                'AGV_speed': api_params.get('agv_speed', 3000),  # AGV速度
-                'AGV_capacity': api_params.get('agv_capacity', 500),  # AGV容量
-                'AGV_energy_rate': api_params.get('agv_energy_rate', 5),  # AGV能耗率
-                'beta1': api_params.get('beta1', 0.35),  # 最大完工时间权重
-                'beta2': api_params.get('beta2', 0.35),  # 瓶颈设备利用率权重
-                'beta3': api_params.get('beta3', 0.30)   # 负载不均衡度权重
+                "K": station_count,  # 设备数量
+                "J": task_count,  # 任务数量
+                "V": agv_count,  # AGV数量
+                "T": api_params.get("time_horizon", 72),  # 时间周期
+                "device_positions": device_positions,  # 设备位置
+                "device_rates": device_rates,  # 设备速率
+                "setup_times": setup_times,  # 换型时间
+                "device_capacities": device_capacities,  # 设备容量
+                "tasks": tasks,  # 任务列表
+                "AGV_speed": api_params.get("agv_speed", 3000),  # AGV速度
+                "AGV_capacity": api_params.get("agv_capacity", 500),  # AGV容量
+                "AGV_energy_rate": api_params.get("agv_energy_rate", 5),  # AGV能耗率
+                "beta1": api_params.get("beta1", 0.35),  # 最大完工时间权重
+                "beta2": api_params.get("beta2", 0.35),  # 瓶颈设备利用率权重
+                "beta3": api_params.get("beta3", 0.30),  # 负载不均衡度权重
             }
 
             results = dual_track.run_heavy_industry_optimization(input_data)
@@ -238,6 +297,10 @@ def run_optimization_task(task_id: str, db: Session) -> None:
 
         optimizer = results["optimizer"]
         pareto_solutions = results["pareto_solutions"]
+        evolution_history = results.get("evolution_history", [])
+
+        task.evolution_history = {"history": evolution_history}
+        db.commit()
 
         # 3. 获取初始性能基准
         initial_perf = 0
@@ -347,9 +410,7 @@ async def create_optimization_task(
 
 
 @router.get("/tasks/{task_id}", response_model=TaskStatusResponse)
-async def get_task_status(
-    task_id: str, session: SessionDep
-) -> Any:
+async def get_task_status(task_id: str, session: SessionDep) -> Any:
     """
     获取任务状态和进度
 
@@ -372,6 +433,29 @@ async def get_task_status(
         started_at=task.started_at,
         completed_at=task.completed_at,
     )
+
+
+@router.get("/tasks/{task_id}/evolution")
+async def get_evolution_history(task_id: str, session: SessionDep) -> Any:
+    """
+    获取算法进化过程数据
+
+    - **task_id: 任务ID
+    返回每代的适应度值、多样性、变异率等过程数据
+    """
+    task = session.get(OptimizationTask, uuid.UUID(task_id))
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    evolution_data = task.evolution_history or {}
+    history = evolution_data.get("history", [])
+
+    return {
+        "task_id": task_id,
+        "status": task.status,
+        "progress": task.progress,
+        "history": history,
+    }
 
 
 @router.get("/tasks/{task_id}/solutions", response_model=list[SolutionResponse])
@@ -513,10 +597,7 @@ async def run_topsis_decision(
 
     # 构建决策矩阵
     decision_matrix = np.array(
-        [
-            [s.total_cost, s.implementation_days, s.expected_benefit]
-            for s in solutions
-        ]
+        [[s.total_cost, s.implementation_days, s.expected_benefit] for s in solutions]
     )
 
     # 使用默认权重或用户提供的权重
@@ -554,9 +635,7 @@ async def run_topsis_decision(
 
 
 @router.get("/tasks/{task_id}/summary")
-async def get_task_summary(
-    task_id: str, session: SessionDep
-) -> Any:
+async def get_task_summary(task_id: str, session: SessionDep) -> Any:
     """
     获取任务总结
 

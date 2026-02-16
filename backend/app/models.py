@@ -419,12 +419,14 @@ from enum import Enum
 
 class IndustryType(str, Enum):
     """行业类型枚举"""
+
     LIGHT = "light"  # 轻工业
     HEAVY = "heavy"  # 重工业
 
 
 class TaskStatus(str, Enum):
     """任务状态枚举"""
+
     PENDING = "pending"  # 待执行
     RUNNING = "running"  # 执行中
     COMPLETED = "completed"  # 已完成
@@ -433,6 +435,7 @@ class TaskStatus(str, Enum):
 
 class OptimizationTask(SQLModel, table=True):
     """优化任务主表"""
+
     __tablename__ = "optimization_tasks"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -445,6 +448,9 @@ class OptimizationTask(SQLModel, table=True):
     # 任务状态
     status: TaskStatus = Field(default=TaskStatus.PENDING)
     progress: int = Field(default=0)  # 0-100
+
+    # 进化过程数据 (JSONB存储)
+    evolution_history: dict = Field(default={}, sa_column=Column(JSONB))
 
     # 结果摘要
     pareto_solution_count: int = Field(default=0)
@@ -462,12 +468,17 @@ class OptimizationTask(SQLModel, table=True):
     created_by: uuid.UUID | None = Field(default=None, foreign_key="users.id")
 
     # 关联关系
-    solutions: list["ParetoSolution"] = Relationship(back_populates="task", cascade_delete=True)
-    decisions: list["DecisionRecord"] = Relationship(back_populates="task", cascade_delete=True)
+    solutions: list["ParetoSolution"] = Relationship(
+        back_populates="task", cascade_delete=True
+    )
+    decisions: list["DecisionRecord"] = Relationship(
+        back_populates="task", cascade_delete=True
+    )
 
 
 class ParetoSolution(SQLModel, table=True):
     """帕累托最优解"""
+
     __tablename__ = "pareto_solutions"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -499,6 +510,7 @@ class ParetoSolution(SQLModel, table=True):
 
 class DecisionRecord(SQLModel, table=True):
     """决策记录 (AHP-TOPSIS)"""
+
     __tablename__ = "decision_records"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -518,4 +530,3 @@ class DecisionRecord(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     task: OptimizationTask = Relationship(back_populates="decisions")
-

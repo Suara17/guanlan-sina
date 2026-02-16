@@ -1,5 +1,6 @@
-import type React from 'react'
 import { ArrowLeft, BarChart3, TrendingUp, Wallet } from 'lucide-react'
+import type React from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Bar,
   BarChart,
@@ -13,7 +14,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { useNavigate } from 'react-router-dom'
 
 const OEE_IMPROVEMENT_DATA = [
   { month: '1月', oee: 12 },
@@ -98,9 +98,7 @@ const SubscriptionValue: React.FC = () => {
               数据概览
             </span>
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            订阅服务价值分析与成本节省汇报
-          </p>
+          <p className="text-slate-500 text-sm mt-1">订阅服务价值分析与成本节省汇报</p>
         </div>
       </div>
 

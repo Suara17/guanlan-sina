@@ -365,10 +365,19 @@ backend/app/
 │       ├── items.py        # 通用条目
 │       ├── private.py      # 私有路由
 │       ├── utils.py        # 工具路由
+│       ├── tianchou.py    # 天筹决策优化API
 │       └── knowledge_graph.py # 知识图谱路由
+├── algorithms/             # 算法模块
+│   ├── part1_optimization.py  # 优化算法
+│   ├── part2_decision.py      # 决策算法
+│   └── scheme_translator.py   # 方案翻译器
+├── services/               # 服务层
+│   └── neo4j_service.py    # Neo4j知识图谱服务
 ├── models.py               # SQLModel数据库模型
 ├── crud.py                 # CRUD操作
-└── worker.py               # Celery后台任务
+├── worker.py               # Celery后台任务
+└── scripts/                # 脚本工具
+    └── migrate_to_neo4j.py # 数据迁移脚本
 ```
 
 #### 前端目录结构
@@ -382,6 +391,8 @@ frontend/
 │   ├── DataDashboard.tsx   # 数据仪表盘
 │   ├── KnowledgeGraphCanvas.tsx # 知识图谱画布
 │   ├── LandingPage.tsx     # 落地页
+│   ├── LayoutVisualizer.tsx # 布局可视化
+│   ├── AGVPathVisualizer.tsx # AGV路径可视化
 │   ├── LoadingSpinner.tsx  # 加载动画
 │   ├── LoginPage.tsx       # 登录页组件
 │   ├── NodeDetailPanel.tsx # 节点详情面板
@@ -389,6 +400,7 @@ frontend/
 │   ├── ProtectedRoute.tsx  # 路由保护
 │   ├── Sidebar.tsx         # 侧边栏
 │   ├── SinanAvatar.tsx     # 司南数字人
+│   ├── SubscriptionValueReview.tsx # 订阅值审核
 │   ├── TiangongLogo.tsx    # 天工Logo
 │   └── TopBar.tsx          # 顶部导航
 ├── pages/                  # 页面视图
@@ -399,7 +411,30 @@ frontend/
 │   ├── Marketplace.tsx     # 能力市场
 │   ├── ScenarioBuilder.tsx # 场景编排
 │   ├── SinanAnalysis.tsx   # 司南分析
-│   └── Tianchou.tsx        # 天筹(决策层)
+│   ├── SubscriptionValue.tsx # 订阅值管理
+│   ├── Tianchou/           # 天筹(决策层) - 完整页面模块
+│   │   ├── index.tsx
+│   │   ├── components/
+│   │   │   ├── TaskProgress.tsx
+│   │   │   ├── ParetoFrontChart.tsx
+│   │   │   ├── TaskConfigForm.tsx
+│   │   │   ├── AHPWizard.tsx
+│   │   │   └── SolutionCard.tsx
+│   │   ├── hooks/
+│   │   │   └── useTianchou.ts
+│   │   ├── services/
+│   │   │   └── tianchouService.ts
+│   │   └── types/
+│   │       └── tianchou.ts
+│   └── Zhixing/            # 智行(执行层) - 完整页面模块
+│       ├── index.tsx
+│       ├── components/
+│       │   ├── ExecutionProgress.tsx
+│       │   ├── MachineDiagram.tsx
+│       │   └── RealTimeLogs.tsx
+│       ├── hooks/
+│       ├── services/
+│       └── types/
 ├── services/
 │   └── geminiService.ts    # Google GenAI服务集成
 ├── contexts/
@@ -438,5 +473,5 @@ frontend/
 
 ---
 
-*本文档版本: 1.1 | 更新日期: 2026-02-10 | 项目: 天工·弈控*</content>
+*本文档版本: 1.2 | 更新日期: 2026-02-14 | 项目: 天工·弈控*</content>
 <parameter name="filePath">AGENTS.md
