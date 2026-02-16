@@ -5,7 +5,7 @@
 
 import { AlertTriangle, ArrowRight } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Area,
   AreaChart,
@@ -15,7 +15,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type { OptimizationTask } from '../types/tianchou'
+import { tianchouService } from '../services/tianchouService'
+import type { EvolutionData, OptimizationTask } from '../types/tianchou'
 import { TaskStatus } from '../types/tianchou'
 
 interface Props {
@@ -94,58 +95,91 @@ export function TaskProgress({ task, onCancel }: Props) {
     { generation: 760, f1: 0.42, f2: 0.68, f3: 0.30, diversity: 0.120, mutpb: 0.566, elapsed_time: 354.5 },
   ]
 
-  // 原始值（用于日志显示）
-  const generateRawLog = (gen: number) => ({
-    generation: gen,
-    f1: 200000 + Math.random() * 20000 - gen * 50,
-    f2: 30000 + Math.random() * 20000 + gen * 100,
-    f3: 0.085 + Math.random() * 0.01,
-    diversity: 0.03 + Math.random() * 0.02,
-    elapsed_time: gen * 0.45 + Math.random() * 2,
-  })
+  // 从后端获取进化数据
+  const fetchEvolutionData = useCallback(async () => {
+    if (!task.task_id) return
+    
+    try {
+      const data = await tianchouService.getEvolutionHistory(task.task_id)
+      setEvolutionData(data)
+      
+      if (data.history && data.history.length > 0) {
+        // 后端有数据，使用后端数据
+        setAnimatedData(data.history)
+      } else {
+        // 后端无数据，使用模拟数据
+        if (task.status === TaskStatus.RUNNING) {
+          setAnimatedData(fullEvolutionData.slice(0, 3))
+          setCurrentGenIndex(3)
+          setIsAnimating(true)
+        } else {
+          setAnimatedData(fullEvolutionData)
+        }
+      }
+    } catch (error) {
+      console.error('获取进化数据失败:', error)
+      // 请求失败，使用模拟数据
+      if (task.status === TaskStatus.RUNNING) {
+        setAnimatedData(fullEvolutionData.slice(0, 3))
+        setCurrentGenIndex(3)
+        setIsAnimating(true)
+      } else {
+        setAnimatedData(fullEvolutionData)
+      }
+    }
+  }, [task.task_id, task.status])
 
   // 动态显示数据
   useEffect(() => {
+    fetchEvolutionData()
+    
+    // 任务运行中时，每2秒轮询一次
     if (task.status === TaskStatus.RUNNING) {
-      setIsAnimating(true)
-      // 初始显示前几个数据点
-      setAnimatedData(fullEvolutionData.slice(0, 3))
-      setCurrentGenIndex(3)
-    } else if (task.status === TaskStatus.COMPLETED) {
-      // 完成时显示全部数据
-      setAnimatedData(fullEvolutionData)
-      setCurrentGenIndex(fullEvolutionData.length)
-      setIsAnimating(false)
-    } else {
-      // 其他状态显示部分数据
-      setAnimatedData(fullEvolutionData.slice(0, 5))
+      const interval = setInterval(fetchEvolutionData, 2000)
+      return () => clearInterval(interval)
     }
-  }, [task.status])
-
-  // 逐步增加数据点
-  useEffect(() => {
-    if (!isAnimating || currentGenIndex >= fullEvolutionData.length) return
-
-    const timer = setTimeout(() => {
-      setAnimatedData(prev => [...prev, fullEvolutionData[currentGenIndex]])
-      setCurrentGenIndex(prev => prev + 1)
-    }, 800) // 每800ms增加一个数据点
-
-    return () => clearTimeout(timer)
-  }, [isAnimating, currentGenIndex])
+  }, [fetchEvolutionData, task.status])
 
   // 获取当前最新数据
   const currentData = animatedData.length > 0 ? animatedData[animatedData.length - 1] : null
   const prevData = animatedData.length > 1 ? animatedData[animatedData.length - 2] : null
 
-  // 生成日志数据
+  // 动态计算Y轴范围（适应原始数据）
+  const calculateYAxisDomain = () => {
+    if (animatedData.length === 0) return [0, 1.2]
+    
+    let maxF1 = 0, maxF2 = 0, maxF3 = 0
+    animatedData.forEach(item => {
+      maxF1 = Math.max(maxF1, item.f1 || 0)
+      maxF2 = Math.max(maxF2, item.f2 || 0)
+      maxF3 = Math.max(maxF3, item.f3 || 0)
+    })
+    
+    const maxValue = Math.max(maxF1, maxF2, maxF3)
+    // 向上取整到合适的刻度
+    const order = Math.pow(10, Math.floor(Math.log10(maxValue)))
+    const upperBound = Math.ceil(maxValue / order) * order
+    
+    return [0, upperBound]
+  }
+
+  const yAxisDomain = calculateYAxisDomain()
+
+  // 格式化大数值显示
+  const formatLargeNumber = (value: number) => {
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`
+    if (value >= 1000) return `${(value / 1000).toFixed(0)}K`
+    return value.toFixed(2)
+  }
+
+  // 生成日志数据（使用实际数据）
   const logData = animatedData.slice(-6).map(item => ({
     generation: item.generation,
-    f1: 200000 + Math.random() * 20000 - item.generation * 50,
-    f2: 30000 + Math.random() * 20000 + item.generation * 100,
-    f3: 0.085 + Math.random() * 0.01,
-    diversity: item.diversity,
-    elapsed_time: item.elapsed_time,
+    f1: item.f1 || 0,
+    f2: item.f2 || 0,
+    f3: item.f3 || 0,
+    diversity: item.diversity || 0.04,
+    elapsed_time: item.elapsed_time || 0,
   }))
 
   const getStatusText = () => {
@@ -246,8 +280,9 @@ export function TaskProgress({ task, onCancel }: Props) {
                   tickLine={true}
                   axisLine={{ stroke: '#D1D5DB' }}
                   tick={{ fontSize: 11, fill: '#6B7280' }}
-                  domain={[0, 1.2]}
+                  domain={yAxisDomain}
                   allowDataOverflow={true}
+                  tickFormatter={(value) => formatLargeNumber(value)}
                 />
                 <Tooltip
                   contentStyle={{
@@ -260,7 +295,7 @@ export function TaskProgress({ task, onCancel }: Props) {
                   labelStyle={{ color: '#1F2937', fontWeight: 600, marginBottom: 8 }}
                   formatter={(value: number, name: string) => [
                     <span key="value" className="font-mono text-slate-700">
-                      {typeof value === 'number' ? value.toFixed(4) : value}
+                      {typeof value === 'number' ? (value >= 1000 ? formatLargeNumber(value) : value.toFixed(4)) : value}
                     </span>,
                     <span
                       key="name"
