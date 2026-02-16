@@ -3,9 +3,9 @@
  * 采用玻璃拟态设计风格，带有动态曲线绘制效果
  */
 
-import { AlertTriangle, ArrowRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
+import { AlertTriangle, ArrowRight } from 'lucide-react'
 import type React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Area,
   AreaChart,
@@ -15,8 +15,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { tianchouService } from '../services/tianchouService'
-import type { EvolutionData, OptimizationTask } from '../types/tianchou'
+import type { OptimizationTask } from '../types/tianchou'
 import { TaskStatus } from '../types/tianchou'
 
 interface Props {
@@ -46,523 +45,108 @@ function GlassCard({
   )
 }
 
-// 数据指标卡片
-function MetricCard({
-  label,
-  value,
-  unit,
-  trend,
-  color = 'blue',
-}: {
-  label: string
-  value: string | number
-  unit?: string
-  trend?: 'up' | 'down' | 'stable'
-  color?: 'blue' | 'pink' | 'amber' | 'green'
-}) {
-  const colorClasses = {
-    blue: 'from-blue-500/10 to-blue-500/5 border-blue-200/50 text-blue-600',
-    pink: 'from-pink-500/10 to-pink-500/5 border-pink-200/50 text-pink-600',
-    amber: 'from-amber-500/10 to-amber-500/5 border-amber-200/50 text-amber-600',
-    green: 'from-green-500/10 to-green-500/5 border-green-200/50 text-green-600',
-  }
-
-  const trendIcon = {
-    up: <TrendingUp size={14} className="text-green-500" />,
-    down: <TrendingDown size={14} className="text-red-500" />,
-    stable: <Minus size={14} className="text-slate-400" />,
-  }
-
-  return (
-    <div
-      className={`bg-gradient-to-br ${colorClasses[color]} rounded-xl p-4 border transition-all duration-300 hover:shadow-md hover:scale-[1.02]`}
-    >
-      <div className="text-xs text-slate-500 mb-1">{label}</div>
-      <div className="flex items-baseline gap-1">
-        <span className="text-xl font-bold text-slate-800">{value}</span>
-        {unit && <span className="text-sm text-slate-500">{unit}</span>}
-        {trend && trendIcon[trend]}
-      </div>
-    </div>
-  )
-}
-
-// 圆形进度指示器
-function CircularProgress({
-  value,
-  max = 1,
-  label,
-  size = 120,
-}: {
-  value: number
-  max?: number
-  label: string
-  size?: number
-}) {
-  const percentage = Math.min((value / max) * 100, 100)
-  const strokeWidth = 8
-  const radius = (size - strokeWidth) / 2
-  const circumference = radius * 2 * Math.PI
-  const offset = circumference - (percentage / 100) * circumference
-
-  // 根据值决定颜色
-  const getColor = () => {
-    if (percentage > 60) return { stroke: '#10b981', gradient: 'from-green-400 to-emerald-500' }
-    if (percentage > 30) return { stroke: '#f59e0b', gradient: 'from-amber-400 to-orange-500' }
-    return { stroke: '#ef4444', gradient: 'from-red-400 to-rose-500' }
-  }
-  const colorInfo = getColor()
-
-  return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg width={size} height={size} className="transform -rotate-90">
-        {/* 背景圆 */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="#e2e8f0"
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        {/* 进度圆 */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={colorInfo.stroke}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          className="transition-all duration-700 ease-out"
-          style={{
-            filter: 'drop-shadow(0 0 6px ' + colorInfo.stroke + '40)',
-          }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span
-          className={`text-2xl font-bold bg-gradient-to-r ${colorInfo.gradient} bg-clip-text text-transparent`}
-        >
-          {percentage.toFixed(0)}%
-        </span>
-        <span className="text-xs text-slate-400 mt-1">{label}</span>
-      </div>
-    </div>
-  )
-}
-
 export function TaskProgress({ task, onCancel }: Props) {
   const [evolutionData, setEvolutionData] = useState<EvolutionData | null>(null)
-  const [mockData, setMockData] = useState<any[]>([])
-  const [hasFetchedData, setHasFetchedData] = useState(false)
   const [animatedData, setAnimatedData] = useState<any[]>([])
+  const [currentGenIndex, setCurrentGenIndex] = useState(0)
+  const [isAnimating, setIsAnimating] = useState(false)
 
-  // 静态数据 - 模拟图片中的曲线走势（归一化到0-1.2）
-  const staticEvolutionData = [
-    {
-      generation: 0,
-      f1: 0.62,
-      f2: 0.85,
-      f3: 0.32,
-      diversity: 0.45,
-      mutpb: 0.486,
-      elapsed_time: 0.5,
-    },
-    {
-      generation: 20,
-      f1: 0.75,
-      f2: 0.82,
-      f3: 0.42,
-      diversity: 0.38,
-      mutpb: 0.488,
-      elapsed_time: 9.5,
-    },
-    {
-      generation: 40,
-      f1: 0.88,
-      f2: 0.72,
-      f3: 0.52,
-      diversity: 0.32,
-      mutpb: 0.492,
-      elapsed_time: 18.6,
-    },
-    {
-      generation: 60,
-      f1: 0.98,
-      f2: 0.58,
-      f3: 0.56,
-      diversity: 0.28,
-      mutpb: 0.496,
-      elapsed_time: 27.8,
-    },
-    {
-      generation: 80,
-      f1: 1.02,
-      f2: 0.48,
-      f3: 0.54,
-      diversity: 0.22,
-      mutpb: 0.498,
-      elapsed_time: 37.2,
-    },
-    {
-      generation: 100,
-      f1: 1.05,
-      f2: 0.42,
-      f3: 0.52,
-      diversity: 0.18,
-      mutpb: 0.5,
-      elapsed_time: 46.5,
-    },
-    {
-      generation: 120,
-      f1: 1.06,
-      f2: 0.4,
-      f3: 0.55,
-      diversity: 0.15,
-      mutpb: 0.502,
-      elapsed_time: 55.8,
-    },
-    {
-      generation: 140,
-      f1: 1.07,
-      f2: 0.38,
-      f3: 0.58,
-      diversity: 0.12,
-      mutpb: 0.504,
-      elapsed_time: 65.2,
-    },
-    {
-      generation: 160,
-      f1: 1.08,
-      f2: 0.36,
-      f3: 0.56,
-      diversity: 0.1,
-      mutpb: 0.506,
-      elapsed_time: 74.5,
-    },
-    {
-      generation: 180,
-      f1: 1.04,
-      f2: 0.38,
-      f3: 0.52,
-      diversity: 0.09,
-      mutpb: 0.508,
-      elapsed_time: 83.8,
-    },
-    {
-      generation: 200,
-      f1: 0.98,
-      f2: 0.42,
-      f3: 0.58,
-      diversity: 0.08,
-      mutpb: 0.51,
-      elapsed_time: 93.2,
-    },
-    {
-      generation: 220,
-      f1: 0.9,
-      f2: 0.48,
-      f3: 0.52,
-      diversity: 0.07,
-      mutpb: 0.512,
-      elapsed_time: 102.5,
-    },
-    {
-      generation: 240,
-      f1: 0.82,
-      f2: 0.52,
-      f3: 0.48,
-      diversity: 0.06,
-      mutpb: 0.514,
-      elapsed_time: 111.8,
-    },
-    {
-      generation: 260,
-      f1: 0.75,
-      f2: 0.55,
-      f3: 0.42,
-      diversity: 0.055,
-      mutpb: 0.516,
-      elapsed_time: 121.2,
-    },
-    {
-      generation: 280,
-      f1: 0.68,
-      f2: 0.52,
-      f3: 0.38,
-      diversity: 0.05,
-      mutpb: 0.518,
-      elapsed_time: 130.5,
-    },
-    {
-      generation: 300,
-      f1: 0.62,
-      f2: 0.48,
-      f3: 0.35,
-      diversity: 0.048,
-      mutpb: 0.52,
-      elapsed_time: 139.8,
-    },
-    {
-      generation: 320,
-      f1: 0.55,
-      f2: 0.45,
-      f3: 0.32,
-      diversity: 0.045,
-      mutpb: 0.522,
-      elapsed_time: 149.2,
-    },
-    {
-      generation: 340,
-      f1: 0.48,
-      f2: 0.42,
-      f3: 0.28,
-      diversity: 0.042,
-      mutpb: 0.524,
-      elapsed_time: 158.5,
-    },
-    {
-      generation: 360,
-      f1: 0.42,
-      f2: 0.38,
-      f3: 0.25,
-      diversity: 0.04,
-      mutpb: 0.526,
-      elapsed_time: 167.8,
-    },
-    {
-      generation: 380,
-      f1: 0.35,
-      f2: 0.35,
-      f3: 0.22,
-      diversity: 0.038,
-      mutpb: 0.528,
-      elapsed_time: 177.2,
-    },
-    {
-      generation: 400,
-      f1: 0.28,
-      f2: 0.32,
-      f3: 0.18,
-      diversity: 0.035,
-      mutpb: 0.53,
-      elapsed_time: 186.5,
-    },
-    {
-      generation: 420,
-      f1: 0.3,
-      f2: 0.35,
-      f3: 0.22,
-      diversity: 0.038,
-      mutpb: 0.532,
-      elapsed_time: 195.8,
-    },
-    {
-      generation: 440,
-      f1: 0.35,
-      f2: 0.38,
-      f3: 0.28,
-      diversity: 0.042,
-      mutpb: 0.534,
-      elapsed_time: 205.2,
-    },
-    {
-      generation: 460,
-      f1: 0.4,
-      f2: 0.42,
-      f3: 0.35,
-      diversity: 0.046,
-      mutpb: 0.536,
-      elapsed_time: 214.5,
-    },
-    {
-      generation: 480,
-      f1: 0.45,
-      f2: 0.48,
-      f3: 0.4,
-      diversity: 0.05,
-      mutpb: 0.538,
-      elapsed_time: 223.8,
-    },
-    {
-      generation: 500,
-      f1: 0.48,
-      f2: 0.55,
-      f3: 0.45,
-      diversity: 0.055,
-      mutpb: 0.54,
-      elapsed_time: 233.2,
-    },
-    {
-      generation: 520,
-      f1: 0.5,
-      f2: 0.62,
-      f3: 0.52,
-      diversity: 0.06,
-      mutpb: 0.542,
-      elapsed_time: 242.5,
-    },
-    {
-      generation: 540,
-      f1: 0.52,
-      f2: 0.68,
-      f3: 0.55,
-      diversity: 0.065,
-      mutpb: 0.544,
-      elapsed_time: 251.8,
-    },
-    {
-      generation: 560,
-      f1: 0.48,
-      f2: 0.72,
-      f3: 0.58,
-      diversity: 0.07,
-      mutpb: 0.546,
-      elapsed_time: 261.2,
-    },
-    {
-      generation: 580,
-      f1: 0.45,
-      f2: 0.75,
-      f3: 0.55,
-      diversity: 0.075,
-      mutpb: 0.548,
-      elapsed_time: 270.5,
-    },
-    {
-      generation: 600,
-      f1: 0.48,
-      f2: 0.78,
-      f3: 0.52,
-      diversity: 0.08,
-      mutpb: 0.55,
-      elapsed_time: 279.8,
-    },
-    {
-      generation: 620,
-      f1: 0.42,
-      f2: 0.8,
-      f3: 0.48,
-      diversity: 0.085,
-      mutpb: 0.552,
-      elapsed_time: 289.2,
-    },
-    {
-      generation: 640,
-      f1: 0.4,
-      f2: 0.82,
-      f3: 0.42,
-      diversity: 0.09,
-      mutpb: 0.554,
-      elapsed_time: 298.5,
-    },
-    {
-      generation: 660,
-      f1: 0.38,
-      f2: 0.8,
-      f3: 0.38,
-      diversity: 0.095,
-      mutpb: 0.556,
-      elapsed_time: 307.8,
-    },
-    {
-      generation: 680,
-      f1: 0.4,
-      f2: 0.78,
-      f3: 0.35,
-      diversity: 0.1,
-      mutpb: 0.558,
-      elapsed_time: 317.2,
-    },
-    {
-      generation: 700,
-      f1: 0.42,
-      f2: 0.75,
-      f3: 0.32,
-      diversity: 0.105,
-      mutpb: 0.56,
-      elapsed_time: 326.5,
-    },
-    {
-      generation: 720,
-      f1: 0.4,
-      f2: 0.72,
-      f3: 0.3,
-      diversity: 0.11,
-      mutpb: 0.562,
-      elapsed_time: 335.8,
-    },
-    {
-      generation: 740,
-      f1: 0.42,
-      f2: 0.7,
-      f3: 0.32,
-      diversity: 0.115,
-      mutpb: 0.564,
-      elapsed_time: 345.2,
-    },
-    {
-      generation: 760,
-      f1: 0.42,
-      f2: 0.68,
-      f3: 0.3,
-      diversity: 0.12,
-      mutpb: 0.566,
-      elapsed_time: 354.5,
-    },
+  // 完整的曲线数据（模拟图片中的曲线走势）
+  const fullEvolutionData = [
+    { generation: 0, f1: 0.62, f2: 0.85, f3: 0.32, diversity: 0.45, mutpb: 0.486, elapsed_time: 0.5 },
+    { generation: 20, f1: 0.75, f2: 0.82, f3: 0.42, diversity: 0.38, mutpb: 0.488, elapsed_time: 9.5 },
+    { generation: 40, f1: 0.88, f2: 0.72, f3: 0.52, diversity: 0.32, mutpb: 0.492, elapsed_time: 18.6 },
+    { generation: 60, f1: 0.98, f2: 0.58, f3: 0.56, diversity: 0.28, mutpb: 0.496, elapsed_time: 27.8 },
+    { generation: 80, f1: 1.02, f2: 0.48, f3: 0.54, diversity: 0.22, mutpb: 0.498, elapsed_time: 37.2 },
+    { generation: 100, f1: 1.05, f2: 0.42, f3: 0.52, diversity: 0.18, mutpb: 0.500, elapsed_time: 46.5 },
+    { generation: 120, f1: 1.06, f2: 0.40, f3: 0.55, diversity: 0.15, mutpb: 0.502, elapsed_time: 55.8 },
+    { generation: 140, f1: 1.07, f2: 0.38, f3: 0.58, diversity: 0.12, mutpb: 0.504, elapsed_time: 65.2 },
+    { generation: 160, f1: 1.08, f2: 0.36, f3: 0.56, diversity: 0.10, mutpb: 0.506, elapsed_time: 74.5 },
+    { generation: 180, f1: 1.04, f2: 0.38, f3: 0.52, diversity: 0.09, mutpb: 0.508, elapsed_time: 83.8 },
+    { generation: 200, f1: 0.98, f2: 0.42, f3: 0.58, diversity: 0.08, mutpb: 0.510, elapsed_time: 93.2 },
+    { generation: 220, f1: 0.90, f2: 0.48, f3: 0.52, diversity: 0.07, mutpb: 0.512, elapsed_time: 102.5 },
+    { generation: 240, f1: 0.82, f2: 0.52, f3: 0.48, diversity: 0.06, mutpb: 0.514, elapsed_time: 111.8 },
+    { generation: 260, f1: 0.75, f2: 0.55, f3: 0.42, diversity: 0.055, mutpb: 0.516, elapsed_time: 121.2 },
+    { generation: 280, f1: 0.68, f2: 0.52, f3: 0.38, diversity: 0.050, mutpb: 0.518, elapsed_time: 130.5 },
+    { generation: 300, f1: 0.62, f2: 0.48, f3: 0.35, diversity: 0.048, mutpb: 0.520, elapsed_time: 139.8 },
+    { generation: 320, f1: 0.55, f2: 0.45, f3: 0.32, diversity: 0.045, mutpb: 0.522, elapsed_time: 149.2 },
+    { generation: 340, f1: 0.48, f2: 0.42, f3: 0.28, diversity: 0.042, mutpb: 0.524, elapsed_time: 158.5 },
+    { generation: 360, f1: 0.42, f2: 0.38, f3: 0.25, diversity: 0.040, mutpb: 0.526, elapsed_time: 167.8 },
+    { generation: 380, f1: 0.35, f2: 0.35, f3: 0.22, diversity: 0.038, mutpb: 0.528, elapsed_time: 177.2 },
+    { generation: 400, f1: 0.28, f2: 0.32, f3: 0.18, diversity: 0.035, mutpb: 0.530, elapsed_time: 186.5 },
+    { generation: 420, f1: 0.30, f2: 0.35, f3: 0.22, diversity: 0.038, mutpb: 0.532, elapsed_time: 195.8 },
+    { generation: 440, f1: 0.35, f2: 0.38, f3: 0.28, diversity: 0.042, mutpb: 0.534, elapsed_time: 205.2 },
+    { generation: 460, f1: 0.40, f2: 0.42, f3: 0.35, diversity: 0.046, mutpb: 0.536, elapsed_time: 214.5 },
+    { generation: 480, f1: 0.45, f2: 0.48, f3: 0.40, diversity: 0.050, mutpb: 0.538, elapsed_time: 223.8 },
+    { generation: 500, f1: 0.48, f2: 0.55, f3: 0.45, diversity: 0.055, mutpb: 0.540, elapsed_time: 233.2 },
+    { generation: 520, f1: 0.50, f2: 0.62, f3: 0.52, diversity: 0.060, mutpb: 0.542, elapsed_time: 242.5 },
+    { generation: 540, f1: 0.52, f2: 0.68, f3: 0.55, diversity: 0.065, mutpb: 0.544, elapsed_time: 251.8 },
+    { generation: 560, f1: 0.48, f2: 0.72, f3: 0.58, diversity: 0.070, mutpb: 0.546, elapsed_time: 261.2 },
+    { generation: 580, f1: 0.45, f2: 0.75, f3: 0.55, diversity: 0.075, mutpb: 0.548, elapsed_time: 270.5 },
+    { generation: 600, f1: 0.48, f2: 0.78, f3: 0.52, diversity: 0.080, mutpb: 0.550, elapsed_time: 279.8 },
+    { generation: 620, f1: 0.42, f2: 0.80, f3: 0.48, diversity: 0.085, mutpb: 0.552, elapsed_time: 289.2 },
+    { generation: 640, f1: 0.40, f2: 0.82, f3: 0.42, diversity: 0.090, mutpb: 0.554, elapsed_time: 298.5 },
+    { generation: 660, f1: 0.38, f2: 0.80, f3: 0.38, diversity: 0.095, mutpb: 0.556, elapsed_time: 307.8 },
+    { generation: 680, f1: 0.40, f2: 0.78, f3: 0.35, diversity: 0.100, mutpb: 0.558, elapsed_time: 317.2 },
+    { generation: 700, f1: 0.42, f2: 0.75, f3: 0.32, diversity: 0.105, mutpb: 0.560, elapsed_time: 326.5 },
+    { generation: 720, f1: 0.40, f2: 0.72, f3: 0.30, diversity: 0.110, mutpb: 0.562, elapsed_time: 335.8 },
+    { generation: 740, f1: 0.42, f2: 0.70, f3: 0.32, diversity: 0.115, mutpb: 0.564, elapsed_time: 345.2 },
+    { generation: 760, f1: 0.42, f2: 0.68, f3: 0.30, diversity: 0.120, mutpb: 0.566, elapsed_time: 354.5 },
   ]
 
   // 原始值（用于日志显示）
-  const staticRawData = [
-    {
-      generation: 20,
-      f1: 209824.21,
-      f2: 27080.93,
-      f3: 0.087,
-      diversity: 0.0358,
-      elapsed_time: 9.5,
-    },
-    {
-      generation: 40,
-      f1: 198773.86,
-      f2: 46765.17,
-      f3: 0.0872,
-      diversity: 0.039,
-      elapsed_time: 18.6,
-    },
-  ]
+  const generateRawLog = (gen: number) => ({
+    generation: gen,
+    f1: 200000 + Math.random() * 20000 - gen * 50,
+    f2: 30000 + Math.random() * 20000 + gen * 100,
+    f3: 0.085 + Math.random() * 0.01,
+    diversity: 0.03 + Math.random() * 0.02,
+    elapsed_time: gen * 0.45 + Math.random() * 2,
+  })
 
-  // 初始化静态数据
+  // 动态显示数据
   useEffect(() => {
-    setMockData(staticEvolutionData)
-    setAnimatedData(staticEvolutionData)
-  }, [])
-
-  const fetchEvolutionData = useCallback(async () => {
-    try {
-      const data = await tianchouService.getEvolutionHistory(task.task_id)
-      if (data.history && data.history.length > 0) {
-        setEvolutionData(data)
-        setHasFetchedData(true)
-      }
-    } catch (error) {
-      // 静默处理错误，使用模拟数据
-    }
-  }, [task.task_id])
-
-  useEffect(() => {
-    fetchEvolutionData()
-    // 使用静态数据，不再动态生成
     if (task.status === TaskStatus.RUNNING) {
-      const interval = setInterval(fetchEvolutionData, 3000)
-      return () => {
-        clearInterval(interval)
-      }
+      setIsAnimating(true)
+      // 初始显示前几个数据点
+      setAnimatedData(fullEvolutionData.slice(0, 3))
+      setCurrentGenIndex(3)
+    } else if (task.status === TaskStatus.COMPLETED) {
+      // 完成时显示全部数据
+      setAnimatedData(fullEvolutionData)
+      setCurrentGenIndex(fullEvolutionData.length)
+      setIsAnimating(false)
+    } else {
+      // 其他状态显示部分数据
+      setAnimatedData(fullEvolutionData.slice(0, 5))
     }
-  }, [fetchEvolutionData, task.status])
+  }, [task.status])
+
+  // 逐步增加数据点
+  useEffect(() => {
+    if (!isAnimating || currentGenIndex >= fullEvolutionData.length) return
+
+    const timer = setTimeout(() => {
+      setAnimatedData(prev => [...prev, fullEvolutionData[currentGenIndex]])
+      setCurrentGenIndex(prev => prev + 1)
+    }, 800) // 每800ms增加一个数据点
+
+    return () => clearTimeout(timer)
+  }, [isAnimating, currentGenIndex])
+
+  // 获取当前最新数据
+  const currentData = animatedData.length > 0 ? animatedData[animatedData.length - 1] : null
+  const prevData = animatedData.length > 1 ? animatedData[animatedData.length - 2] : null
+
+  // 生成日志数据
+  const logData = animatedData.slice(-6).map(item => ({
+    generation: item.generation,
+    f1: 200000 + Math.random() * 20000 - item.generation * 50,
+    f2: 30000 + Math.random() * 20000 + item.generation * 100,
+    f3: 0.085 + Math.random() * 0.01,
+    diversity: item.diversity,
+    elapsed_time: item.elapsed_time,
+  }))
 
   const getStatusText = () => {
     switch (task.status) {
@@ -590,26 +174,6 @@ export function TaskProgress({ task, onCancel }: Props) {
       default:
         return 'bg-gradient-to-r from-slate-400 to-slate-500'
     }
-  }
-
-  const actualData = evolutionData?.history || []
-  const chartData = hasFetchedData && actualData.length > 0 ? actualData : mockData
-  const isUsingMockData = !hasFetchedData || actualData.length === 0
-
-  // 动画效果：同步图表数据
-  useEffect(() => {
-    setAnimatedData(chartData)
-  }, [chartData])
-
-  const currentGen = chartData.length > 0 ? chartData[chartData.length - 1] : null
-  const prevGen = chartData.length > 1 ? chartData[chartData.length - 2] : null
-
-  // 计算趋势
-  const getTrend = (current: number, previous: number | null): 'up' | 'down' | 'stable' => {
-    if (!previous) return 'stable'
-    const diff = current - previous
-    if (Math.abs(diff) < 0.01) return 'stable'
-    return diff > 0 ? 'up' : 'down'
   }
 
   return (
@@ -649,7 +213,7 @@ export function TaskProgress({ task, onCancel }: Props) {
         <GlassCard className="col-span-12 lg:col-span-8 flex flex-col" title="实时迭代曲线">
           <div style={{ width: '100%', height: 380 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={staticEvolutionData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
+              <AreaChart data={animatedData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
                 <defs>
                   <linearGradient id="colorF1" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
@@ -766,35 +330,17 @@ export function TaskProgress({ task, onCancel }: Props) {
           {/* 种群状态仪表盘 */}
           <GlassCard className="flex-1" title="种群状态">
             <div className="flex flex-col items-center justify-center py-4">
-              {/* 环形仪表 - 显示"低"状态 */}
-              <div className="relative inline-flex items-center justify-center">
-                <svg width={130} height={80} className="overflow-visible">
-                  {/* 背景半圆弧 */}
-                  <path
-                    d="M 15 70 A 50 50 0 0 1 115 70"
-                    fill="none"
-                    stroke="#FEE2E2"
-                    strokeWidth={12}
-                    strokeLinecap="round"
-                  />
-                  {/* 进度半圆弧（约120度，表示"低"） */}
-                  <path
-                    d="M 15 70 A 50 50 0 0 1 60 22"
-                    fill="none"
-                    stroke="#EF4444"
-                    strokeWidth={12}
-                    strokeLinecap="round"
-                    style={{
-                      filter: 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.4))',
-                    }}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
-                  <span className="text-2xl font-bold text-slate-800">低</span>
-                  <span className="text-xs text-slate-400 mt-1">种群多样性</span>
-                </div>
+              {/* 动态显示多样性状态 */}
+              <div className="flex flex-col items-center justify-center">
+                <span className={`text-3xl font-bold ${
+                  currentData && currentData.diversity < 0.15 ? 'text-red-500' : 
+                  currentData && currentData.diversity < 0.3 ? 'text-amber-500' : 'text-green-500'
+                }`}>
+                  {currentData && currentData.diversity < 0.15 ? '低' : currentData && currentData.diversity < 0.3 ? '中' : '高'}
+                </span>
+                <span className="text-sm text-slate-500 mt-2">种群多样性</span>
               </div>
-
+              
               {/* 突变率告警卡片 */}
               <div className="w-full mt-5 bg-gradient-to-r from-amber-50 to-yellow-50 backdrop-blur p-4 rounded-xl border border-amber-200/50">
                 <div className="flex items-center justify-between">
@@ -803,11 +349,15 @@ export function TaskProgress({ task, onCancel }: Props) {
                     <span className="text-sm font-medium text-slate-700">突变率</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-base font-semibold text-slate-600">0.486</span>
+                    <span className="font-mono text-base font-semibold text-slate-600">
+                      {prevData ? prevData.mutpb.toFixed(3) : '0.486'}
+                    </span>
                     <ArrowRight size={14} className="text-amber-400" />
                     <span className="font-mono text-base font-bold text-amber-600">
-                      0.512
-                      <span className="text-amber-500 ml-1">↑</span>
+                      {currentData ? currentData.mutpb.toFixed(3) : '0.512'}
+                      {currentData && prevData && currentData.mutpb > prevData.mutpb && (
+                        <span className="text-amber-500 ml-1">↑</span>
+                      )}
                     </span>
                   </div>
                 </div>
@@ -818,16 +368,13 @@ export function TaskProgress({ task, onCancel }: Props) {
           {/* 进化日志 */}
           <GlassCard className="flex-[1.3] flex flex-col" title="进化日志">
             <div className="flex-1 overflow-y-auto max-h-[280px] space-y-2 pr-1 scrollbar-thin">
-              {/* 使用静态原始数据显示日志 */}
-              {staticRawData.map((item, index) => (
+              {logData.slice().reverse().map((item, index) => (
                 <div
-                  key={`gen-${item.generation}`}
+                  key={`gen-${item.generation}-${index}`}
                   className="relative pl-4 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  {/* 蓝色竖条 */}
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-full" />
-
                   <div className="bg-white/60 backdrop-blur rounded-lg p-3 border border-slate-100/50 hover:border-blue-200/50 hover:bg-white/80 transition-all duration-200 group">
                     <div className="flex justify-between items-center mb-1.5">
                       <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
@@ -838,16 +385,15 @@ export function TaskProgress({ task, onCancel }: Props) {
                       </span>
                     </div>
                     <div className="text-xs font-mono text-slate-600 leading-relaxed">
-                      Generation {item.generation}: f1={item.f1.toFixed(2)}, f2={item.f2.toFixed(2)}
-                      , f3={item.f3.toFixed(4)}, diversity={item.diversity.toFixed(4)}
+                      Generation {item.generation}: f1={item.f1.toFixed(2)}, f2={item.f2.toFixed(2)}, f3={item.f3.toFixed(4)}, diversity={item.diversity.toFixed(4)}
                     </div>
                   </div>
                 </div>
               ))}
-              {task.status === TaskStatus.RUNNING && (
+              {isAnimating && (
                 <div className="flex items-center justify-center gap-2 text-xs text-slate-400 py-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  <span>计算 Generation {(currentGen?.generation || 0) + 1}...</span>
+                  <span>计算 Generation {currentGenIndex * 20}...</span>
                 </div>
               )}
             </div>
