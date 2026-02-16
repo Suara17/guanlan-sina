@@ -420,15 +420,15 @@ export function TaskProgress({ task, onCancel }: Props) {
                       </span>
                     </div>
                     <div className="text-xs font-mono text-slate-600 leading-relaxed">
-                      Generation {item.generation}: f1={item.f1.toFixed(2)}, f2={item.f2.toFixed(2)}, f3={item.f3.toFixed(4)}, diversity={item.diversity.toFixed(4)}
+                      Generation {item.generation}: f1={formatLargeNumber(item.f1)}, f2={formatLargeNumber(item.f2)}, f3={item.f3.toFixed(4)}, diversity={item.diversity.toFixed(4)}
                     </div>
                   </div>
                 </div>
               ))}
-              {isAnimating && (
+              {task.status === TaskStatus.RUNNING && (
                 <div className="flex items-center justify-center gap-2 text-xs text-slate-400 py-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  <span>计算 Generation {currentGenIndex * 20}...</span>
+                  <span>计算中...</span>
                 </div>
               )}
             </div>
