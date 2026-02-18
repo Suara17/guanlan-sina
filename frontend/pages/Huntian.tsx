@@ -23,6 +23,232 @@ import { Bar, BarChart, ResponsiveContainer } from 'recharts'
 import AGVPathVisualizer from '../components/AGVPathVisualizer'
 import LayoutVisualizer from '../components/LayoutVisualizer'
 
+// 模拟布局数据（轻工业场景）
+const mockLayoutData = {
+  workshopDimensions: { length: 800, width: 500 },
+  devices: [
+    {
+      id: 1,
+      name: 'CNC-1',
+      originalPosition: [50, 50] as [number, number],
+      newPosition: [50, 50] as [number, number],
+      size: { width: 80, height: 60 },
+    },
+    {
+      id: 2,
+      name: 'CNC-2',
+      originalPosition: [200, 50] as [number, number],
+      newPosition: [150, 150] as [number, number],
+      size: { width: 80, height: 60 },
+    },
+    {
+      id: 3,
+      name: '装配线',
+      originalPosition: [400, 100] as [number, number],
+      newPosition: [350, 200] as [number, number],
+      size: { width: 120, height: 80 },
+    },
+    {
+      id: 4,
+      name: '检测站',
+      originalPosition: [600, 50] as [number, number],
+      newPosition: [550, 300] as [number, number],
+      size: { width: 60, height: 60 },
+    },
+    {
+      id: 5,
+      name: '包装区',
+      originalPosition: [200, 350] as [number, number],
+      newPosition: [200, 350] as [number, number],
+      size: { width: 100, height: 80 },
+    },
+    {
+      id: 6,
+      name: '仓库',
+      originalPosition: [600, 350] as [number, number],
+      newPosition: [600, 350] as [number, number],
+      size: { width: 120, height: 100 },
+    },
+  ],
+  movedDevices: [
+    { deviceId: 2, distance: 120.5, cost: 5000 },
+    { deviceId: 3, distance: 150.2, cost: 8000 },
+    { deviceId: 4, distance: 280.7, cost: 3000 },
+  ],
+  materialFlows: [
+    { fromDeviceId: 1, toDeviceId: 2, frequency: 'high' as const, dailyVolume: 450 },
+    { fromDeviceId: 2, toDeviceId: 3, frequency: 'high' as const, dailyVolume: 380 },
+    { fromDeviceId: 3, toDeviceId: 4, frequency: 'medium' as const, dailyVolume: 200 },
+    { fromDeviceId: 4, toDeviceId: 5, frequency: 'medium' as const, dailyVolume: 180 },
+    { fromDeviceId: 5, toDeviceId: 6, frequency: 'low' as const, dailyVolume: 100 },
+  ],
+  heatmapZones: [
+    { x: 100, y: 80, width: 150, height: 120, intensity: 0.85, label: '高频作业区' },
+    { x: 320, y: 180, width: 180, height: 140, intensity: 0.65, label: '中频作业区' },
+    { x: 520, y: 280, width: 120, height: 100, intensity: 0.45, label: '低频作业区' },
+  ],
+  originalTotalDistance: 2450.5,
+  optimizedTotalDistance: 1860.2,
+}
+
+// 模拟 AGV 数据（重工业场景）
+const mockAGVData = {
+  stations: [
+    {
+      id: 1,
+      name: '上料站',
+      position: [150, 200] as [number, number],
+      utilization: 85,
+      status: 'busy' as const,
+      type: 'loading' as const,
+    },
+    {
+      id: 2,
+      name: '加工站A',
+      position: [350, 150] as [number, number],
+      utilization: 72,
+      status: 'busy' as const,
+      type: 'processing' as const,
+    },
+    {
+      id: 3,
+      name: '加工站B',
+      position: [350, 350] as [number, number],
+      utilization: 45,
+      status: 'idle' as const,
+      type: 'processing' as const,
+    },
+    {
+      id: 4,
+      name: '检测站',
+      position: [550, 200] as [number, number],
+      utilization: 60,
+      status: 'busy' as const,
+      type: 'processing' as const,
+    },
+    {
+      id: 5,
+      name: '下料站',
+      position: [750, 250] as [number, number],
+      utilization: 90,
+      status: 'blocked' as const,
+      type: 'unloading' as const,
+    },
+    {
+      id: 6,
+      name: '仓库',
+      position: [950, 400] as [number, number],
+      utilization: 30,
+      status: 'idle' as const,
+      type: 'storage' as const,
+    },
+  ],
+  agvRoutes: [
+    {
+      agvId: 1,
+      route: [
+        [150, 200],
+        [250, 200],
+        [350, 150],
+        [450, 175],
+        [550, 200],
+      ] as Array<[number, number]>,
+      completionTime: 45,
+      tasks: [
+        {
+          from: 1,
+          to: 2,
+          startTime: 0,
+          endTime: 15,
+          type: 'transport' as const,
+          status: 'completed' as const,
+        },
+        {
+          from: 2,
+          to: 4,
+          startTime: 15,
+          endTime: 35,
+          type: 'transport' as const,
+          status: 'in_progress' as const,
+        },
+      ],
+    },
+    {
+      agvId: 2,
+      route: [
+        [350, 350],
+        [450, 300],
+        [550, 200],
+        [650, 225],
+        [750, 250],
+      ] as Array<[number, number]>,
+      completionTime: 38,
+      tasks: [
+        {
+          from: 3,
+          to: 4,
+          startTime: 0,
+          endTime: 20,
+          type: 'pickup' as const,
+          status: 'completed' as const,
+        },
+        {
+          from: 4,
+          to: 5,
+          startTime: 20,
+          endTime: 38,
+          type: 'unload' as const,
+          status: 'in_progress' as const,
+        },
+      ],
+    },
+    {
+      agvId: 3,
+      route: [
+        [750, 250],
+        [850, 350],
+        [950, 400],
+      ] as Array<[number, number]>,
+      completionTime: 25,
+      tasks: [
+        {
+          from: 5,
+          to: 6,
+          startTime: 0,
+          endTime: 25,
+          type: 'transport' as const,
+          status: 'in_progress' as const,
+        },
+      ],
+    },
+  ],
+  conflictPoints: [
+    {
+      id: 'conflict-1',
+      position: [450, 200] as [number, number],
+      time: 20,
+      severity: 'warning' as const,
+      involvedAGVs: [1, 2],
+      resolution: 'AGV-2 优先通过',
+    },
+    {
+      id: 'conflict-2',
+      position: [550, 220] as [number, number],
+      time: 35,
+      severity: 'critical' as const,
+      involvedAGVs: [1, 2, 3],
+      resolution: 'AGV-1 等待',
+    },
+  ],
+  timelineMarkers: [
+    { time: 0, label: '仿真开始', type: 'milestone' as const },
+    { time: 15, label: 'AGV-1 到达加工站', type: 'task' as const },
+    { time: 20, label: '潜在冲突点', type: 'conflict' as const },
+    { time: 35, label: '关键冲突', type: 'conflict' as const },
+    { time: 45, label: '仿真结束', type: 'milestone' as const },
+  ],
+}
+
 const Huntian: React.FC = () => {
   const location = useLocation()
   const [speed, setSpeed] = useState<1 | 10 | 100>(1)
@@ -287,23 +513,8 @@ const Huntian: React.FC = () => {
               {layoutData ? (
                 <LayoutVisualizer layoutData={layoutData} isPlaying={isPlaying} />
               ) : (
-                // 如果没有数据，显示原来的简单动画
-                <>
-                  <motion.div
-                    animate={devicePositions.device1}
-                    transition={{ duration: 2, ease: 'easeInOut' }}
-                    className="absolute w-16 h-16 bg-blue-500 rounded-lg shadow-lg flex items-center justify-center text-white font-bold"
-                  >
-                    设备A
-                  </motion.div>
-                  <motion.div
-                    animate={devicePositions.device2}
-                    transition={{ duration: 2, ease: 'easeInOut' }}
-                    className="absolute w-16 h-16 bg-green-500 rounded-lg shadow-lg flex items-center justify-center text-white font-bold"
-                  >
-                    设备B
-                  </motion.div>
-                </>
+                // 使用模拟数据
+                <LayoutVisualizer layoutData={mockLayoutData} isPlaying={isPlaying} />
               )}
             </>
           )}
@@ -314,32 +525,29 @@ const Huntian: React.FC = () => {
               {/* 使用 AGVPathVisualizer 组件 */}
               {agvData ? (
                 <AGVPathVisualizer
-                  stations={agvData.stations}
-                  routes={agvData.agvRoutes}
+                  stations={agvData.stations || mockAGVData.stations}
+                  routes={agvData.agvRoutes || mockAGVData.agvRoutes}
                   isPlaying={isPlaying}
                   speed={speed}
                   canvasWidth={1200}
                   canvasHeight={800}
+                  conflictPoints={agvData.conflictPoints || mockAGVData.conflictPoints}
+                  timelineMarkers={agvData.timelineMarkers || mockAGVData.timelineMarkers}
+                  showPerformancePanel={true}
                 />
               ) : (
-                // 如果没有数据，显示原来的简单动画
-                <svg className="absolute inset-0 pointer-events-none">
-                  <motion.path
-                    d={routePath}
-                    stroke="#3b82f6"
-                    strokeWidth="4"
-                    fill="none"
-                    strokeDasharray="10,5"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 2, ease: 'easeInOut' }}
-                  />
-                  <circle r="6" fill="#3b82f6" className="animate-pulse">
-                    <animateMotion dur="4s" repeatCount="indefinite">
-                      <mpath href="#routePath" />
-                    </animateMotion>
-                  </circle>
-                </svg>
+                // 使用模拟数据
+                <AGVPathVisualizer
+                  stations={mockAGVData.stations}
+                  routes={mockAGVData.agvRoutes}
+                  isPlaying={isPlaying}
+                  speed={speed}
+                  canvasWidth={1200}
+                  canvasHeight={800}
+                  conflictPoints={mockAGVData.conflictPoints}
+                  timelineMarkers={mockAGVData.timelineMarkers}
+                  showPerformancePanel={true}
+                />
               )}
             </>
           )}
