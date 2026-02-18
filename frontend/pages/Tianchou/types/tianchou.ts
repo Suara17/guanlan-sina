@@ -35,6 +35,7 @@ export interface EvolutionData {
 export interface OptimizationTask {
   task_id: string
   name: string
+  industry_type: IndustryType
   status: TaskStatus
   progress: number
   solution_count: number
@@ -159,3 +160,25 @@ export interface LightIndustryResult {
 }
 
 export type OptimizationResult = HeavyIndustryResult | LightIndustryResult
+
+/**
+ * 根据行业类型获取技术指标的标签
+ * 轻工业: f1=物料搬运成本, f2=设备移动成本, f3=空间利用率
+ * 重工业: f1=最大完工时间, f2=瓶颈利用率, f3=负载均衡度
+ */
+export const getMetricLabels = (industryType: IndustryType | undefined) => {
+  const isHeavy = industryType === IndustryType.HEAVY
+
+  return {
+    f1: isHeavy ? '最大完工时间' : '物料搬运成本',
+    f2: isHeavy ? '瓶颈利用率' : '设备移动成本',
+    f3: isHeavy ? '负载均衡度' : '空间利用率',
+    f1Unit: isHeavy ? '分钟' : '元',
+    f2Unit: isHeavy ? '%' : '元',
+    f3Unit: isHeavy ? '' : '',
+    // 优化方向：min=最小化, max=最大化
+    f1Direction: 'min' as const,
+    f2Direction: isHeavy ? 'max' as const : 'min' as const,
+    f3Direction: isHeavy ? 'min' as const : 'max' as const,
+  }
+}

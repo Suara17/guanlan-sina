@@ -23,6 +23,7 @@ import {
   type OptimizationResult,
   type ParetoSolution,
   TaskStatus,
+  getMetricLabels,
 } from './types/tianchou'
 
 type ViewType = 'config' | 'optimizing' | 'results'
@@ -87,6 +88,9 @@ export default function TianchouPage() {
   const [view, setView] = useState<ViewType>('config')
   const [showAHPWizard, setShowAHPWizard] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  // 获取行业类型对应的标签
+  const labels = getMetricLabels(task?.industry_type)
 
   // 计算统计数据 (用于蓝色统计卡片)
   const stats = solutions.length > 0 ? {
@@ -437,16 +441,16 @@ export default function TianchouPage() {
                         </h4>
                         <div className="space-y-3">
                           <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span className="text-slate-500">f1 (适应度)</span>
+                            <span className="text-slate-500">f1 ({labels.f1})</span>
                             <span className="font-semibold text-slate-700">{selectedSolution.f1.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span className="text-slate-500">f2 (成本)</span>
+                            <span className="text-slate-500">f2 ({labels.f2})</span>
                             <span className="font-semibold text-slate-700">{selectedSolution.f2.toFixed(2)}</span>
                           </div>
                           {selectedSolution.f3 !== undefined && (
                             <div className="flex justify-between items-center py-2">
-                              <span className="text-slate-500">f3 (平滑度)</span>
+                              <span className="text-slate-500">f3 ({labels.f3})</span>
                               <span className="font-semibold text-slate-700">{selectedSolution.f3.toFixed(2)}</span>
                             </div>
                           )}

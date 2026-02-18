@@ -59,6 +59,7 @@ class TaskStatusResponse(BaseModel):
 
     task_id: str
     name: str
+    industry_type: IndustryType
     status: TaskStatus
     progress: int
     solution_count: int
@@ -397,6 +398,7 @@ async def create_optimization_task(
     return TaskStatusResponse(
         task_id=str(task.id),
         name=task.name,
+        industry_type=task.industry_type,
         status=task.status,
         progress=task.progress,
         solution_count=task.pareto_solution_count,
@@ -423,6 +425,7 @@ async def get_task_status(task_id: str, session: SessionDep) -> Any:
     return TaskStatusResponse(
         task_id=str(task.id),
         name=task.name,
+        industry_type=task.industry_type,
         status=task.status,
         progress=task.progress,
         solution_count=task.pareto_solution_count,

@@ -51,9 +51,23 @@ const SolutionCard: React.FC<SolutionCardProps> = ({
   }
 
   // 计算综合得分 (0-100)
-  const score = solution.topsis_score 
-    ? Math.round(solution.topsis_score * 100) 
-    : Math.round(((solution.total_cost / 200000) + (solution.implementation_days / 30) + (solution.expected_benefit / 500000)) / 3 * 100)
+  // 如果有TOPSIS分数则使用，否则使用简化的评分公式
+  // 成本、工期越小越好（取反），收益越大越好
+  const calculateBackupScore = () => {
+    // 归一化到0-1范围，使用合理的数值边界
+    // 成本：假设范围 30000-300000，越低越好
+    const costScore = Math.max(0, Math.min(1, (300000 - solution.total_cost) / 270000))
+    // 工期：假设范围 1-30天，越短越好
+    const timeScore = Math.max(0, Math.min(1, (30 - solution.implementation_days) / 29))
+    // 收益：假设范围 0-500000，越高越好
+    const benefitScore = Math.max(0, Math.min(1, solution.expected_benefit / 500000))
+    // 综合评分（等权重）
+    return Math.round((costScore * 0.4 + timeScore * 0.3 + benefitScore * 0.3) * 100)
+  }
+
+  const score = solution.topsis_score != null
+    ? Math.round(solution.topsis_score * 100)
+    : calculateBackupScore()
 
   // 计算评分点显示 (基于相对值)
   const costRating = calculateRating(solution.total_cost, 100000, 300000)

@@ -17,7 +17,7 @@ import {
 } from 'recharts'
 import { tianchouService } from '../services/tianchouService'
 import type { EvolutionData, OptimizationTask } from '../types/tianchou'
-import { TaskStatus } from '../types/tianchou'
+import { TaskStatus, getMetricLabels } from '../types/tianchou'
 
 interface Props {
   task: OptimizationTask
@@ -51,6 +51,9 @@ export function TaskProgress({ task, onCancel }: Props) {
   const [animatedData, setAnimatedData] = useState<any[]>([])
   const [currentGenIndex, setCurrentGenIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
+
+  // 获取行业类型对应的标签
+  const labels = getMetricLabels(task.industry_type)
 
   // 基于实际运行结果的曲线数据
   const fullEvolutionData = [
@@ -280,6 +283,7 @@ export function TaskProgress({ task, onCancel }: Props) {
                   tick={{ fontSize: 11, fill: '#6B7280' }}
                 />
                 <YAxis
+                  yAxisId="left"
                   stroke="#9CA3AF"
                   tickLine={true}
                   axisLine={{ stroke: '#D1D5DB' }}
@@ -287,6 +291,18 @@ export function TaskProgress({ task, onCancel }: Props) {
                   domain={yAxisDomain}
                   allowDataOverflow={true}
                   tickFormatter={(value) => formatLargeNumber(value)}
+                />
+                {/* f3 专用右Y轴 */}
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  stroke="#F59E0B"
+                  tickLine={true}
+                  axisLine={{ stroke: '#F59E0B' }}
+                  tick={{ fontSize: 11, fill: '#F59E0B' }}
+                  domain={[0, 0.15]}
+                  allowDataOverflow={true}
+                  tickFormatter={(value) => value.toFixed(2)}
                 />
                 <Tooltip
                   contentStyle={{
@@ -304,9 +320,9 @@ export function TaskProgress({ task, onCancel }: Props) {
                     <span
                       key="name"
                       className={
-                        name === '适应度 (f1)'
+                        name === labels.f1
                           ? 'text-blue-500'
-                          : name === '成本 (f2)'
+                          : name === labels.f2
                             ? 'text-pink-600'
                             : 'text-amber-500'
                       }
@@ -316,32 +332,35 @@ export function TaskProgress({ task, onCancel }: Props) {
                   ]}
                   labelFormatter={(label) => `Generation ${label}`}
                 />
-                {/* f1 曲线 - 蓝色 */}
+                {/* f1 曲线 - 蓝色，使用左Y轴 */}
                 <Area
+                  yAxisId="left"
                   type="monotone"
                   dataKey="f1"
                   stroke="#3B82F6"
                   strokeWidth={2}
                   fill="url(#colorF1)"
-                  name="适应度 (f1)"
+                  name={labels.f1}
                 />
-                {/* f2 曲线 - 紫红色 */}
+                {/* f2 曲线 - 紫红色，使用左Y轴 */}
                 <Area
+                  yAxisId="left"
                   type="monotone"
                   dataKey="f2"
                   stroke="#D63384"
                   strokeWidth={2}
                   fill="url(#colorF2)"
-                  name="成本 (f2)"
+                  name={labels.f2}
                 />
-                {/* f3 曲线 - 黄色 */}
+                {/* f3 曲线 - 黄色，使用右Y轴 */}
                 <Area
+                  yAxisId="right"
                   type="monotone"
                   dataKey="f3"
                   stroke="#F59E0B"
                   strokeWidth={2}
                   fill="url(#colorF3)"
-                  name="平滑度 (f3)"
+                  name={labels.f3}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -351,15 +370,15 @@ export function TaskProgress({ task, onCancel }: Props) {
           <div className="flex justify-center gap-8 mt-4 pt-4 border-t border-slate-100/50">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span className="text-sm text-slate-600">适应度 (f1)</span>
+              <span className="text-sm text-slate-600">{labels.f1} <span className="text-slate-400">(左轴)</span></span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#D63384' }} />
-              <span className="text-sm text-slate-600">成本 (f2)</span>
+              <span className="text-sm text-slate-600">{labels.f2} <span className="text-slate-400">(左轴)</span></span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-amber-500" />
-              <span className="text-sm text-slate-600">平滑度 (f3)</span>
+              <span className="text-sm text-amber-600">{labels.f3} <span className="text-amber-400">(右轴)</span></span>
             </div>
           </div>
         </GlassCard>
