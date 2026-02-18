@@ -22,6 +22,7 @@ import { TaskStatus, getMetricLabels } from '../types/tianchou'
 interface Props {
   task: OptimizationTask
   onCancel?: () => void
+  onComplete?: () => void
 }
 
 // 玻璃拟态卡片组件
@@ -46,14 +47,63 @@ function GlassCard({
   )
 }
 
-export function TaskProgress({ task, onCancel }: Props) {
+export function TaskProgress({ task, onCancel, onComplete }: Props) {
   const [evolutionData, setEvolutionData] = useState<EvolutionData | null>(null)
+  const [hasCompleted, setHasCompleted] = useState(false)
   const [animatedData, setAnimatedData] = useState<any[]>([])
   const [currentGenIndex, setCurrentGenIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date())
+
+  // 最大代数（从后端获取或使用默认值）
+  const MAX_GENERATIONS = 200
 
   // 获取行业类型对应的标签
   const labels = getMetricLabels(task.industry_type)
+
+  // 根据实际数据计算进度（实时更新，不过依赖后端返回的progress）
+  const calculatedProgress = (() => {
+    // 如果已经有实际数据，使用实际数据的代数计算进度
+    if (animatedData.length > 0) {
+      const latestGen = animatedData[animatedData.length - 1]?.generation || 0
+      return Math.min(Math.round((latestGen / MAX_GENERATIONS) * 100), 100)
+    }
+    // 如果没有数据但正在运行，显示最小进度
+    if (task.status === TaskStatus.RUNNING) {
+      return 5 // 初始进度5%
+    }
+    // 任务完成或失败时
+    if (task.status === TaskStatus.COMPLETED) return 100
+    if (task.status === TaskStatus.FAILED) return 0
+    return 0
+  })()
+
+  // 使用计算的进度，而不是依赖task.progress
+  const displayProgress = task.status === TaskStatus.COMPLETED ? 100 : 
+                         task.status === TaskStatus.FAILED ? calculatedProgress :
+                         calculatedProgress
+
+  // 更新最后时间
+  useEffect(() => {
+    setLastUpdateTime(new Date())
+  }, [animatedData.length, task.status])
+
+  // 检测进度完成并触发回调
+  useEffect(() => {
+    // 只有在任务真正完成时才触发回调（排除 PENDING 等初始状态）
+    if (displayProgress >= 100 && !hasCompleted && onComplete && task.status === TaskStatus.COMPLETED) {
+      setHasCompleted(true)
+      // 立即调用完成回调，不等待下一个轮询
+      onComplete()
+    }
+  }, [displayProgress, hasCompleted, onComplete, task.status])
+
+  // 重置完成状态当任务重新开始时
+  useEffect(() => {
+    if (task.status === TaskStatus.RUNNING) {
+      setHasCompleted(false)
+    }
+  }, [task.status])
 
   // 基于实际运行结果的曲线数据
   const fullEvolutionData = [
@@ -219,31 +269,79 @@ export function TaskProgress({ task, onCancel }: Props) {
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto h-full flex flex-col">
-      {/* 顶部状态栏 */}
-      <div className="flex items-center gap-4 bg-white/70 backdrop-blur-lg p-4 rounded-2xl border border-white/30 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-2.5 h-2.5 rounded-full ${getStatusColor()} ${task.status === TaskStatus.RUNNING ? 'animate-pulse' : ''}`}
-          />
-          <span className="text-sm font-medium text-slate-500">任务:</span>
-          <span className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-100/50 rounded-lg px-4 py-1.5 text-sm font-medium">
-            {task.name}
-          </span>
-        </div>
-        <div className="flex-1" />
-        <div className="flex items-center gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400">状态</span>
-            <span
-              className={`font-semibold ${task.status === TaskStatus.RUNNING ? 'text-blue-600' : task.status === TaskStatus.COMPLETED ? 'text-green-600' : 'text-slate-600'}`}
-            >
-              {getStatusText()}
+      {/* 顶部合并组件：进度条 + 任务信息 */}
+      <div className="bg-white/70 backdrop-blur-lg p-4 rounded-2xl border border-white/30 shadow-sm">
+        <div className="flex items-center gap-4">
+          {/* 左侧：状态指示 + 任务名 */}
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-2.5 h-2.5 rounded-full ${getStatusColor()} ${task.status === TaskStatus.RUNNING ? 'animate-pulse' : ''}`}
+            />
+            <span className="text-sm font-medium text-slate-500">任务:</span>
+            <span className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-100/50 rounded-lg px-3 py-1 text-sm font-medium">
+              {task.name}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-slate-400">
-            <span>最后更新</span>
-            <span className="font-mono text-slate-600">
-              {new Date().toLocaleTimeString('zh-CN')}
+          
+          {/* 中间：进度条 */}
+          <div className="flex-1">
+            <div className="flex justify-between text-sm mb-1.5">
+              <span
+                className={`font-medium flex items-center gap-2 ${task.status === TaskStatus.RUNNING ? 'text-blue-600' : 'text-slate-600'}`}
+              >
+                {task.status === TaskStatus.RUNNING && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                )}
+                {task.status === TaskStatus.RUNNING
+                  ? '进化中'
+                  : task.status === TaskStatus.COMPLETED
+                    ? '优化完成'
+                    : '等待中'}
+                {/* 显示当前代数 */}
+                {animatedData.length > 0 && (
+                  <span className="text-xs text-slate-400 ml-1">
+                    Gen {animatedData[animatedData.length - 1]?.generation || 0}/{MAX_GENERATIONS}
+                  </span>
+                )}
+              </span>
+              <span className="font-bold text-slate-700">{displayProgress}%</span>
+            </div>
+            <div className="h-2 bg-slate-100/80 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full relative overflow-hidden transition-all duration-500 ease-out ${
+                  task.status === TaskStatus.COMPLETED
+                    ? 'bg-gradient-to-r from-green-400 to-emerald-500'
+                    : 'bg-gradient-to-r from-blue-400 via-violet-500 to-indigo-500'
+                }`}
+                style={{
+                  width: `${displayProgress}%`,
+                  boxShadow:
+                    task.status === TaskStatus.RUNNING
+                      ? '0 0 15px rgba(99, 102, 241, 0.4)'
+                      : '0 0 15px rgba(16, 185, 129, 0.4)',
+                }}
+              >
+                {/* 流光动画 */}
+                {task.status === TaskStatus.RUNNING && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 右侧：停止按钮 + 最后更新时间 */}
+          <div className="flex items-center gap-4">
+            {task.status === TaskStatus.RUNNING && onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-50 to-rose-50 text-red-600 text-xs font-medium rounded-lg hover:from-red-100 hover:to-rose-100 border border-red-200/50 transition-all duration-200"
+              >
+                停止
+              </button>
+            )}
+            <span className="text-xs text-slate-400">
+              {lastUpdateTime.toLocaleTimeString('zh-CN')}
             </span>
           </div>
         </div>
@@ -456,69 +554,6 @@ export function TaskProgress({ task, onCancel }: Props) {
               )}
             </div>
           </GlassCard>
-        </div>
-      </div>
-
-      {/* 底部进度条 */}
-      <div className="bg-white/70 backdrop-blur-lg p-4 rounded-2xl border border-white/30 shadow-sm">
-        <div className="flex items-center gap-6">
-          <div className="flex-1">
-            <div className="flex justify-between text-sm mb-2.5">
-              <span
-                className={`font-medium flex items-center gap-2 ${task.status === TaskStatus.RUNNING ? 'text-blue-600' : 'text-slate-600'}`}
-              >
-                {task.status === TaskStatus.RUNNING && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                )}
-                {task.status === TaskStatus.RUNNING
-                  ? '进化中...'
-                  : task.status === TaskStatus.COMPLETED
-                    ? '优化完成'
-                    : '等待中'}
-              </span>
-              <span className="font-bold text-slate-700">{task.progress}%</span>
-            </div>
-            <div className="h-2.5 bg-slate-100/80 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full relative overflow-hidden transition-all duration-700 ease-out ${
-                  task.status === TaskStatus.COMPLETED
-                    ? 'bg-gradient-to-r from-green-400 to-emerald-500'
-                    : 'bg-gradient-to-r from-blue-400 via-violet-500 to-indigo-500'
-                }`}
-                style={{
-                  width: `${task.progress}%`,
-                  boxShadow:
-                    task.status === TaskStatus.RUNNING
-                      ? '0 0 20px rgba(99, 102, 241, 0.4)'
-                      : '0 0 20px rgba(16, 185, 129, 0.4)',
-                }}
-              >
-                {/* 条纹背景 */}
-                <div
-                  className="absolute inset-0 opacity-20"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(45deg, rgba(255,255,255,0.3) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.3) 75%, transparent 75%, transparent)',
-                    backgroundSize: '1rem 1rem',
-                  }}
-                />
-                {/* 流光动画 */}
-                {task.status === TaskStatus.RUNNING && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]" />
-                )}
-              </div>
-            </div>
-          </div>
-
-          {task.status === TaskStatus.RUNNING && onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-50 to-rose-50 text-red-600 font-medium rounded-xl hover:from-red-100 hover:to-rose-100 border border-red-200/50 transition-all duration-200 hover:shadow-md"
-            >
-              停止优化
-            </button>
-          )}
         </div>
       </div>
 

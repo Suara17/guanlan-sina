@@ -296,7 +296,18 @@ export default function TianchouPage() {
 
         {/* 优化执行阶段 */}
         {view === 'optimizing' && task && (
-          <TaskProgress task={task} onCancel={() => setView('config')} />
+          <TaskProgress 
+            task={task} 
+            onCancel={() => setView('config')}
+            onComplete={async () => {
+              // 任务完成后立即加载方案列表并跳转
+              if (task.task_id) {
+                const sols = await tianchouService.getSolutions(task.task_id)
+                setSolutions(sols)
+                setView('results')
+              }
+            }}
+          />
         )}
 
         {/* 结果展示阶段 */}
