@@ -52,47 +52,29 @@ export function TaskProgress({ task, onCancel }: Props) {
   const [currentGenIndex, setCurrentGenIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
 
-  // 完整的曲线数据（模拟图片中的曲线走势）
+  // 基于实际运行结果的曲线数据
   const fullEvolutionData = [
-    { generation: 0, f1: 0.62, f2: 0.85, f3: 0.32, diversity: 0.45, mutpb: 0.486, elapsed_time: 0.5 },
-    { generation: 20, f1: 0.75, f2: 0.82, f3: 0.42, diversity: 0.38, mutpb: 0.488, elapsed_time: 9.5 },
-    { generation: 40, f1: 0.88, f2: 0.72, f3: 0.52, diversity: 0.32, mutpb: 0.492, elapsed_time: 18.6 },
-    { generation: 60, f1: 0.98, f2: 0.58, f3: 0.56, diversity: 0.28, mutpb: 0.496, elapsed_time: 27.8 },
-    { generation: 80, f1: 1.02, f2: 0.48, f3: 0.54, diversity: 0.22, mutpb: 0.498, elapsed_time: 37.2 },
-    { generation: 100, f1: 1.05, f2: 0.42, f3: 0.52, diversity: 0.18, mutpb: 0.500, elapsed_time: 46.5 },
-    { generation: 120, f1: 1.06, f2: 0.40, f3: 0.55, diversity: 0.15, mutpb: 0.502, elapsed_time: 55.8 },
-    { generation: 140, f1: 1.07, f2: 0.38, f3: 0.58, diversity: 0.12, mutpb: 0.504, elapsed_time: 65.2 },
-    { generation: 160, f1: 1.08, f2: 0.36, f3: 0.56, diversity: 0.10, mutpb: 0.506, elapsed_time: 74.5 },
-    { generation: 180, f1: 1.04, f2: 0.38, f3: 0.52, diversity: 0.09, mutpb: 0.508, elapsed_time: 83.8 },
-    { generation: 200, f1: 0.98, f2: 0.42, f3: 0.58, diversity: 0.08, mutpb: 0.510, elapsed_time: 93.2 },
-    { generation: 220, f1: 0.90, f2: 0.48, f3: 0.52, diversity: 0.07, mutpb: 0.512, elapsed_time: 102.5 },
-    { generation: 240, f1: 0.82, f2: 0.52, f3: 0.48, diversity: 0.06, mutpb: 0.514, elapsed_time: 111.8 },
-    { generation: 260, f1: 0.75, f2: 0.55, f3: 0.42, diversity: 0.055, mutpb: 0.516, elapsed_time: 121.2 },
-    { generation: 280, f1: 0.68, f2: 0.52, f3: 0.38, diversity: 0.050, mutpb: 0.518, elapsed_time: 130.5 },
-    { generation: 300, f1: 0.62, f2: 0.48, f3: 0.35, diversity: 0.048, mutpb: 0.520, elapsed_time: 139.8 },
-    { generation: 320, f1: 0.55, f2: 0.45, f3: 0.32, diversity: 0.045, mutpb: 0.522, elapsed_time: 149.2 },
-    { generation: 340, f1: 0.48, f2: 0.42, f3: 0.28, diversity: 0.042, mutpb: 0.524, elapsed_time: 158.5 },
-    { generation: 360, f1: 0.42, f2: 0.38, f3: 0.25, diversity: 0.040, mutpb: 0.526, elapsed_time: 167.8 },
-    { generation: 380, f1: 0.35, f2: 0.35, f3: 0.22, diversity: 0.038, mutpb: 0.528, elapsed_time: 177.2 },
-    { generation: 400, f1: 0.28, f2: 0.32, f3: 0.18, diversity: 0.035, mutpb: 0.530, elapsed_time: 186.5 },
-    { generation: 420, f1: 0.30, f2: 0.35, f3: 0.22, diversity: 0.038, mutpb: 0.532, elapsed_time: 195.8 },
-    { generation: 440, f1: 0.35, f2: 0.38, f3: 0.28, diversity: 0.042, mutpb: 0.534, elapsed_time: 205.2 },
-    { generation: 460, f1: 0.40, f2: 0.42, f3: 0.35, diversity: 0.046, mutpb: 0.536, elapsed_time: 214.5 },
-    { generation: 480, f1: 0.45, f2: 0.48, f3: 0.40, diversity: 0.050, mutpb: 0.538, elapsed_time: 223.8 },
-    { generation: 500, f1: 0.48, f2: 0.55, f3: 0.45, diversity: 0.055, mutpb: 0.540, elapsed_time: 233.2 },
-    { generation: 520, f1: 0.50, f2: 0.62, f3: 0.52, diversity: 0.060, mutpb: 0.542, elapsed_time: 242.5 },
-    { generation: 540, f1: 0.52, f2: 0.68, f3: 0.55, diversity: 0.065, mutpb: 0.544, elapsed_time: 251.8 },
-    { generation: 560, f1: 0.48, f2: 0.72, f3: 0.58, diversity: 0.070, mutpb: 0.546, elapsed_time: 261.2 },
-    { generation: 580, f1: 0.45, f2: 0.75, f3: 0.55, diversity: 0.075, mutpb: 0.548, elapsed_time: 270.5 },
-    { generation: 600, f1: 0.48, f2: 0.78, f3: 0.52, diversity: 0.080, mutpb: 0.550, elapsed_time: 279.8 },
-    { generation: 620, f1: 0.42, f2: 0.80, f3: 0.48, diversity: 0.085, mutpb: 0.552, elapsed_time: 289.2 },
-    { generation: 640, f1: 0.40, f2: 0.82, f3: 0.42, diversity: 0.090, mutpb: 0.554, elapsed_time: 298.5 },
-    { generation: 660, f1: 0.38, f2: 0.80, f3: 0.38, diversity: 0.095, mutpb: 0.556, elapsed_time: 307.8 },
-    { generation: 680, f1: 0.40, f2: 0.78, f3: 0.35, diversity: 0.100, mutpb: 0.558, elapsed_time: 317.2 },
-    { generation: 700, f1: 0.42, f2: 0.75, f3: 0.32, diversity: 0.105, mutpb: 0.560, elapsed_time: 326.5 },
-    { generation: 720, f1: 0.40, f2: 0.72, f3: 0.30, diversity: 0.110, mutpb: 0.562, elapsed_time: 335.8 },
-    { generation: 740, f1: 0.42, f2: 0.70, f3: 0.32, diversity: 0.115, mutpb: 0.564, elapsed_time: 345.2 },
-    { generation: 760, f1: 0.42, f2: 0.68, f3: 0.30, diversity: 0.120, mutpb: 0.566, elapsed_time: 354.5 },
+    // Generation 0-20: 初始阶段，多样性低
+    { generation: 0, f1: 216500.06, f2: 38452.46, f3: 0.0872, diversity: 0.0171, mutpb: 0.486, elapsed_time: 0.4 },
+    { generation: 20, f1: 209824.21, f2: 27080.93, f3: 0.0870, diversity: 0.0358, mutpb: 0.480, elapsed_time: 9.5 },
+    // Generation 40: 多样性警告，增加变异率
+    { generation: 40, f1: 198773.86, f2: 46765.17, f3: 0.0872, diversity: 0.0390, mutpb: 0.480, elapsed_time: 18.6 },
+    // Generation 60: 多样性警告，再次增加变异率
+    { generation: 60, f1: 220943.49, f2: 42312.36, f3: 0.0866, diversity: 0.0489, mutpb: 0.576, elapsed_time: 29.4 },
+    // Generation 80: 多样性警告
+    { generation: 80, f1: 219300.78, f2: 38629.95, f3: 0.0858, diversity: 0.0800, mutpb: 0.691, elapsed_time: 40.5 },
+    // Generation 100: 适应度开始上升
+    { generation: 100, f1: 224764.39, f2: 70859.31, f3: 0.0857, diversity: 0.1027, mutpb: 0.691, elapsed_time: 51.7 },
+    // Generation 120
+    { generation: 120, f1: 232274.94, f2: 49849.54, f3: 0.0862, diversity: 0.0967, mutpb: 0.800, elapsed_time: 62.8 },
+    // Generation 140: 多样性达到峰值
+    { generation: 140, f1: 221883.99, f2: 65505.05, f3: 0.0860, diversity: 0.1254, mutpb: 0.800, elapsed_time: 73.7 },
+    // Generation 160
+    { generation: 160, f1: 227145.32, f2: 76995.84, f3: 0.0855, diversity: 0.1244, mutpb: 0.800, elapsed_time: 84.8 },
+    // Generation 180: 适应度达到最高
+    { generation: 180, f1: 233229.27, f2: 63506.09, f3: 0.0855, diversity: 0.1148, mutpb: 0.800, elapsed_time: 96.4 },
+    // Generation 199: 最终代
+    { generation: 199, f1: 204461.71, f2: 65029.52, f3: 0.0872, diversity: 0.1207, mutpb: 0.800, elapsed_time: 106.5 },
   ]
 
   // 从后端获取进化数据
@@ -169,19 +151,18 @@ export function TaskProgress({ task, onCancel }: Props) {
 
   // 动态计算Y轴范围（适应原始数据）
   const calculateYAxisDomain = () => {
-    if (animatedData.length === 0) return [0, 1.2]
+    if (animatedData.length === 0) return [0, 250000]
     
-    let maxF1 = 0, maxF2 = 0, maxF3 = 0
+    let maxF1 = 0, maxF2 = 0
     animatedData.forEach(item => {
       maxF1 = Math.max(maxF1, item.f1 || 0)
       maxF2 = Math.max(maxF2, item.f2 || 0)
-      maxF3 = Math.max(maxF3, item.f3 || 0)
     })
     
-    const maxValue = Math.max(maxF1, maxF2, maxF3)
-    // 向上取整到合适的刻度
-    const order = Math.pow(10, Math.floor(Math.log10(maxValue)))
-    const upperBound = Math.ceil(maxValue / order) * order
+    // f1 范围: 180000 - 250000
+    // f2 范围: 20000 - 90000
+    // 统一使用 f1 的范围作为 Y 轴上限
+    const upperBound = Math.ceil(maxF1 / 50000) * 50000
     
     return [0, upperBound]
   }
