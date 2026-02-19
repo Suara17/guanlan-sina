@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -20,7 +19,10 @@ import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Bar, BarChart, ResponsiveContainer } from 'recharts'
+import { AGVLayoutVisualizer } from '../components/AGVLayoutVisualizer'
 import AGVPathVisualizer from '../components/AGVPathVisualizer'
+// 新版可视化组件（D3.js 增强版）
+import { DeviceLayoutVisualizer } from '../components/DeviceLayoutVisualizer'
 import LayoutVisualizer from '../components/LayoutVisualizer'
 
 // 模拟布局数据（轻工业场景）
@@ -260,19 +262,25 @@ const Huntian: React.FC = () => {
   const [simulationMode, setSimulationMode] = useState<
     'device_rearrangement' | 'route_optimization' | 'stress_test'
   >('device_rearrangement')
-  const [devicePositions, setDevicePositions] = useState({
-    device1: { x: 100, y: 100 },
-    device2: { x: 300, y: 100 },
-  })
-  const [routePath, setRoutePath] = useState('M100,200 Q200,150 300,200 Q400,250 500,200')
+  // 新增：优化状态切换（用于新组件）
+  const [isOptimized, setIsOptimized] = useState(false)
+  // 新增：可视化模式切换（'new' = 新版 D3.js 组件, 'legacy' = 旧版组件）
+  const [visualMode, setVisualMode] = useState<'new' | 'legacy'>('new')
   const timerRef = useRef<number | null>(null)
-  const [agvData, setAgvData] = useState<any>(null)
-  const [layoutData, setLayoutData] = useState<any>(null)
+  const [agvData, setAgvData] = useState<Record<string, unknown> | null>(null)
+  const [layoutData, setLayoutData] = useState<Record<string, unknown> | null>(null)
 
   // 从路由 state 接收数据
   useEffect(() => {
     if (location.state) {
-      const { optimizationResult } = location.state as any
+      const state = location.state as {
+        optimizationResult?: {
+          type?: string
+          agvData?: Record<string, unknown>
+          layoutData?: Record<string, unknown>
+        }
+      }
+      const { optimizationResult } = state
       if (optimizationResult) {
         console.log('接收到优化结果:', optimizationResult)
         // 根据优化结果设置仿真模式
@@ -302,20 +310,15 @@ const Huntian: React.FC = () => {
           if (next >= 100) {
             setIsPlaying(false)
             setShowReport(true)
-            // 动画结束时执行设备重排或线路优化
-            if (simulationMode === 'device_rearrangement') {
-              setDevicePositions({
-                device1: { x: 300, y: 100 },
-                device2: { x: 100, y: 100 },
-              })
-            } else if (simulationMode === 'route_optimization') {
-              setRoutePath('M100,200 Q250,100 400,200 Q550,300 700,200')
-            }
+            setIsOptimized(true)
             return 100
           }
           // Conflict trigger storyline
           if (next > 45 && next < 46 && conflicts.length === 0) {
-            setConflicts((prev) => [...prev, `T+2h 预测发生 AGV 路径死锁，已自动规避`])
+            setConflicts((prevConflicts) => [
+              ...prevConflicts,
+              `T+2h 预测发生 AGV 路径死锁，已自动规避`,
+            ])
           }
           return next
         })
@@ -326,7 +329,7 @@ const Huntian: React.FC = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isPlaying, speed, conflicts, progress, simulationMode])
+  }, [isPlaying, speed, conflicts, progress])
 
   const resetSimulation = () => {
     setProgress(0)
@@ -334,11 +337,7 @@ const Huntian: React.FC = () => {
     setConflicts([])
     setShowReport(false)
     setIsDeploying(false)
-    setDevicePositions({
-      device1: { x: 100, y: 100 },
-      device2: { x: 300, y: 100 },
-    })
-    setRoutePath('M100,200 Q200,150 300,200 Q400,250 500,200')
+    setIsOptimized(false)
   }
 
   const handlePushToExecution = () => {
@@ -481,8 +480,8 @@ const Huntian: React.FC = () => {
 
           {/* Factory Layout - Isometric 2D feel */}
           <div className="absolute inset-0 p-20 grid grid-cols-6 grid-rows-4 gap-8">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <div key={`grid-cell-${i}`} className="relative group">
+            {Array.from({ length: 24 }, (_, i) => ({ id: i })).map((cell) => (
+              <div key={cell.id} className="relative group">
                 <div
                   className={`absolute inset-0 rounded-2xl border transition-all duration-500 ${
                     isPlaying
@@ -507,50 +506,66 @@ const Huntian: React.FC = () => {
           </div>
 
           {/* Device Rearrangement Animation */}
-          {simulationMode === 'device_rearrangement' && (
-            <>
-              {/* 使用 LayoutVisualizer 组件 */}
-              {layoutData ? (
-                <LayoutVisualizer layoutData={layoutData} isPlaying={isPlaying} />
-              ) : (
-                // 使用模拟数据
-                <LayoutVisualizer layoutData={mockLayoutData} isPlaying={isPlaying} />
-              )}
-            </>
-          )}
+          {simulationMode === 'device_rearrangement' &&
+            (visualMode === 'new' ? (
+              // 新版 D3.js 可视化组件
+              <div className="absolute inset-0 bg-white rounded-xl overflow-hidden">
+                <DeviceLayoutVisualizer
+                  isOptimized={isOptimized}
+                  onToggle={setIsOptimized}
+                  layoutData={layoutData}
+                />
+              </div>
+            ) : layoutData ? (
+              <LayoutVisualizer layoutData={layoutData} isPlaying={isPlaying} />
+            ) : (
+              <LayoutVisualizer layoutData={mockLayoutData} isPlaying={isPlaying} />
+            ))}
 
           {/* Route Optimization Animation */}
-          {simulationMode === 'route_optimization' && (
-            <>
-              {/* 使用 AGVPathVisualizer 组件 */}
-              {agvData ? (
-                <AGVPathVisualizer
-                  stations={agvData.stations || mockAGVData.stations}
-                  routes={agvData.agvRoutes || mockAGVData.agvRoutes}
-                  isPlaying={isPlaying}
-                  speed={speed}
-                  canvasWidth={1200}
-                  canvasHeight={800}
-                  conflictPoints={agvData.conflictPoints || mockAGVData.conflictPoints}
-                  timelineMarkers={agvData.timelineMarkers || mockAGVData.timelineMarkers}
-                  showPerformancePanel={true}
+          {simulationMode === 'route_optimization' &&
+            (visualMode === 'new' ? (
+              // 新版 D3.js 可视化组件
+              <div className="absolute inset-0 bg-white rounded-xl overflow-hidden">
+                <AGVLayoutVisualizer
+                  isOptimized={isOptimized}
+                  onToggle={setIsOptimized}
+                  agvData={agvData}
                 />
-              ) : (
-                // 使用模拟数据
-                <AGVPathVisualizer
-                  stations={mockAGVData.stations}
-                  routes={mockAGVData.agvRoutes}
-                  isPlaying={isPlaying}
-                  speed={speed}
-                  canvasWidth={1200}
-                  canvasHeight={800}
-                  conflictPoints={mockAGVData.conflictPoints}
-                  timelineMarkers={mockAGVData.timelineMarkers}
-                  showPerformancePanel={true}
-                />
-              )}
-            </>
-          )}
+              </div>
+            ) : agvData ? (
+              <AGVPathVisualizer
+                stations={(agvData.stations as typeof mockAGVData.stations) || mockAGVData.stations}
+                routes={
+                  (agvData.agvRoutes as typeof mockAGVData.agvRoutes) || mockAGVData.agvRoutes
+                }
+                isPlaying={isPlaying}
+                speed={speed}
+                canvasWidth={1200}
+                canvasHeight={800}
+                conflictPoints={
+                  (agvData.conflictPoints as typeof mockAGVData.conflictPoints) ||
+                  mockAGVData.conflictPoints
+                }
+                timelineMarkers={
+                  (agvData.timelineMarkers as typeof mockAGVData.timelineMarkers) ||
+                  mockAGVData.timelineMarkers
+                }
+                showPerformancePanel={true}
+              />
+            ) : (
+              <AGVPathVisualizer
+                stations={mockAGVData.stations}
+                routes={mockAGVData.agvRoutes}
+                isPlaying={isPlaying}
+                speed={speed}
+                canvasWidth={1200}
+                canvasHeight={800}
+                conflictPoints={mockAGVData.conflictPoints}
+                timelineMarkers={mockAGVData.timelineMarkers}
+                showPerformancePanel={true}
+              />
+            ))}
 
           {/* AGV Collision Highlight Layer */}
           {conflicts.map((conflict, i) => (
@@ -739,6 +754,18 @@ const Huntian: React.FC = () => {
 
         {/* Viewport Actions */}
         <div className="absolute bottom-10 right-10 flex flex-col gap-3">
+          {/* 可视化模式切换 */}
+          <button
+            type="button"
+            onClick={() => setVisualMode(visualMode === 'new' ? 'legacy' : 'new')}
+            className={`px-3 py-2 backdrop-blur-md rounded-xl text-xs font-bold border transition-all shadow-xl ${
+              visualMode === 'new'
+                ? 'bg-emerald-600/80 text-white border-emerald-400/30'
+                : 'bg-slate-900/60 text-slate-400 border-white/10 hover:text-white'
+            }`}
+          >
+            {visualMode === 'new' ? '新版视图' : '经典视图'}
+          </button>
           <button
             type="button"
             className="p-3 bg-slate-900/60 backdrop-blur-md rounded-2xl text-slate-400 border border-white/10 hover:text-white transition-all shadow-xl"

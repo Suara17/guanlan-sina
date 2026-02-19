@@ -2,28 +2,20 @@
  * 天筹优化决策系统主页面
  */
 
-import { useCallback, useState, useEffect } from 'react'
+import { Anchor, Building2, Clock, Eye, LayoutGrid, Settings2, TrendingUp } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { 
-  Building2, 
-  Settings2, 
-  Anchor,
-  LayoutGrid,
-  Clock,
-  TrendingUp,
-  Eye
-} from 'lucide-react'
 import { AHPWizard } from './components/AHPWizard'
 import { TaskConfigForm } from './components/TaskConfigForm'
 import { TaskProgress } from './components/TaskProgress'
 import { useTianchou } from './hooks/useTianchou'
 import { tianchouService } from './services/tianchouService'
 import {
+  getMetricLabels,
   type OptimizationRequestParams,
   type OptimizationResult,
   type ParetoSolution,
   TaskStatus,
-  getMetricLabels,
 } from './types/tianchou'
 
 type ViewType = 'config' | 'optimizing' | 'results'
@@ -49,16 +41,13 @@ const Card: React.FC<{
 /**
  * 评分点组件
  */
-const RatingDots: React.FC<{ count: number; color?: string }> = ({ 
-  count, 
-  color = 'bg-blue-500' 
+const RatingDots: React.FC<{ count: number; color?: string }> = ({
+  count,
+  color = 'bg-blue-500',
 }) => (
   <div className="flex gap-1">
     {[1, 2, 3, 4, 5].map((i) => (
-      <div 
-        key={i} 
-        className={`w-2 h-2 rounded-full ${i <= count ? color : 'bg-slate-200'}`}
-      />
+      <div key={i} className={`w-2 h-2 rounded-full ${i <= count ? color : 'bg-slate-200'}`} />
     ))}
   </div>
 )
@@ -93,14 +82,17 @@ export default function TianchouPage() {
   const labels = getMetricLabels(task?.industry_type)
 
   // 计算统计数据 (用于蓝色统计卡片)
-  const stats = solutions.length > 0 ? {
-    minCost: Math.min(...solutions.map(s => s.total_cost)),
-    maxCost: Math.max(...solutions.map(s => s.total_cost)),
-    minDays: Math.min(...solutions.map(s => s.implementation_days)),
-    maxDays: Math.max(...solutions.map(s => s.implementation_days)),
-    maxBenefit: Math.max(...solutions.map(s => s.expected_benefit)),
-    avgScore: solutions.reduce((sum, s) => sum + (s.topsis_score || 0), 0) / solutions.length,
-  } : null
+  const stats =
+    solutions.length > 0
+      ? {
+          minCost: Math.min(...solutions.map((s) => s.total_cost)),
+          maxCost: Math.max(...solutions.map((s) => s.total_cost)),
+          minDays: Math.min(...solutions.map((s) => s.implementation_days)),
+          maxDays: Math.max(...solutions.map((s) => s.implementation_days)),
+          maxBenefit: Math.max(...solutions.map((s) => s.expected_benefit)),
+          avgScore: solutions.reduce((sum, s) => sum + (s.topsis_score || 0), 0) / solutions.length,
+        }
+      : null
 
   // 自动选中第一个方案
   useEffect(() => {
@@ -264,11 +256,41 @@ export default function TianchouPage() {
             layoutData: {
               workshopDimensions: { length: 1000, width: 600 },
               devices: [
-                { id: 1, name: '冲压机', originalPosition: [100, 100], newPosition: [300, 100], size: { width: 80, height: 60 } },
-                { id: 2, name: '焊接机', originalPosition: [300, 100], newPosition: [100, 100], size: { width: 80, height: 60 } },
-                { id: 3, name: '喷涂机', originalPosition: [500, 100], newPosition: [500, 100], size: { width: 80, height: 60 } },
-                { id: 4, name: '检测台', originalPosition: [700, 100], newPosition: [700, 300], size: { width: 80, height: 60 } },
-                { id: 5, name: '包装台', originalPosition: [100, 300], newPosition: [100, 300], size: { width: 80, height: 60 } },
+                {
+                  id: 1,
+                  name: '冲压机',
+                  originalPosition: [100, 100],
+                  newPosition: [300, 100],
+                  size: { width: 80, height: 60 },
+                },
+                {
+                  id: 2,
+                  name: '焊接机',
+                  originalPosition: [300, 100],
+                  newPosition: [100, 100],
+                  size: { width: 80, height: 60 },
+                },
+                {
+                  id: 3,
+                  name: '喷涂机',
+                  originalPosition: [500, 100],
+                  newPosition: [500, 100],
+                  size: { width: 80, height: 60 },
+                },
+                {
+                  id: 4,
+                  name: '检测台',
+                  originalPosition: [700, 100],
+                  newPosition: [700, 300],
+                  size: { width: 80, height: 60 },
+                },
+                {
+                  id: 5,
+                  name: '包装台',
+                  originalPosition: [100, 300],
+                  newPosition: [100, 300],
+                  size: { width: 80, height: 60 },
+                },
               ],
               movedDevices: [
                 { deviceId: 1, distance: 200, cost: 5000 },
@@ -296,8 +318,8 @@ export default function TianchouPage() {
 
         {/* 优化执行阶段 */}
         {view === 'optimizing' && task && (
-          <TaskProgress 
-            task={task} 
+          <TaskProgress
+            task={task}
             onCancel={() => setView('config')}
             onComplete={async () => {
               // 任务完成后立即加载方案列表并跳转
@@ -334,30 +356,43 @@ export default function TianchouPage() {
                           const score = solution.topsis_score || 0
                           const isSelected = selectedSolution?.id === solution.id
                           return (
-                            <tr 
-                              key={solution.id} 
+                            <tr
+                              key={solution.id}
                               className={`hover:bg-slate-50 transition-colors cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`}
                               onClick={() => handleSelectSolution(solution)}
                             >
                               <td className="px-4 py-3 font-medium text-slate-700">
                                 <div className="flex items-center gap-2">
-                                  <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-slate-300'}`}></span>
+                                  <span
+                                    className={`w-2 h-2 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-slate-300'}`}
+                                  ></span>
                                   #{solution.rank || idx + 1}
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-slate-600">¥{solution.total_cost.toLocaleString()}</td>
-                              <td className="px-4 py-3 text-slate-600">{solution.implementation_days.toFixed(1)} 天</td>
-                              <td className="px-4 py-3 text-green-600 font-medium">¥{solution.expected_benefit.toLocaleString()}</td>
+                              <td className="px-4 py-3 text-slate-600">
+                                ¥{solution.total_cost.toLocaleString()}
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {solution.implementation_days.toFixed(1)} 天
+                              </td>
+                              <td className="px-4 py-3 text-green-600 font-medium">
+                                ¥{solution.expected_benefit.toLocaleString()}
+                              </td>
                               <td className="px-4 py-3 text-slate-600">
                                 <div className="flex items-center gap-2">
                                   <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="h-full bg-blue-500" style={{ width: `${score * 100}%` }}></div>
+                                    <div
+                                      className="h-full bg-blue-500"
+                                      style={{ width: `${score * 100}%` }}
+                                    ></div>
                                   </div>
-                                  <span className="text-xs text-slate-400">{(score * 100).toFixed(0)}</span>
+                                  <span className="text-xs text-slate-400">
+                                    {(score * 100).toFixed(0)}
+                                  </span>
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-right">
-                                <button 
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     handleViewSimulation(solution)
@@ -384,7 +419,10 @@ export default function TianchouPage() {
                     <Building2 className="mt-1 opacity-80" size={24} />
                     <div>
                       <div className="text-blue-100 text-sm font-medium">方案总数</div>
-                      <div className="text-2xl font-bold">{solutions.length} <span className="text-sm font-normal opacity-70">个</span></div>
+                      <div className="text-2xl font-bold">
+                        {solutions.length}{' '}
+                        <span className="text-sm font-normal opacity-70">个</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -398,14 +436,19 @@ export default function TianchouPage() {
                     <Clock className="mt-1 opacity-80" size={24} />
                     <div>
                       <div className="text-blue-100 text-sm font-medium">最短工期</div>
-                      <div className="text-2xl font-bold">{stats?.minDays.toFixed(0)} <span className="text-sm font-normal opacity-70">天</span></div>
+                      <div className="text-2xl font-bold">
+                        {stats?.minDays.toFixed(0)}{' '}
+                        <span className="text-sm font-normal opacity-70">天</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <Anchor className="mt-1 opacity-80" size={24} />
                     <div>
                       <div className="text-blue-100 text-sm font-medium">最高收益</div>
-                      <div className="text-2xl font-bold">¥{stats?.maxBenefit.toLocaleString()}</div>
+                      <div className="text-2xl font-bold">
+                        ¥{stats?.maxBenefit.toLocaleString()}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -433,15 +476,21 @@ export default function TianchouPage() {
                         <div className="space-y-3">
                           <div className="flex justify-between items-center py-2 border-b border-slate-100">
                             <span className="text-slate-500">总成本</span>
-                            <span className="font-semibold text-slate-700">¥{selectedSolution.total_cost.toLocaleString()}</span>
+                            <span className="font-semibold text-slate-700">
+                              ¥{selectedSolution.total_cost.toLocaleString()}
+                            </span>
                           </div>
                           <div className="flex justify-between items-center py-2 border-b border-slate-100">
                             <span className="text-slate-500">实施工期</span>
-                            <span className="font-semibold text-slate-700">{selectedSolution.implementation_days.toFixed(1)} 天</span>
+                            <span className="font-semibold text-slate-700">
+                              {selectedSolution.implementation_days.toFixed(1)} 天
+                            </span>
                           </div>
                           <div className="flex justify-between items-center py-2">
                             <span className="text-slate-500">预期收益</span>
-                            <span className="font-semibold text-green-600">¥{selectedSolution.expected_benefit.toLocaleString()}</span>
+                            <span className="font-semibold text-green-600">
+                              ¥{selectedSolution.expected_benefit.toLocaleString()}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -453,16 +502,22 @@ export default function TianchouPage() {
                         <div className="space-y-3">
                           <div className="flex justify-between items-center py-2 border-b border-slate-100">
                             <span className="text-slate-500">f1 ({labels.f1})</span>
-                            <span className="font-semibold text-slate-700">{selectedSolution.f1.toFixed(2)}</span>
+                            <span className="font-semibold text-slate-700">
+                              {selectedSolution.f1.toFixed(2)}
+                            </span>
                           </div>
                           <div className="flex justify-between items-center py-2 border-b border-slate-100">
                             <span className="text-slate-500">f2 ({labels.f2})</span>
-                            <span className="font-semibold text-slate-700">{selectedSolution.f2.toFixed(2)}</span>
+                            <span className="font-semibold text-slate-700">
+                              {selectedSolution.f2.toFixed(2)}
+                            </span>
                           </div>
                           {selectedSolution.f3 !== undefined && (
                             <div className="flex justify-between items-center py-2">
                               <span className="text-slate-500">f3 ({labels.f3})</span>
-                              <span className="font-semibold text-slate-700">{selectedSolution.f3.toFixed(2)}</span>
+                              <span className="font-semibold text-slate-700">
+                                {selectedSolution.f3.toFixed(2)}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -488,11 +543,13 @@ export default function TianchouPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm font-medium text-slate-700">
                         <span>成本权重</span>
-                        <span className="text-blue-600">{ahpWeights ? (ahpWeights.cost * 100).toFixed(0) : 33}%</span>
+                        <span className="text-blue-600">
+                          {ahpWeights ? (ahpWeights.cost * 100).toFixed(0) : 33}%
+                        </span>
                       </div>
-                      <input 
-                        type="range" 
-                        className="w-full accent-blue-600 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
+                      <input
+                        type="range"
+                        className="w-full accent-blue-600 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                         defaultValue={ahpWeights ? ahpWeights.cost * 100 : 33}
                       />
                     </div>
@@ -500,11 +557,13 @@ export default function TianchouPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm font-medium text-slate-700">
                         <span>工期权重</span>
-                        <span className="text-amber-500">{ahpWeights ? (ahpWeights.time * 100).toFixed(0) : 33}%</span>
+                        <span className="text-amber-500">
+                          {ahpWeights ? (ahpWeights.time * 100).toFixed(0) : 33}%
+                        </span>
                       </div>
-                      <input 
-                        type="range" 
-                        className="w-full accent-amber-500 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
+                      <input
+                        type="range"
+                        className="w-full accent-amber-500 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                         defaultValue={ahpWeights ? ahpWeights.time * 100 : 33}
                       />
                     </div>
@@ -512,23 +571,25 @@ export default function TianchouPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm font-medium text-slate-700">
                         <span>收益权重</span>
-                        <span className="text-green-500">{ahpWeights ? (ahpWeights.benefit * 100).toFixed(0) : 34}%</span>
+                        <span className="text-green-500">
+                          {ahpWeights ? (ahpWeights.benefit * 100).toFixed(0) : 34}%
+                        </span>
                       </div>
-                      <input 
-                        type="range" 
-                        className="w-full accent-green-500 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
+                      <input
+                        type="range"
+                        className="w-full accent-green-500 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                         defaultValue={ahpWeights ? ahpWeights.benefit * 100 : 34}
                       />
                     </div>
-                    
+
                     <div className="pt-4 flex gap-2">
-                      <button 
+                      <button
                         onClick={() => setAhpWeights(null)}
                         className="flex-1 bg-slate-100 text-slate-600 py-2 rounded-lg text-sm font-medium hover:bg-slate-200"
                       >
                         重置
                       </button>
-                      <button 
+                      <button
                         onClick={() => setShowAHPWizard(true)}
                         className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm"
                       >
@@ -555,50 +616,73 @@ export default function TianchouPage() {
                 <div className="flex-1"></div>
                 <span className="text-sm text-slate-500">共 {solutions.length} 个方案</span>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 {solutions.slice(0, 10).map((solution, idx) => {
                   const isSelected = selectedSolution?.id === solution.id
                   const score = solution.topsis_score || 0
-                  const costRating = calculateRating(solution.total_cost, stats?.minCost || 0, stats?.maxCost || 300000)
-                  const scheduleRating = calculateRating(solution.implementation_days, stats?.minDays || 0, stats?.maxDays || 60)
-                  const benefitRating = calculateRating(solution.expected_benefit, 0, stats?.maxBenefit || 800000)
-                  
+                  const costRating = calculateRating(
+                    solution.total_cost,
+                    stats?.minCost || 0,
+                    stats?.maxCost || 300000
+                  )
+                  const scheduleRating = calculateRating(
+                    solution.implementation_days,
+                    stats?.minDays || 0,
+                    stats?.maxDays || 60
+                  )
+                  const benefitRating = calculateRating(
+                    solution.expected_benefit,
+                    0,
+                    stats?.maxBenefit || 800000
+                  )
+
                   return (
-                    <div 
+                    <div
                       key={solution.id}
                       onClick={() => handleSelectSolution(solution)}
                       className={`
                         relative flex flex-col p-5 rounded-xl transition-all duration-300 cursor-pointer
-                        ${isSelected 
-                          ? 'bg-white border-2 border-blue-500 shadow-xl shadow-blue-100 scale-105 z-10' 
-                          : 'bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300'
+                        ${
+                          isSelected
+                            ? 'bg-white border-2 border-blue-500 shadow-xl shadow-blue-100 scale-105 z-10'
+                            : 'bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300'
                         }
                       `}
                     >
                       <div className="flex justify-between items-start mb-4">
-                        <h4 className="font-bold text-slate-800">方案 #{solution.rank || idx + 1}</h4>
-                        <span className="text-xs font-mono text-slate-400">ID:{solution.rank || idx + 1}</span>
+                        <h4 className="font-bold text-slate-800">
+                          方案 #{solution.rank || idx + 1}
+                        </h4>
+                        <span className="text-xs font-mono text-slate-400">
+                          ID:{solution.rank || idx + 1}
+                        </span>
                       </div>
 
                       <div className="space-y-3 mb-6 flex-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-slate-300'}`}></div>
+                            <div
+                              className={`w-3 h-3 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-slate-300'}`}
+                            ></div>
                             <span className="text-sm text-slate-600">总投入</span>
                           </div>
                           <RatingDots count={costRating} color="bg-blue-500" />
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-slate-300'}`}></div>
+                            <div
+                              className={`w-3 h-3 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-slate-300'}`}
+                            ></div>
                             <span className="text-sm text-slate-600">工期</span>
                           </div>
                           <RatingDots count={scheduleRating} color="bg-indigo-500" />
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-slate-300'}`}></div>
+                            <div
+                              className={`w-3 h-3 rounded-full ${isSelected ? 'bg-blue-500' : 'bg-slate-300'}`}
+                            ></div>
                             <span className="text-sm text-slate-600">年收益</span>
                           </div>
                           <RatingDots count={benefitRating} color="bg-amber-500" />
@@ -611,19 +695,19 @@ export default function TianchouPage() {
                           <span className="text-blue-600">{(score * 100).toFixed(0)}分</span>
                         </div>
                         <div className="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden">
-                          <div 
-                            className="h-full bg-gradient-to-r from-blue-400 to-blue-600" 
+                          <div
+                            className="h-full bg-gradient-to-r from-blue-400 to-blue-600"
                             style={{ width: `${score * 100}%` }}
                           ></div>
                         </div>
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation()
                             handleViewSimulation(solution)
                           }}
                           className={`w-full py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                            isSelected 
-                              ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                            isSelected
+                              ? 'bg-blue-600 text-white hover:bg-blue-700'
                               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                           }`}
                         >

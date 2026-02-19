@@ -174,3 +174,74 @@ export interface RouteOptimization {
   newPath: { x: number; y: number }[]
   duration: number
 }
+
+// ==================== 浑天仿真可视化类型 ====================
+
+// 区域定义
+export interface Zone {
+  id: string
+  x: number
+  y: number
+  width: number
+  height: number
+  label: string
+  color: string
+  borderColor?: string
+  textColor?: string
+}
+
+// 设备/机器定义（轻工业）
+export interface Machine {
+  id: string
+  label: string
+  type: string
+  subLabel?: string
+  original: { x: number; y: number }
+  optimized: { x: number; y: number }
+  width: number
+  height: number
+}
+
+// 产品线/物料流线
+export interface ProductLine {
+  id: string
+  name: string
+  color: string
+  path: { x: number; y: number }[]
+}
+
+// AGV 路径节点
+export interface AGVNode {
+  id: string
+  x: number
+  y: number
+  width?: number
+  height?: number
+  label: string
+}
+
+// AGV 路径
+export interface AGVRouteData {
+  id: string
+  name: string
+  color: string
+  pathOriginal: { x: number; y: number }[]
+  pathOptimized: { x: number; y: number }[]
+}
+
+// 轻工业指标
+export interface TextileMetrics {
+  materialCost: number
+  moveCost: number
+  movedCount: number
+  totalDistance: number
+}
+
+// 重工业指标
+export interface AutoMetrics {
+  maxTime: number
+  bottleneckRate: number
+  loadBalance: string
+  totalDistance: number
+  agvUsage: string
+}

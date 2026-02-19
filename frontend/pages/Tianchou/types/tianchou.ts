@@ -178,7 +178,7 @@ export const getMetricLabels = (industryType: IndustryType | undefined) => {
     f3Unit: isHeavy ? '' : '',
     // 优化方向：min=最小化, max=最大化
     f1Direction: 'min' as const,
-    f2Direction: isHeavy ? 'max' as const : 'min' as const,
-    f3Direction: isHeavy ? 'min' as const : 'max' as const,
+    f2Direction: isHeavy ? ('max' as const) : ('min' as const),
+    f3Direction: isHeavy ? ('min' as const) : ('max' as const),
   }
 }

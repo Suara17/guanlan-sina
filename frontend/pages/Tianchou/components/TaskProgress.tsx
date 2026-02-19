@@ -17,7 +17,7 @@ import {
 } from 'recharts'
 import { tianchouService } from '../services/tianchouService'
 import type { EvolutionData, OptimizationTask } from '../types/tianchou'
-import { TaskStatus, getMetricLabels } from '../types/tianchou'
+import { getMetricLabels, TaskStatus } from '../types/tianchou'
 
 interface Props {
   task: OptimizationTask
@@ -79,9 +79,12 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   })()
 
   // 使用计算的进度，而不是依赖task.progress
-  const displayProgress = task.status === TaskStatus.COMPLETED ? 100 : 
-                         task.status === TaskStatus.FAILED ? calculatedProgress :
-                         calculatedProgress
+  const displayProgress =
+    task.status === TaskStatus.COMPLETED
+      ? 100
+      : task.status === TaskStatus.FAILED
+        ? calculatedProgress
+        : calculatedProgress
 
   // 更新最后时间
   useEffect(() => {
@@ -91,7 +94,12 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   // 检测进度完成并触发回调
   useEffect(() => {
     // 只有在任务真正完成时才触发回调（排除 PENDING 等初始状态）
-    if (displayProgress >= 100 && !hasCompleted && onComplete && task.status === TaskStatus.COMPLETED) {
+    if (
+      displayProgress >= 100 &&
+      !hasCompleted &&
+      onComplete &&
+      task.status === TaskStatus.COMPLETED
+    ) {
       setHasCompleted(true)
       // 立即调用完成回调，不等待下一个轮询
       onComplete()
@@ -108,26 +116,114 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   // 基于实际运行结果的曲线数据
   const fullEvolutionData = [
     // Generation 0-20: 初始阶段，多样性低
-    { generation: 0, f1: 216500.06, f2: 38452.46, f3: 0.0872, diversity: 0.0171, mutpb: 0.486, elapsed_time: 0.4 },
-    { generation: 20, f1: 209824.21, f2: 27080.93, f3: 0.0870, diversity: 0.0358, mutpb: 0.480, elapsed_time: 9.5 },
+    {
+      generation: 0,
+      f1: 216500.06,
+      f2: 38452.46,
+      f3: 0.0872,
+      diversity: 0.0171,
+      mutpb: 0.486,
+      elapsed_time: 0.4,
+    },
+    {
+      generation: 20,
+      f1: 209824.21,
+      f2: 27080.93,
+      f3: 0.087,
+      diversity: 0.0358,
+      mutpb: 0.48,
+      elapsed_time: 9.5,
+    },
     // Generation 40: 多样性警告，增加变异率
-    { generation: 40, f1: 198773.86, f2: 46765.17, f3: 0.0872, diversity: 0.0390, mutpb: 0.480, elapsed_time: 18.6 },
+    {
+      generation: 40,
+      f1: 198773.86,
+      f2: 46765.17,
+      f3: 0.0872,
+      diversity: 0.039,
+      mutpb: 0.48,
+      elapsed_time: 18.6,
+    },
     // Generation 60: 多样性警告，再次增加变异率
-    { generation: 60, f1: 220943.49, f2: 42312.36, f3: 0.0866, diversity: 0.0489, mutpb: 0.576, elapsed_time: 29.4 },
+    {
+      generation: 60,
+      f1: 220943.49,
+      f2: 42312.36,
+      f3: 0.0866,
+      diversity: 0.0489,
+      mutpb: 0.576,
+      elapsed_time: 29.4,
+    },
     // Generation 80: 多样性警告
-    { generation: 80, f1: 219300.78, f2: 38629.95, f3: 0.0858, diversity: 0.0800, mutpb: 0.691, elapsed_time: 40.5 },
+    {
+      generation: 80,
+      f1: 219300.78,
+      f2: 38629.95,
+      f3: 0.0858,
+      diversity: 0.08,
+      mutpb: 0.691,
+      elapsed_time: 40.5,
+    },
     // Generation 100: 适应度开始上升
-    { generation: 100, f1: 224764.39, f2: 70859.31, f3: 0.0857, diversity: 0.1027, mutpb: 0.691, elapsed_time: 51.7 },
+    {
+      generation: 100,
+      f1: 224764.39,
+      f2: 70859.31,
+      f3: 0.0857,
+      diversity: 0.1027,
+      mutpb: 0.691,
+      elapsed_time: 51.7,
+    },
     // Generation 120
-    { generation: 120, f1: 232274.94, f2: 49849.54, f3: 0.0862, diversity: 0.0967, mutpb: 0.800, elapsed_time: 62.8 },
+    {
+      generation: 120,
+      f1: 232274.94,
+      f2: 49849.54,
+      f3: 0.0862,
+      diversity: 0.0967,
+      mutpb: 0.8,
+      elapsed_time: 62.8,
+    },
     // Generation 140: 多样性达到峰值
-    { generation: 140, f1: 221883.99, f2: 65505.05, f3: 0.0860, diversity: 0.1254, mutpb: 0.800, elapsed_time: 73.7 },
+    {
+      generation: 140,
+      f1: 221883.99,
+      f2: 65505.05,
+      f3: 0.086,
+      diversity: 0.1254,
+      mutpb: 0.8,
+      elapsed_time: 73.7,
+    },
     // Generation 160
-    { generation: 160, f1: 227145.32, f2: 76995.84, f3: 0.0855, diversity: 0.1244, mutpb: 0.800, elapsed_time: 84.8 },
+    {
+      generation: 160,
+      f1: 227145.32,
+      f2: 76995.84,
+      f3: 0.0855,
+      diversity: 0.1244,
+      mutpb: 0.8,
+      elapsed_time: 84.8,
+    },
     // Generation 180: 适应度达到最高
-    { generation: 180, f1: 233229.27, f2: 63506.09, f3: 0.0855, diversity: 0.1148, mutpb: 0.800, elapsed_time: 96.4 },
+    {
+      generation: 180,
+      f1: 233229.27,
+      f2: 63506.09,
+      f3: 0.0855,
+      diversity: 0.1148,
+      mutpb: 0.8,
+      elapsed_time: 96.4,
+    },
     // Generation 199: 最终代
-    { generation: 199, f1: 204461.71, f2: 65029.52, f3: 0.0872, diversity: 0.1207, mutpb: 0.800, elapsed_time: 106.5 },
+    {
+      generation: 199,
+      f1: 204461.71,
+      f2: 65029.52,
+      f3: 0.0872,
+      diversity: 0.1207,
+      mutpb: 0.8,
+      elapsed_time: 106.5,
+    },
   ]
 
   // 从后端获取进化数据
@@ -141,11 +237,11 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
       }
       return
     }
-    
+
     try {
       const data = await tianchouService.getEvolutionHistory(task.task_id)
       setEvolutionData(data)
-      
+
       if (data.history && data.history.length > 0) {
         // 后端有数据，使用后端数据
         setAnimatedData(data.history)
@@ -191,8 +287,8 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
     if (!isAnimating || currentGenIndex >= fullEvolutionData.length) return
 
     const timer = setTimeout(() => {
-      setAnimatedData(prev => [...prev, fullEvolutionData[currentGenIndex]])
-      setCurrentGenIndex(prev => prev + 1)
+      setAnimatedData((prev) => [...prev, fullEvolutionData[currentGenIndex]])
+      setCurrentGenIndex((prev) => prev + 1)
     }, 800)
 
     return () => clearTimeout(timer)
@@ -205,18 +301,19 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   // 动态计算Y轴范围（适应原始数据）
   const calculateYAxisDomain = () => {
     if (animatedData.length === 0) return [0, 250000]
-    
-    let maxF1 = 0, maxF2 = 0
-    animatedData.forEach(item => {
+
+    let maxF1 = 0,
+      maxF2 = 0
+    animatedData.forEach((item) => {
       maxF1 = Math.max(maxF1, item.f1 || 0)
       maxF2 = Math.max(maxF2, item.f2 || 0)
     })
-    
+
     // f1 范围: 180000 - 250000
     // f2 范围: 20000 - 90000
     // 统一使用 f1 的范围作为 Y 轴上限
     const upperBound = Math.ceil(maxF1 / 50000) * 50000
-    
+
     return [0, upperBound]
   }
 
@@ -230,7 +327,7 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   }
 
   // 生成日志数据（使用实际数据）
-  const logData = animatedData.slice(-6).map(item => ({
+  const logData = animatedData.slice(-6).map((item) => ({
     generation: item.generation,
     f1: item.f1 || 0,
     f2: item.f2 || 0,
@@ -282,7 +379,7 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
               {task.name}
             </span>
           </div>
-          
+
           {/* 中间：进度条 */}
           <div className="flex-1">
             <div className="flex justify-between text-sm mb-1.5">
@@ -413,7 +510,11 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
                   labelStyle={{ color: '#1F2937', fontWeight: 600, marginBottom: 8 }}
                   formatter={(value: number, name: string) => [
                     <span key="value" className="font-mono text-slate-700">
-                      {typeof value === 'number' ? (value >= 1000 ? formatLargeNumber(value) : value.toFixed(4)) : value}
+                      {typeof value === 'number'
+                        ? value >= 1000
+                          ? formatLargeNumber(value)
+                          : value.toFixed(4)
+                        : value}
                     </span>,
                     <span
                       key="name"
@@ -468,15 +569,21 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
           <div className="flex justify-center gap-8 mt-4 pt-4 border-t border-slate-100/50">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span className="text-sm text-slate-600">{labels.f1} <span className="text-slate-400">(左轴)</span></span>
+              <span className="text-sm text-slate-600">
+                {labels.f1} <span className="text-slate-400">(左轴)</span>
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#D63384' }} />
-              <span className="text-sm text-slate-600">{labels.f2} <span className="text-slate-400">(左轴)</span></span>
+              <span className="text-sm text-slate-600">
+                {labels.f2} <span className="text-slate-400">(左轴)</span>
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-amber-500" />
-              <span className="text-sm text-amber-600">{labels.f3} <span className="text-amber-400">(右轴)</span></span>
+              <span className="text-sm text-amber-600">
+                {labels.f3} <span className="text-amber-400">(右轴)</span>
+              </span>
             </div>
           </div>
         </GlassCard>
@@ -488,15 +595,24 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
             <div className="flex flex-col items-center justify-center py-4">
               {/* 动态显示多样性状态 */}
               <div className="flex flex-col items-center justify-center">
-                <span className={`text-3xl font-bold ${
-                  currentData && currentData.diversity < 0.15 ? 'text-red-500' : 
-                  currentData && currentData.diversity < 0.3 ? 'text-amber-500' : 'text-green-500'
-                }`}>
-                  {currentData && currentData.diversity < 0.15 ? '低' : currentData && currentData.diversity < 0.3 ? '中' : '高'}
+                <span
+                  className={`text-3xl font-bold ${
+                    currentData && currentData.diversity < 0.15
+                      ? 'text-red-500'
+                      : currentData && currentData.diversity < 0.3
+                        ? 'text-amber-500'
+                        : 'text-green-500'
+                  }`}
+                >
+                  {currentData && currentData.diversity < 0.15
+                    ? '低'
+                    : currentData && currentData.diversity < 0.3
+                      ? '中'
+                      : '高'}
                 </span>
                 <span className="text-sm text-slate-500 mt-2">种群多样性</span>
               </div>
-              
+
               {/* 突变率告警卡片 */}
               <div className="w-full mt-5 bg-gradient-to-r from-amber-50 to-yellow-50 backdrop-blur p-4 rounded-xl border border-amber-200/50">
                 <div className="flex items-center justify-between">
@@ -524,28 +640,33 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
           {/* 进化日志 */}
           <GlassCard className="flex-[1.3] flex flex-col" title="进化日志">
             <div className="flex-1 overflow-y-auto max-h-[280px] space-y-2 pr-1 scrollbar-thin">
-              {logData.slice().reverse().map((item, index) => (
-                <div
-                  key={`gen-${item.generation}-${index}`}
-                  className="relative pl-4 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-full" />
-                  <div className="bg-white/60 backdrop-blur rounded-lg p-3 border border-slate-100/50 hover:border-blue-200/50 hover:bg-white/80 transition-all duration-200 group">
-                    <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                        INFO
-                      </span>
-                      <span className="text-xs text-slate-400 font-mono">
-                        {item.elapsed_time.toFixed(1)}s
-                      </span>
-                    </div>
-                    <div className="text-xs font-mono text-slate-600 leading-relaxed">
-                      Generation {item.generation}: f1={formatLargeNumber(item.f1)}, f2={formatLargeNumber(item.f2)}, f3={item.f3.toFixed(4)}, diversity={item.diversity.toFixed(4)}
+              {logData
+                .slice()
+                .reverse()
+                .map((item, index) => (
+                  <div
+                    key={`gen-${item.generation}-${index}`}
+                    className="relative pl-4 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-full" />
+                    <div className="bg-white/60 backdrop-blur rounded-lg p-3 border border-slate-100/50 hover:border-blue-200/50 hover:bg-white/80 transition-all duration-200 group">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                          INFO
+                        </span>
+                        <span className="text-xs text-slate-400 font-mono">
+                          {item.elapsed_time.toFixed(1)}s
+                        </span>
+                      </div>
+                      <div className="text-xs font-mono text-slate-600 leading-relaxed">
+                        Generation {item.generation}: f1={formatLargeNumber(item.f1)}, f2=
+                        {formatLargeNumber(item.f2)}, f3={item.f3.toFixed(4)}, diversity=
+                        {item.diversity.toFixed(4)}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
               {task.status === TaskStatus.RUNNING && (
                 <div className="flex items-center justify-center gap-2 text-xs text-slate-400 py-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
