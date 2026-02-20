@@ -53,9 +53,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   }
 
-  // Only show the floating global AI Assistant on pages where Sinan isn't the main focus
-  // On Dashboard and Sinan Analysis, Sinan is integrated into the UI
-  const showGlobalAi = !['/app/', '/app/sinan'].includes(location.pathname)
+  // AI Assistant temporarily disabled on all pages
+  const showGlobalAi = false
 
   // Simulated context data for the AI Assistant based on current view
   const getContextData = () => {

@@ -260,7 +260,7 @@ const Huntian: React.FC = () => {
   const [showReport, setShowReport] = useState(false)
   const [isDeploying, setIsDeploying] = useState(false)
   const [simulationMode, setSimulationMode] = useState<
-    'device_rearrangement' | 'route_optimization' | 'stress_test'
+    'device_rearrangement' | 'route_optimization'
   >('device_rearrangement')
   // 新增：优化状态切换（用于新组件）
   const [isOptimized, setIsOptimized] = useState(false)
@@ -395,13 +395,7 @@ const Huntian: React.FC = () => {
               >
                 线路优化
               </button>
-              <button
-                type="button"
-                onClick={() => setSimulationMode('stress_test')}
-                className={`relative px-3 py-1 text-xs font-bold rounded-lg transition-all ${simulationMode === 'stress_test' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-slate-400 hover:text-slate-200'}`}
-              >
-                压力测试
-              </button>
+
             </div>
           </div>
 
@@ -587,33 +581,6 @@ const Huntian: React.FC = () => {
               <div className="w-px h-10 bg-gradient-to-b from-red-600 to-transparent mx-auto"></div>
             </div>
           )}
-
-          {/* Simulation Overlay Data */}
-          <div className="absolute top-10 left-10 flex flex-col gap-4">
-            <div className="bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl min-w-[200px]">
-              <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Node Status
-                </span>
-                <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-slate-400">资源负载率</span>
-                  <span className="text-xs font-mono text-white">
-                    {(82 + Math.random() * 5).toFixed(1)}%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-slate-400">平均队列长度</span>
-                  <span className="text-xs font-mono text-white">1.24 items</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Bottom Progress Bar */}
           <div className="absolute bottom-10 left-10 right-10">
