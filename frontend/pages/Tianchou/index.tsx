@@ -2,10 +2,23 @@
  * 天筹优化决策系统主页面
  */
 
-import { Anchor, Building2, Clock, Eye, LayoutGrid, Settings2, TrendingUp } from 'lucide-react'
+import {
+  Anchor,
+  Building2,
+  Clock,
+  Eye,
+  Factory,
+  Hash,
+  LayoutGrid,
+  Lock,
+  Move,
+  Settings2,
+  TrendingUp,
+} from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AHPWizard } from './components/AHPWizard'
+import { ParetoTriplot } from './components/ParetoTriplot'
 import { TaskConfigForm } from './components/TaskConfigForm'
 import { TaskProgress } from './components/TaskProgress'
 import { useTianchou } from './hooks/useTianchou'
@@ -78,6 +91,20 @@ export default function TianchouPage() {
   const [showAHPWizard, setShowAHPWizard] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  // 任务配置参数（用于显示任务信息）
+  const [taskConfig, setTaskConfig] = useState<{
+    industryType?: string
+    // 轻工业参数
+    workshopLength?: number
+    workshopWidth?: number
+    deviceCount?: number
+    movableDeviceCount?: number
+    fixedDeviceCount?: number
+    // 重工业参数
+    stationCount?: number
+    agvCount?: number
+  } | null>(null)
+
   // 获取行业类型对应的标签
   const labels = getMetricLabels(task?.industry_type)
 
@@ -112,6 +139,26 @@ export default function TianchouPage() {
         const newTask = await tianchouService.createTask(params)
         setTask(newTask)
         setView('optimizing')
+
+        // 保存任务配置参数
+        if (params.industry_type === 'light') {
+          const deviceCount = params.device_count || 25
+          const movableCount = Math.max(0, deviceCount - 5) // 默认最后5台固定
+          setTaskConfig({
+            industryType: 'light',
+            workshopLength: params.workshop_length,
+            workshopWidth: params.workshop_width,
+            deviceCount: deviceCount,
+            movableDeviceCount: movableCount,
+            fixedDeviceCount: deviceCount - movableCount,
+          })
+        } else {
+          setTaskConfig({
+            industryType: 'heavy',
+            stationCount: params.station_count,
+            agvCount: params.agv_count,
+          })
+        }
 
         // 开始轮询任务状态
         pollTaskStatus(newTask.task_id)
@@ -335,6 +382,39 @@ export default function TianchouPage() {
         {/* 结果展示阶段 */}
         {view === 'results' && task && (
           <div className="space-y-6">
+            {/* 顶部操作栏 */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-800">优化结果</h2>
+                <p className="text-sm text-slate-500">
+                  任务: {task.name} (ID: {task.task_id.slice(0, 8)}...)
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setTask(null)
+                  setSolutions([])
+                  setSelectedSolution(null)
+                  setTaskConfig(null)
+                  setView('config')
+                }}
+                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-medium inline-flex items-center gap-2"
+              >
+                <Settings2 size={18} />
+                新建任务
+              </button>
+            </div>
+
+            {/* 帕累托前沿可视化 */}
+            <ParetoTriplot
+              solutions={solutions}
+              onSelect={handleSelectSolution}
+              selectedId={selectedSolution?.id}
+              industryType={task.industry_type}
+              taskName={task.name}
+              taskId={task.task_id}
+            />
+
             {/* 顶部：蓝色统计卡片 */}
             <div className="grid grid-cols-12 gap-6">
               <div className="col-span-12 lg:col-span-9">
@@ -412,52 +492,53 @@ export default function TianchouPage() {
                 </Card>
               </div>
 
-              {/* 右侧：蓝色统计卡片 */}
-              <div className="col-span-12 lg:col-span-3 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg shadow-blue-200 flex flex-col justify-between">
-                <div className="space-y-5">
-                  <div className="flex items-start gap-4">
-                    <Building2 className="mt-1 opacity-80" size={24} />
-                    <div>
-                      <div className="text-blue-100 text-sm font-medium">方案总数</div>
-                      <div className="text-2xl font-bold">
-                        {solutions.length}{' '}
-                        <span className="text-sm font-normal opacity-70">个</span>
-                      </div>
+              {/* 右侧：蓝色任务配置卡片 */}
+              <div className="col-span-12 lg:col-span-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white shadow-lg shadow-blue-200">
+                {taskConfig?.industryType === 'light' ? (
+                  // 轻工业配置
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Factory size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">车间尺寸</span>
+                      <span className="ml-auto font-semibold">
+                        {taskConfig.workshopLength}×{taskConfig.workshopWidth}m
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Hash size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">设备总数</span>
+                      <span className="ml-auto font-semibold">{taskConfig.deviceCount} 台</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Move size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">可移动设备</span>
+                      <span className="ml-auto font-semibold">
+                        {taskConfig.movableDeviceCount} 台
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Lock size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">固定设备</span>
+                      <span className="ml-auto font-semibold">
+                        {taskConfig.fixedDeviceCount} 台
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <TrendingUp className="mt-1 opacity-80" size={24} />
-                    <div>
-                      <div className="text-blue-100 text-sm font-medium">最低成本</div>
-                      <div className="text-2xl font-bold">¥{stats?.minCost.toLocaleString()}</div>
+                ) : (
+                  // 重工业配置
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Factory size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">工位数量</span>
+                      <span className="ml-auto font-semibold">{taskConfig?.stationCount} 个</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Hash size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">AGV数量</span>
+                      <span className="ml-auto font-semibold">{taskConfig?.agvCount} 台</span>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <Clock className="mt-1 opacity-80" size={24} />
-                    <div>
-                      <div className="text-blue-100 text-sm font-medium">最短工期</div>
-                      <div className="text-2xl font-bold">
-                        {stats?.minDays.toFixed(0)}{' '}
-                        <span className="text-sm font-normal opacity-70">天</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <Anchor className="mt-1 opacity-80" size={24} />
-                    <div>
-                      <div className="text-blue-100 text-sm font-medium">最高收益</div>
-                      <div className="text-2xl font-bold">
-                        ¥{stats?.maxBenefit.toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t border-blue-500/50">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-blue-100">平均评分</span>
-                    <span className="font-bold">{((stats?.avgScore || 0) * 100).toFixed(1)}分</span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 

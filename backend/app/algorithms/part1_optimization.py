@@ -14,7 +14,8 @@ from collections import defaultdict, OrderedDict
 import itertools
 
 # ========== 设置中文字体和美观样式 ==========
-plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "KaiTi", "FangSong"]
+# 优先使用 WenQuanYi 字体（Docker 容器中安装的字体）
+plt.rcParams["font.sans-serif"] = ["WenQuanYi Micro Hei", "WenQuanYi Zen Hei", "SimHei", "Microsoft YaHei", "DejaVu Sans"]
 plt.rcParams["axes.unicode_minus"] = False
 plt.rcParams["font.size"] = 12
 plt.rcParams["axes.grid"] = True
@@ -1223,6 +1224,127 @@ class SLP_GA_Optimizer:
         plt.show()
 
         return self.pareto_solutions
+
+    def generate_pareto_plot_base64(self):
+        """
+        生成帕累托前沿图片并返回 base64 编码
+        用于前端直接显示
+        """
+        import base64
+        from io import BytesIO
+
+        if not self.all_solutions:
+            return None
+
+        f1_vals = [sol["f1"] for sol in self.all_solutions]
+        f2_vals = [sol["f2"] for sol in self.all_solutions]
+        f3_vals = [sol["f3"] for sol in self.all_solutions]
+
+        f1_pareto = [sol["f1"] for sol in self.pareto_solutions]
+        f2_pareto = [sol["f2"] for sol in self.pareto_solutions]
+        f3_pareto = [sol["f3"] for sol in self.pareto_solutions]
+
+        fig = plt.figure(figsize=(18, 6), dpi=120)
+
+        ax1 = fig.add_subplot(131)
+        ax1.scatter(
+            f1_vals,
+            f2_vals,
+            alpha=0.3,
+            c=self.colors["all_solutions"],
+            s=15,
+            edgecolors="none",
+            label="所有解",
+        )
+        ax1.scatter(
+            f1_pareto,
+            f2_pareto,
+            c=self.colors["pareto_front"],
+            s=120,
+            marker="*",
+            edgecolors="gold",
+            linewidth=1.5,
+            label="帕累托前沿",
+        )
+        ax1.set_xlabel("物料搬运成本 (f1)", fontsize=12, fontweight="bold")
+        ax1.set_ylabel("设备移动成本 (f2)", fontsize=12, fontweight="bold")
+        ax1.set_title(
+            "物料搬运成本 vs 设备移动成本", fontsize=14, fontweight="bold", pad=15
+        )
+        ax1.legend(loc="best", fontsize=10)
+        ax1.grid(True, alpha=0.3, linestyle="--")
+
+        ax2 = fig.add_subplot(132)
+        ax2.scatter(
+            f1_vals,
+            f3_vals,
+            alpha=0.3,
+            c=self.colors["all_solutions"],
+            s=15,
+            edgecolors="none",
+        )
+        ax2.scatter(
+            f1_pareto,
+            f3_pareto,
+            c=self.colors["pareto_front"],
+            s=120,
+            marker="*",
+            edgecolors="gold",
+            linewidth=1.5,
+        )
+        ax2.set_xlabel("物料搬运成本 (f1)", fontsize=12, fontweight="bold")
+        ax2.set_ylabel("空间利用率 (f3)", fontsize=12, fontweight="bold")
+        ax2.set_title(
+            "物料搬运成本 vs 空间利用率", fontsize=14, fontweight="bold", pad=15
+        )
+        ax2.grid(True, alpha=0.3, linestyle="--")
+
+        ax3 = fig.add_subplot(133)
+        ax3.scatter(
+            f2_vals,
+            f3_vals,
+            alpha=0.3,
+            c=self.colors["all_solutions"],
+            s=15,
+            edgecolors="none",
+        )
+        ax3.scatter(
+            f2_pareto,
+            f3_pareto,
+            c=self.colors["pareto_front"],
+            s=120,
+            marker="*",
+            edgecolors="gold",
+            linewidth=1.5,
+        )
+        ax3.set_xlabel("设备移动成本 (f2)", fontsize=12, fontweight="bold")
+        ax3.set_ylabel("空间利用率 (f3)", fontsize=12, fontweight="bold")
+        ax3.set_title(
+            "设备移动成本 vs 空间利用率", fontsize=14, fontweight="bold", pad=15
+        )
+        ax3.grid(True, alpha=0.3, linestyle="--")
+
+        fig.suptitle(
+            "双轨算法 - 帕累托前沿分析 (纺织企业布局优化)",
+            fontsize=16,
+            fontweight="bold",
+            y=0.95,
+        )
+        plt.tight_layout(pad=3.0)
+
+        # 保存到内存缓冲区
+        buffer = BytesIO()
+        fig.savefig(buffer, format='png', dpi=120, bbox_inches='tight', 
+                    facecolor='white', edgecolor='none')
+        buffer.seek(0)
+        
+        # 转换为 base64
+        img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        
+        # 关闭图形释放内存
+        plt.close(fig)
+        
+        return img_base64
 
     def output_all_pareto_solutions(self):
         """
@@ -3375,6 +3497,118 @@ class HeavyIndustry_AGV_Optimizer:
 
         return self.pareto_solutions
 
+    def generate_pareto_plot_base64(self):
+        """
+        生成帕累托前沿图片并返回 base64 编码
+        用于前端直接显示
+        """
+        import base64
+        from io import BytesIO
+
+        if not self.all_solutions:
+            return None
+
+        # 提取目标值
+        f1_vals = [sol["f1"] for sol in self.all_solutions]
+        f2_vals = [sol["f2"] for sol in self.all_solutions]
+        f3_vals = [sol["f3"] for sol in self.all_solutions]
+
+        f1_pareto = [sol["f1"] for sol in self.pareto_solutions]
+        f2_pareto = [sol["f2"] for sol in self.pareto_solutions]
+        f3_pareto = [sol["f3"] for sol in self.pareto_solutions]
+
+        # 创建图形
+        fig = plt.figure(figsize=(18, 6), dpi=120)
+
+        # 子图1：最大完工时间 vs 瓶颈设备利用率
+        ax1 = fig.add_subplot(131)
+        ax1.scatter(
+            f1_vals,
+            f2_vals,
+            alpha=0.3,
+            c="#3B82F6",
+            s=15,
+            edgecolors="none",
+            label="所有解",
+        )
+        ax1.scatter(
+            f1_pareto,
+            f2_pareto,
+            c="#DC2626",
+            s=120,
+            marker="*",
+            edgecolors="#F59E0B",
+            linewidth=1.5,
+            label="帕累托前沿",
+        )
+        ax1.set_xlabel("最大完工时间 (小时)", fontsize=12, fontweight="bold")
+        ax1.set_ylabel("瓶颈设备利用率", fontsize=12, fontweight="bold")
+        ax1.set_title(
+            "最大完工时间 vs 瓶颈设备利用率", fontsize=14, fontweight="bold", pad=15
+        )
+        ax1.legend(loc="best", fontsize=10)
+        ax1.grid(True, alpha=0.3, linestyle="--")
+
+        # 子图2：最大完工时间 vs 负载不均衡度
+        ax2 = fig.add_subplot(132)
+        ax2.scatter(f1_vals, f3_vals, alpha=0.3, c="#3B82F6", s=15, edgecolors="none")
+        ax2.scatter(
+            f1_pareto,
+            f3_pareto,
+            c="#DC2626",
+            s=120,
+            marker="*",
+            edgecolors="#F59E0B",
+            linewidth=1.5,
+        )
+        ax2.set_xlabel("最大完工时间 (小时)", fontsize=12, fontweight="bold")
+        ax2.set_ylabel("负载不均衡度", fontsize=12, fontweight="bold")
+        ax2.set_title(
+            "最大完工时间 vs 负载不均衡度", fontsize=14, fontweight="bold", pad=15
+        )
+        ax2.grid(True, alpha=0.3, linestyle="--")
+
+        # 子图3：瓶颈设备利用率 vs 负载不均衡度
+        ax3 = fig.add_subplot(133)
+        ax3.scatter(f2_vals, f3_vals, alpha=0.3, c="#3B82F6", s=15, edgecolors="none")
+        ax3.scatter(
+            f2_pareto,
+            f3_pareto,
+            c="#DC2626",
+            s=120,
+            marker="*",
+            edgecolors="#F59E0B",
+            linewidth=1.5,
+        )
+        ax3.set_xlabel("瓶颈设备利用率", fontsize=12, fontweight="bold")
+        ax3.set_ylabel("负载不均衡度", fontsize=12, fontweight="bold")
+        ax3.set_title(
+            "瓶颈设备利用率 vs 负载不均衡度", fontsize=14, fontweight="bold", pad=15
+        )
+        ax3.grid(True, alpha=0.3, linestyle="--")
+
+        fig.suptitle(
+            "汽车零部件企业AGV路径优化 - 帕累托前沿分析",
+            fontsize=16,
+            fontweight="bold",
+            y=0.93,
+        )
+        plt.tight_layout(pad=3.0)
+
+        # 保存到内存缓冲区
+        buffer = BytesIO()
+        fig.savefig(buffer, format='png', dpi=120, bbox_inches='tight', 
+                    facecolor='white', edgecolor='none')
+        buffer.seek(0)
+        
+        # 转换为 base64
+        img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        
+        # 关闭图形释放内存
+        plt.close(fig)
+        
+        return img_base64
+
     def output_all_pareto_solutions(self):
         """输出帕累托最优解集中的所有解，包含详细的调度方案描述"""
         if not self.pareto_solutions:
@@ -4854,8 +5088,9 @@ class DualTrackAlgorithm:
             self.optimizer.run_optimization()
         )
 
+        # 生成帕累托前沿图片的 base64 编码
         print("\n生成帕累托前沿可视化...")
-        self.optimizer.visualize_results()
+        pareto_plot_base64 = self.optimizer.generate_pareto_plot_base64()
 
         print("\n" + "=" * 80)
         print("帕累托最优解集输出:")
@@ -4869,6 +5104,7 @@ class DualTrackAlgorithm:
             "all_solutions": all_solutions,
             "all_pareto_solutions": all_pareto_solutions,
             "evolution_history": evolution_history,
+            "pareto_plot_base64": pareto_plot_base64,
         }
 
         return self.optimization_results
@@ -4885,8 +5121,9 @@ class DualTrackAlgorithm:
             self.optimizer.run_optimization()
         )
 
+        # 生成帕累托前沿图片的 base64 编码
         print("\n生成帕累托前沿可视化...")
-        self.optimizer.visualize_results()
+        pareto_plot_base64 = self.optimizer.generate_pareto_plot_base64()
 
         print("\n" + "=" * 80)
         print("帕累托最优解集输出:")
@@ -4900,6 +5137,7 @@ class DualTrackAlgorithm:
             "all_solutions": all_solutions,
             "all_pareto_solutions": all_pareto_solutions,
             "evolution_history": evolution_history,
+            "pareto_plot_base64": pareto_plot_base64,
         }
 
         return self.optimization_results

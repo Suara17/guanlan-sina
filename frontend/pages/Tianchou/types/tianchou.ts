@@ -64,6 +64,26 @@ export interface SolutionDetail extends ParetoSolution {
   technical_details: Record<string, any>
 }
 
+/**
+ * 所有解数据中的单个解（用于帕累托前沿可视化）
+ */
+export interface AllSolutionItem {
+  f1: number
+  f2: number
+  f3?: number
+}
+
+/**
+ * 所有解数据响应
+ */
+export interface AllSolutionsResponse {
+  task_id: string
+  industry_type: IndustryType
+  solutions: AllSolutionItem[]
+  total_count: number
+  pareto_plot_image?: string // base64 编码的图片
+}
+
 export interface AHPWeights {
   cost: number
   time: number

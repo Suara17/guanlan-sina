@@ -14,10 +14,10 @@ export function TaskConfigForm({ onSubmit }: Props) {
   const [industryType, setIndustryType] = useState<IndustryType>(IndustryType.LIGHT)
   const [name, setName] = useState('')
 
-  // 轻工业参数
-  const [workshopLength, setWorkshopLength] = useState(100)
-  const [workshopWidth, setWorkshopWidth] = useState(80)
-  const [deviceCount, setDeviceCount] = useState(10)
+  // 轻工业参数（与后端示例一致）
+  const [workshopLength, setWorkshopLength] = useState(80)
+  const [workshopWidth, setWorkshopWidth] = useState(60)
+  const [deviceCount, setDeviceCount] = useState(25)
 
   // 重工业参数
   const [stationCount, setStationCount] = useState(8)

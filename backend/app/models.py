@@ -452,6 +452,12 @@ class OptimizationTask(SQLModel, table=True):
     # 进化过程数据 (JSONB存储)
     evolution_history: dict = Field(default={}, sa_column=Column(JSONB))
 
+    # 所有解数据 (用于前端帕累托前沿可视化)
+    all_solutions: dict = Field(default={}, sa_column=Column(JSONB))
+
+    # 帕累托前沿图片 (base64 编码)
+    pareto_plot_image: str | None = Field(default=None, sa_column=Column(String))
+
     # 结果摘要
     pareto_solution_count: int = Field(default=0)
     recommended_solution_id: uuid.UUID | None = Field(default=None)

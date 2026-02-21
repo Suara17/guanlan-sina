@@ -301,6 +301,29 @@ def run_optimization_task(task_id: str, db: Session) -> None:
         evolution_history = results.get("evolution_history", [])
 
         task.evolution_history = {"history": evolution_history}
+
+        # 保存所有解数据（用于前端帕累托前沿可视化）
+        all_solutions = results.get("all_solutions", [])
+        print(f"[DEBUG] all_solutions count: {len(all_solutions)}")
+        if all_solutions:
+            print(f"[DEBUG] all_solutions sample: {all_solutions[0] if all_solutions else 'empty'}")
+        all_solutions_data = [
+            {
+                "f1": float(sol["f1"]),
+                "f2": float(sol["f2"]),
+                "f3": float(sol.get("f3")) if sol.get("f3") is not None else None,
+            }
+            for sol in all_solutions
+        ]
+        print(f"[DEBUG] all_solutions_data count: {len(all_solutions_data)}")
+        task.all_solutions = {"solutions": all_solutions_data}
+        
+        # 保存帕累托前沿图片 (base64 编码)
+        pareto_plot_base64 = results.get("pareto_plot_base64")
+        if pareto_plot_base64:
+            task.pareto_plot_image = pareto_plot_base64
+            print(f"[DEBUG] Pareto plot image saved, size: {len(pareto_plot_base64)} chars")
+        
         db.commit()
 
         # 3. 获取初始性能基准
@@ -458,6 +481,30 @@ async def get_evolution_history(task_id: str, session: SessionDep) -> Any:
         "status": task.status,
         "progress": task.progress,
         "history": history,
+    }
+
+
+@router.get("/tasks/{task_id}/all-solutions")
+async def get_all_solutions(task_id: str, session: SessionDep) -> Any:
+    """
+    获取所有解数据（用于帕累托前沿可视化）
+
+    - **task_id**: 任务ID
+    返回所有优化过程中生成的解（包括帕累托解和非帕累托解）
+    """
+    task = session.get(OptimizationTask, uuid.UUID(task_id))
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    all_solutions_data = task.all_solutions or {}
+    solutions = all_solutions_data.get("solutions", [])
+
+    return {
+        "task_id": task_id,
+        "industry_type": task.industry_type,
+        "solutions": solutions,
+        "total_count": len(solutions),
+        "pareto_plot_image": task.pareto_plot_image,
     }
 
 

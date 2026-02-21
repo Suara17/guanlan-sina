@@ -141,4 +141,19 @@ export const tianchouService = {
 
     return response.json()
   },
+
+  /**
+   * 获取所有解数据（用于帕累托前沿可视化）
+   */
+  async getAllSolutions(
+    taskId: string
+  ): Promise<{ task_id: string; industry_type: string; solutions: any[]; total_count: number }> {
+    const response = await fetch(`${API_BASE}/tasks/${taskId}/all-solutions`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to get all solutions: ${response.statusText}`)
+    }
+
+    return response.json()
+  },
 }
