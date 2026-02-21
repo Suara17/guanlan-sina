@@ -94,6 +94,7 @@ export default function TianchouPage() {
   // 任务配置参数（用于显示任务信息）
   const [taskConfig, setTaskConfig] = useState<{
     industryType?: string
+    taskName?: string
     // 轻工业参数
     workshopLength?: number
     workshopWidth?: number
@@ -103,6 +104,9 @@ export default function TianchouPage() {
     // 重工业参数
     stationCount?: number
     agvCount?: number
+    // 商业参数
+    dailyOutputValue?: number
+    baseCost?: number
   } | null>(null)
 
   // 获取行业类型对应的标签
@@ -146,17 +150,23 @@ export default function TianchouPage() {
           const movableCount = Math.max(0, deviceCount - 5) // 默认最后5台固定
           setTaskConfig({
             industryType: 'light',
+            taskName: params.name,
             workshopLength: params.workshop_length,
             workshopWidth: params.workshop_width,
             deviceCount: deviceCount,
             movableDeviceCount: movableCount,
             fixedDeviceCount: deviceCount - movableCount,
+            dailyOutputValue: params.daily_output_value,
+            baseCost: params.base_cost,
           })
         } else {
           setTaskConfig({
             industryType: 'heavy',
+            taskName: params.name,
             stationCount: params.station_count,
             agvCount: params.agv_count,
+            dailyOutputValue: params.daily_output_value,
+            baseCost: params.base_cost,
           })
         }
 
@@ -501,27 +511,55 @@ export default function TianchouPage() {
                       <Factory size={20} className="text-blue-100" />
                       <span className="text-blue-100 text-sm">车间尺寸</span>
                       <span className="ml-auto font-semibold">
-                        {taskConfig.workshopLength}×{taskConfig.workshopWidth}m
+                        {taskConfig?.workshopLength || 80}×{taskConfig?.workshopWidth || 60}m
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Hash size={20} className="text-blue-100" />
                       <span className="text-blue-100 text-sm">设备总数</span>
-                      <span className="ml-auto font-semibold">{taskConfig.deviceCount} 台</span>
+                      <span className="ml-auto font-semibold">{taskConfig?.deviceCount || 25} 台</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Move size={20} className="text-blue-100" />
                       <span className="text-blue-100 text-sm">可移动设备</span>
                       <span className="ml-auto font-semibold">
-                        {taskConfig.movableDeviceCount} 台
+                        {taskConfig?.movableDeviceCount || 20} 台
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Lock size={20} className="text-blue-100" />
                       <span className="text-blue-100 text-sm">固定设备</span>
                       <span className="ml-auto font-semibold">
-                        {taskConfig.fixedDeviceCount} 台
+                        {taskConfig?.fixedDeviceCount || 5} 台
                       </span>
+                    </div>
+                    <div className="border-t border-blue-400/30 my-3 pt-3">
+                      <div className="flex items-center gap-3">
+                        <TrendingUp size={20} className="text-blue-100" />
+                        <span className="text-blue-100 text-sm">每日产值</span>
+                        <span className="ml-auto font-semibold">
+                          ¥{(taskConfig?.dailyOutputValue || 20000).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Building2 size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">基础成本</span>
+                      <span className="ml-auto font-semibold">
+                        ¥{(taskConfig?.baseCost || 20000).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="border-t border-blue-400/30 my-3 pt-3">
+                      <div className="flex items-center gap-3">
+                        <Clock size={20} className="text-blue-100" />
+                        <span className="text-blue-100 text-sm">方案数量</span>
+                        <span className="ml-auto font-semibold">{solutions.length} 个</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Anchor size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">任务状态</span>
+                      <span className="ml-auto font-semibold text-green-300">已完成</span>
                     </div>
                   </div>
                 ) : (
@@ -530,12 +568,40 @@ export default function TianchouPage() {
                     <div className="flex items-center gap-3">
                       <Factory size={20} className="text-blue-100" />
                       <span className="text-blue-100 text-sm">工位数量</span>
-                      <span className="ml-auto font-semibold">{taskConfig?.stationCount} 个</span>
+                      <span className="ml-auto font-semibold">{taskConfig?.stationCount || 8} 个</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Hash size={20} className="text-blue-100" />
                       <span className="text-blue-100 text-sm">AGV数量</span>
-                      <span className="ml-auto font-semibold">{taskConfig?.agvCount} 台</span>
+                      <span className="ml-auto font-semibold">{taskConfig?.agvCount || 3} 台</span>
+                    </div>
+                    <div className="border-t border-blue-400/30 my-3 pt-3">
+                      <div className="flex items-center gap-3">
+                        <TrendingUp size={20} className="text-blue-100" />
+                        <span className="text-blue-100 text-sm">每日产值</span>
+                        <span className="ml-auto font-semibold">
+                          ¥{(taskConfig?.dailyOutputValue || 50000).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Building2 size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">基础成本</span>
+                      <span className="ml-auto font-semibold">
+                        ¥{(taskConfig?.baseCost || 30000).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="border-t border-blue-400/30 my-3 pt-3">
+                      <div className="flex items-center gap-3">
+                        <Clock size={20} className="text-blue-100" />
+                        <span className="text-blue-100 text-sm">方案数量</span>
+                        <span className="ml-auto font-semibold">{solutions.length} 个</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Anchor size={20} className="text-blue-100" />
+                      <span className="text-blue-100 text-sm">任务状态</span>
+                      <span className="ml-auto font-semibold text-green-300">已完成</span>
                     </div>
                   </div>
                 )}
