@@ -1,0 +1,23 @@
+# 生产环境 Docker Compose 配置
+# 使用方法: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  adminer:
+    ports:
+      - "8081:8080"
+
+  backend:
+    ports:
+      - "8000:8000"
+
+  frontend:
+    ports:
+      - "3000:80"
+
+networks:
+  traefik-public:
+    external: false
