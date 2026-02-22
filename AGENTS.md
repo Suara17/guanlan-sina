@@ -383,16 +383,21 @@ backend/app/
 #### 前端目录结构
 ```
 frontend/
-├── src/
-│   └── client/             # 自动生成的API客户端 (OpenAPI TS)
+├── src/                    # 自动生成代码
+│   ├── client/             # API客户端 (OpenAPI TS自动生成)
+│   ├── api/                # API模块
+│   └── index.css           # 全局样式
 ├── components/             # 通用组件
 │   ├── AiAssistant.tsx     # AI助手组件
 │   ├── AnomalyList.tsx     # 异常列表组件
 │   ├── DataDashboard.tsx   # 数据仪表盘
 │   ├── KnowledgeGraphCanvas.tsx # 知识图谱画布
 │   ├── LandingPage.tsx     # 落地页
-│   ├── LayoutVisualizer.tsx # 布局可视化
-│   ├── AGVPathVisualizer.tsx # AGV路径可视化
+│   ├── LayoutVisualizer.tsx # 设备布局可视化
+│   ├── DeviceLayoutVisualizer.tsx # 设备布局可视化器
+│   ├── AGVLayoutVisualizer.tsx    # AGV布局可视化器
+│   ├── AGVPathVisualizer.tsx      # AGV路径可视化
+│   ├── AGVPerformancePanel.tsx    # AGV性能面板
 │   ├── LoadingSpinner.tsx  # 加载动画
 │   ├── LoginPage.tsx       # 登录页组件
 │   ├── NodeDetailPanel.tsx # 节点详情面板
@@ -407,42 +412,41 @@ frontend/
 │   ├── Dashboard.tsx       # 总览看板
 │   ├── Huntian.tsx         # 浑天(验证层)
 │   ├── KernelConnect.tsx   # 内核连接
-│   ├── KnowledgeGraph.tsx  # 知识图谱
+│   ├── KnowledgeGraph.tsx  # 知识图谱(格物)
 │   ├── Marketplace.tsx     # 能力市场
 │   ├── ScenarioBuilder.tsx # 场景编排
 │   ├── SinanAnalysis.tsx   # 司南分析
 │   ├── SubscriptionValue.tsx # 订阅值管理
-│   ├── Tianchou/           # 天筹(决策层) - 完整页面模块
+│   ├── Tianchou.tsx        # 天筹页面入口
+│   ├── Tianchou/           # 天筹(决策层) - 页面模块
 │   │   ├── index.tsx
-│   │   ├── components/
-│   │   │   ├── TaskProgress.tsx
-│   │   │   ├── ParetoFrontChart.tsx
-│   │   │   ├── TaskConfigForm.tsx
-│   │   │   ├── AHPWizard.tsx
-│   │   │   └── SolutionCard.tsx
-│   │   ├── hooks/
-│   │   │   └── useTianchou.ts
-│   │   ├── services/
-│   │   │   └── tianchouService.ts
-│   │   └── types/
-│   │       └── tianchou.ts
-│   └── Zhixing/            # 智行(执行层) - 完整页面模块
+│   │   └── components/
+│   │       ├── TaskProgress.tsx
+│   │       ├── ParetoFrontChart.tsx
+│   │       ├── ParetoTriplot.tsx
+│   │       ├── TaskConfigForm.tsx
+│   │       ├── AHPWizard.tsx
+│   │       └── SolutionCard.tsx
+│   └── Zhixing/            # 智行(执行层) - 页面模块
 │       ├── index.tsx
-│       ├── components/
-│       │   ├── ExecutionProgress.tsx
-│       │   ├── MachineDiagram.tsx
-│       │   └── RealTimeLogs.tsx
-│       ├── hooks/
-│       ├── services/
-│       └── types/
-├── services/
-│   └── geminiService.ts    # Google GenAI服务集成
+│       └── components/
+│           ├── ExecutionProgress.tsx
+│           ├── MachineDiagram.tsx
+│           └── RealTimeLogs.tsx
+├── services/               # 服务层
+│   ├── geminiService.ts    # Google GenAI服务集成
+│   ├── neo4jService.ts     # Neo4j图数据库服务
+│   ├── dataAdapter.ts      # 数据适配器
+│   └── cacheService.ts     # 缓存服务
 ├── contexts/
 │   └── AuthContext.tsx     # 认证上下文(持久化登录)
 ├── hooks/
 │   └── useAuth.tsx         # 认证Hook
 ├── App.tsx                 # 根组件
-└── index.tsx               # 应用入口
+├── index.tsx               # 应用入口
+├── types.ts                # 全局类型定义
+├── constants.ts            # 常量定义
+└── mockData.ts             # 模拟数据
 ```
 
 ### 开发工作流
@@ -473,5 +477,5 @@ frontend/
 
 ---
 
-*本文档版本: 1.2 | 更新日期: 2026-02-14 | 项目: 天工·弈控*</content>
+*本文档版本: 1.3 | 更新日期: 2026-02-21 | 项目: 天工·弈控*</content>
 <parameter name="filePath">AGENTS.md
