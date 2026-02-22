@@ -13,6 +13,8 @@ import Huntian from './pages/Huntian'
 import KernelConnect from './pages/KernelConnect'
 import KnowledgeGraph from './pages/KnowledgeGraph'
 import Marketplace from './pages/Marketplace'
+import MonitoringDemo from './pages/MonitoringDemo'
+import CustomerCases from './pages/CustomerCases'
 import ScenarioBuilder from './pages/ScenarioBuilder'
 import SinanAnalysis from './pages/SinanAnalysis'
 import SubscriptionValue from './pages/SubscriptionValue'
@@ -121,6 +123,8 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/monitoring-demo" element={<MonitoringDemo />} />
+          <Route path="/customer-cases" element={<CustomerCases />} />
           <Route
             path="/app/*"
             element={

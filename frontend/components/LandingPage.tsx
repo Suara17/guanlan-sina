@@ -99,43 +99,45 @@ const LandingPage: React.FC = () => {
             scrolled ? 'text-slate-500' : 'text-slate-200'
           }`}
         >
-          <a href="#" className={scrolled ? 'text-blue-600' : 'text-white font-bold'}>
+          <a
+            href="#"
+            className={`inline-block transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
+              scrolled ? 'text-blue-600' : 'text-white font-bold'
+            }`}
+          >
             首页
           </a>
-          <div
-            className={`relative group cursor-pointer flex items-center gap-1 transition-colors ${
+          <a
+            href="#engines"
+            className={`relative group cursor-pointer flex items-center gap-1 transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
               scrolled ? 'hover:text-slate-900' : 'hover:text-white'
             }`}
           >
             产品系统 <ChevronDown size={14} />
-          </div>
-          <a
-            href="#cases"
-            className={
-              scrolled
-                ? 'hover:text-slate-900 transition-colors'
-                : 'hover:text-white transition-colors'
-            }
+          </a>
+          <button
+            type="button"
+            onClick={() => navigate('/monitoring-demo')}
+            className={`inline-block transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
+              scrolled ? 'hover:text-slate-900' : 'hover:text-white'
+            }`}
           >
             监控演示
-          </a>
-          <a
-            href="#cases"
-            className={
-              scrolled
-                ? 'hover:text-slate-900 transition-colors'
-                : 'hover:text-white transition-colors'
-            }
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/customer-cases')}
+            className={`inline-block transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
+              scrolled ? 'hover:text-slate-900' : 'hover:text-white'
+            }`}
           >
             客户案例
-          </a>
+          </button>
           <a
             href="#about"
-            className={
-              scrolled
-                ? 'hover:text-slate-900 transition-colors'
-                : 'hover:text-white transition-colors'
-            }
+            className={`inline-block transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
+              scrolled ? 'hover:text-slate-900' : 'hover:text-white'
+            }`}
           >
             关于我们
           </a>
@@ -493,7 +495,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* 3. Four Engines Section - 优化后的紧凑卡片布局 */}
-      <section className="py-24 px-6 lg:px-16 bg-white overflow-hidden relative">
+      <section id="engines" className="py-24 px-6 lg:px-16 bg-white overflow-hidden relative">
         <div
           className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none"
           style={{
