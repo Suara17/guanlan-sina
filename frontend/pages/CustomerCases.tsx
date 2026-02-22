@@ -338,28 +338,28 @@ const CustomerCases: React.FC = () => {
 
         {/* 主内容区 - 左右布局 */}
         <div className="px-6 lg:px-20">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             {/* 左侧 - 案例列表 */}
-            <div className="lg:col-span-4 space-y-3">
+            <div className="lg:col-span-4 flex flex-col gap-3">
               {CASES.map((caseStudy) => (
                 <button
                   key={caseStudy.id}
                   onClick={() => setActiveCase(caseStudy.id)}
-                  className={`w-full text-left p-4 rounded-xl transition-all duration-300 ${
+                  className={`flex-1 text-left p-5 rounded-xl transition-all duration-300 min-h-[100px] ${
                     activeCase === caseStudy.id
                       ? 'bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/50'
                       : 'bg-white/5 border border-white/10 hover:bg-white/10'
                   }`}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-center gap-4 h-full">
                     {/* 图标/图片占位 */}
                     <div
-                      className={`w-14 h-14 rounded-xl bg-gradient-to-br ${caseStudy.gradient} flex items-center justify-center flex-shrink-0`}
+                      className={`w-16 h-16 rounded-xl bg-gradient-to-br ${caseStudy.gradient} flex items-center justify-center flex-shrink-0`}
                     >
-                      <Factory size={24} className="text-white" />
+                      <Factory size={28} className="text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1.5">
                         <h3 className="font-semibold text-white truncate">{caseStudy.company}</h3>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
@@ -380,7 +380,7 @@ const CustomerCases: React.FC = () => {
                       </div>
                     </div>
                     <ChevronRight
-                      size={18}
+                      size={20}
                       className={`flex-shrink-0 transition-transform ${
                         activeCase === caseStudy.id ? 'text-blue-400 translate-x-1' : 'text-slate-600'
                       }`}
@@ -391,8 +391,8 @@ const CustomerCases: React.FC = () => {
             </div>
 
             {/* 右侧 - 案例详情 */}
-            <div className="lg:col-span-8">
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+            <div className="lg:col-span-8 flex">
+              <div className="flex-1 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col">
                 {/* 案例头图区域 */}
                 <div className={`relative h-64 bg-gradient-to-br ${activeCaseData.gradient} p-8`}>
                   {/* 装饰网格 */}
