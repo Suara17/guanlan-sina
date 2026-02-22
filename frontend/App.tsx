@@ -15,6 +15,7 @@ import KnowledgeGraph from './pages/KnowledgeGraph'
 import Marketplace from './pages/Marketplace'
 import MonitoringDemo from './pages/MonitoringDemo'
 import CustomerCases from './pages/CustomerCases'
+import AboutUs from './pages/AboutUs'
 import ScenarioBuilder from './pages/ScenarioBuilder'
 import SinanAnalysis from './pages/SinanAnalysis'
 import SubscriptionValue from './pages/SubscriptionValue'
@@ -125,6 +126,7 @@ const App: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/monitoring-demo" element={<MonitoringDemo />} />
           <Route path="/customer-cases" element={<CustomerCases />} />
+          <Route path="/about-us" element={<AboutUs />} />
           <Route
             path="/app/*"
             element={

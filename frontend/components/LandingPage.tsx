@@ -133,14 +133,15 @@ const LandingPage: React.FC = () => {
           >
             客户案例
           </button>
-          <a
-            href="#about"
+          <button
+            type="button"
+            onClick={() => navigate('/about-us')}
             className={`inline-block transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
               scrolled ? 'hover:text-slate-900' : 'hover:text-white'
             }`}
           >
             关于我们
-          </a>
+          </button>
         </div>
 
         <div className="flex items-center gap-4">
