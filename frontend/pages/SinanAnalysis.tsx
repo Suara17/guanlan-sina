@@ -31,7 +31,7 @@ const SinanAnalysis: React.FC = () => {
       <div className="flex items-center gap-4 mb-8">
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/app/')}
           className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
         >
           <ArrowLeft size={24} />
