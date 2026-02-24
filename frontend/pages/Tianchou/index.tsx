@@ -16,7 +16,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AHPWizard } from './components/AHPWizard'
 import { ParetoTriplot } from './components/ParetoTriplot'
 import { TaskConfigForm } from './components/TaskConfigForm'
@@ -76,6 +76,7 @@ const calculateRating = (value: number, min: number, max: number): number => {
 
 export default function TianchouPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const {
     task,
     setTask,
@@ -107,7 +108,44 @@ export default function TianchouPage() {
     // 商业参数
     dailyOutputValue?: number
     baseCost?: number
+    // 3.2 优化路线：产品切换参数
+    currentProduct?: string
+    nextProduct?: string
   } | null>(null)
+
+  // 3.2 优化路线：检测产品切换模式
+  useEffect(() => {
+    const optimizationMode = location.state?.optimizationMode
+    if (optimizationMode === 'product_switch') {
+      const params = location.state
+      
+      // 设置任务配置
+      setTaskConfig({
+        industryType: 'light',
+        taskName: `产品切换优化: ${params.current_product_code || '当前产品'} → ${params.next_product_code || '下一产品'}`,
+        currentProduct: params.current_product_code,
+        nextProduct: params.next_product_code,
+        workshopLength: params.current_layout?.workshopDimensions?.length || 100,
+        workshopWidth: params.current_layout?.workshopDimensions?.width || 60,
+        deviceCount: params.current_layout?.devices?.length || 20,
+        movableDeviceCount: 15,
+        fixedDeviceCount: 5,
+        dailyOutputValue: 20000,
+        baseCost: 20000,
+      })
+
+      // 自动开始优化
+      handleCreateTask({
+        industry_type: 'light',
+        name: `${params.current_product_code || '产品A'} → ${params.next_product_code || '产品B'} 切换优化`,
+        workshop_length: params.current_layout?.workshopDimensions?.length || 100,
+        workshop_width: params.current_layout?.workshopDimensions?.width || 60,
+        device_count: params.current_layout?.devices?.length || 20,
+        daily_output_value: 20000,
+        base_cost: 20000,
+      })
+    }
+  }, [location.state])
 
   // 获取行业类型对应的标签
   const labels = getMetricLabels(task?.industry_type)

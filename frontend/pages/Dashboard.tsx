@@ -1,6 +1,6 @@
-import { Beaker, Clock, Factory } from 'lucide-react'
+import { Clock, Factory } from 'lucide-react'
 import type React from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Bar,
@@ -18,10 +18,11 @@ import {
 import AnomalyList from '../components/AnomalyList'
 import DataDashboard from '../components/DataDashboard'
 import ProductionLineSelector from '../components/ProductionLineSelector'
-import SimulationSelector from '../components/SimulationSelector'
+import ProductionPlanCard from '../components/ProductionPlanCard'
+import ProductChangeAlert from '../components/ProductChangeAlert'
 import SinanAvatar from '../components/SinanAvatar'
 import { DASHBOARD_METRICS, getAnomaliesByLineType, PRODUCTION_LINES } from '../mockData'
-import type { DashboardMetrics, ProductionData, ProductionLine } from '../types'
+import type { DashboardMetrics, NextPlan, OptimizationParams, ProductionData, ProductionLine, ProductChangeWarning } from '../types'
 
 // Mock Data
 const PRODUCTION_DATA: ProductionData[] = [
@@ -43,7 +44,91 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const [sinanMode, setSinanMode] = useState<'idle' | 'alert'>('idle')
   const [selectedLine, setSelectedLine] = useState<ProductionLine | null>(PRODUCTION_LINES[0]) // 默认选中第一条产线
-  const [showSimulationSelector, setShowSimulationSelector] = useState(false)
+  
+  // 3.2 优化路线：生产计划状态
+  const [productionPlan, setProductionPlan] = useState<{
+    currentPlan: {
+      work_order_no: string
+      product_id: string
+      product_code: string
+      product_name: string
+      line_id: string
+      planned_quantity: number
+      actual_quantity: number
+      progress_percent: number
+      estimated_completion_time: string | null
+      status: 'running' | 'paused' | 'completed'
+    } | null
+    nextPlan: NextPlan | null
+    productChangeWarning: ProductChangeWarning | null
+  }>({
+    currentPlan: null,
+    nextPlan: null,
+    productChangeWarning: null,
+  })
+
+  const [showProductAlert, setShowProductAlert] = useState(false)
+
+  // 3.2 优化路线：加载生产计划数据（Mock数据）
+  useEffect(() => {
+    // TODO: 替换为实际API调用
+    // const fetchProductionPlan = async () => {
+    //   const response = await api.getProductionPlan(selectedLine?.id)
+    //   setProductionPlan(response.data)
+    //   if (response.data.productChangeWarning?.change_detected) {
+    //     setShowProductAlert(true)
+    //   }
+    // }
+    // fetchProductionPlan()
+
+    // Mock数据
+    setProductionPlan({
+      currentPlan: {
+        work_order_no: 'WO-20260224-001',
+        product_id: 'p-001',
+        product_code: 'PCB-A',
+        product_name: 'PCB-A型',
+        line_id: selectedLine?.id || 'line-001',
+        planned_quantity: 5000,
+        actual_quantity: 3250,
+        progress_percent: 65,
+        estimated_completion_time: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+        status: 'running',
+      },
+      nextPlan: {
+        work_order_no: 'WO-20260224-002',
+        product_id: 'p-002',
+        product_code: 'PCB-B',
+        product_name: 'PCB-B型',
+        planned_quantity: 3000,
+        estimated_start_time: null,
+      },
+      productChangeWarning: {
+        change_detected: true,
+        current_product: 'PCB-A',
+        next_product: 'PCB-B',
+        requires_optimization: true,
+        flow_differences: [
+          '新增回流焊工序',
+          '印刷参数变更',
+          '检测设备增加',
+        ],
+      },
+    })
+    // 显示预警弹窗
+    setShowProductAlert(true)
+  }, [selectedLine])
+
+  // 3.2 优化路线：处理优化按钮点击
+  const handleOptimize = (params: OptimizationParams) => {
+    // 跳转到天筹页面，携带产品切换优化参数
+    navigate('/app/tianchou', {
+      state: {
+        optimizationMode: 'product_switch',
+        ...params,
+      },
+    })
+  }
 
   // Get anomalies for the selected line
   const currentAnomalies = useMemo(() => {
@@ -79,12 +164,6 @@ const Dashboard: React.FC = () => {
   // 产线选择处理函数
   const handleLineSelect = (line: ProductionLine) => {
     setSelectedLine(line)
-  }
-
-  // 模拟情境选择处理
-  const handleSimulationSelect = async (scenarioId: string) => {
-    setShowSimulationSelector(false)
-    navigate(`/app/simulation?scenario_id=${scenarioId}`)
   }
 
   // 获取当前选中产线的数据
@@ -178,6 +257,14 @@ const Dashboard: React.FC = () => {
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* 数据看板 */}
           <DataDashboard metrics={dashboardMetrics} />
+
+          {/* 3.2 优化路线：生产计划模块 */}
+          <ProductionPlanCard
+            currentPlan={productionPlan.currentPlan}
+            nextPlan={productionPlan.nextPlan}
+            productChangeWarning={productionPlan.productChangeWarning}
+            onOptimize={handleOptimize}
+          />
 
           {/* Production Monitor */}
           <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex-1">
@@ -349,37 +436,27 @@ const Dashboard: React.FC = () => {
               className="h-full justify-end pb-4"
             />
           </div>
-
-          {/* 异常模拟入口 */}
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-5 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-lg">
-                  <Beaker size={20} />
-                </div>
-                <div>
-                  <h3 className="font-bold">异常模拟</h3>
-                  <p className="text-xs text-white/80">演示系统运行流程</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowSimulationSelector(true)}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-              >
-                <Beaker size={16} />
-                开始模拟
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* 模拟情境选择器 */}
-      <SimulationSelector
-        isOpen={showSimulationSelector}
-        onClose={() => setShowSimulationSelector(false)}
-        onSelect={handleSimulationSelect}
+      {/* 3.2 优化路线：产品切换预警弹窗 */}
+      <ProductChangeAlert
+        visible={showProductAlert}
+        currentProduct={productionPlan.productChangeWarning?.current_product || ''}
+        nextProduct={productionPlan.productChangeWarning?.next_product || ''}
+        differences={productionPlan.productChangeWarning?.flow_differences || []}
+        onOptimize={() => {
+          setShowProductAlert(false)
+          handleOptimize({
+            mode: 'product_switch',
+            current_product_id: productionPlan.currentPlan?.product_id || '',
+            next_product_id: productionPlan.nextPlan?.product_id || '',
+            current_layout: { devices: [], workshopDimensions: { length: 100, width: 60 } },
+            process_flow: { steps: [] },
+            line_id: selectedLine?.id || '',
+          })
+        }}
+        onDismiss={() => setShowProductAlert(false)}
       />
     </div>
   )

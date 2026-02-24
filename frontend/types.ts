@@ -245,3 +245,100 @@ export interface AutoMetrics {
   totalDistance: number
   agvUsage: string
 }
+
+// ==================== 3.2 优化路线：生产计划类型 ====================
+
+// 生产计划 - 当前工单
+export interface ProductionPlan {
+  work_order_no: string
+  product_id: string
+  product_code: string
+  product_name: string
+  line_id: string
+  planned_quantity: number
+  actual_quantity: number
+  progress_percent: number
+  estimated_completion_time: string | null
+  status: 'running' | 'paused' | 'completed'
+}
+
+// 生产计划 - 下一工单预览
+export interface NextPlan {
+  work_order_no: string
+  product_id: string
+  product_code: string
+  product_name: string
+  planned_quantity: number
+  estimated_start_time: string | null
+}
+
+// 产品切换预警
+export interface ProductChangeWarning {
+  change_detected: boolean
+  current_product: string
+  next_product: string
+  requires_optimization: boolean
+  flow_differences: string[]
+}
+
+// 产品信息
+export interface Product {
+  id: string
+  product_code: string
+  product_name: string
+  category: string | null
+  default_flow_id: string | null
+  dimensions: { length: number; width: number; height: number } | null
+  required_stations: string[]
+}
+
+// 工艺流程
+export interface ProcessFlow {
+  id: string
+  product_id: string
+  flow_name: string
+  version: string
+  steps: Array<{
+    step: number
+    name: string
+    station_type: string
+    cycle_time: number
+  }>
+  equipment_requirements: Record<string, unknown>
+}
+
+// 优化参数（产品切换模式）
+export interface OptimizationParams {
+  mode: 'product_switch'
+  current_product_id: string
+  next_product_id: string
+  current_layout: LayoutData
+  process_flow: ProcessFlowData
+  line_id: string
+}
+
+export interface LayoutData {
+  devices: Array<{
+    id: string
+    name: string
+    position: { x: number; y: number }
+    type: string
+  }>
+  workshopDimensions: { length: number; width: number }
+}
+
+export interface ProcessFlowData {
+  steps: Array<{
+    step: number
+    name: string
+    station_type: string
+    cycle_time: number
+  }>
+}
+
+// 生产计划响应数据
+export interface ProductionPlanResponse {
+  current_plan: ProductionPlan | null
+  next_plan: NextPlan | null
+  product_change_warning: ProductChangeWarning | null
+}
