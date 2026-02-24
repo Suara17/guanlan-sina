@@ -64,19 +64,85 @@ const MonitoringDemo: React.FC = () => {
   ])
 
   const [devices] = useState<DeviceStatus[]>([
-    { id: '1', name: 'CNC加工中心-A01', status: 'running', efficiency: 92, temperature: 45, uptime: 156 },
-    { id: '2', name: '焊接机器人-B02', status: 'running', efficiency: 88, temperature: 52, uptime: 142 },
-    { id: '3', name: 'AGV搬运车-C03', status: 'warning', efficiency: 75, temperature: 38, uptime: 98 },
-    { id: '4', name: '注塑机-D04', status: 'running', efficiency: 95, temperature: 68, uptime: 189 },
-    { id: '5', name: '检测设备-E05', status: 'maintenance', efficiency: 0, temperature: 25, uptime: 0 },
-    { id: '6', name: '包装线-F06', status: 'running', efficiency: 91, temperature: 35, uptime: 167 },
+    {
+      id: '1',
+      name: 'CNC加工中心-A01',
+      status: 'running',
+      efficiency: 92,
+      temperature: 45,
+      uptime: 156,
+    },
+    {
+      id: '2',
+      name: '焊接机器人-B02',
+      status: 'running',
+      efficiency: 88,
+      temperature: 52,
+      uptime: 142,
+    },
+    {
+      id: '3',
+      name: 'AGV搬运车-C03',
+      status: 'warning',
+      efficiency: 75,
+      temperature: 38,
+      uptime: 98,
+    },
+    {
+      id: '4',
+      name: '注塑机-D04',
+      status: 'running',
+      efficiency: 95,
+      temperature: 68,
+      uptime: 189,
+    },
+    {
+      id: '5',
+      name: '检测设备-E05',
+      status: 'maintenance',
+      efficiency: 0,
+      temperature: 25,
+      uptime: 0,
+    },
+    {
+      id: '6',
+      name: '包装线-F06',
+      status: 'running',
+      efficiency: 91,
+      temperature: 35,
+      uptime: 167,
+    },
   ])
 
   const [alarms] = useState<AlarmItem[]>([
-    { id: '1', level: 'warning', device: 'AGV搬运车-C03', message: '电池电量低于20%，建议充电', time: '2分钟前' },
-    { id: '2', level: 'info', device: 'CNC加工中心-A01', message: '刀具磨损检测：建议48小时内更换', time: '15分钟前' },
-    { id: '3', level: 'critical', device: '注塑机-D04', message: '模具温度过高：当前68°C', time: '23分钟前' },
-    { id: '4', level: 'info', device: '焊接机器人-B02', message: '完成批次 #2024-0215 生产', time: '45分钟前' },
+    {
+      id: '1',
+      level: 'warning',
+      device: 'AGV搬运车-C03',
+      message: '电池电量低于20%，建议充电',
+      time: '2分钟前',
+    },
+    {
+      id: '2',
+      level: 'info',
+      device: 'CNC加工中心-A01',
+      message: '刀具磨损检测：建议48小时内更换',
+      time: '15分钟前',
+    },
+    {
+      id: '3',
+      level: 'critical',
+      device: '注塑机-D04',
+      message: '模具温度过高：当前68°C',
+      time: '23分钟前',
+    },
+    {
+      id: '4',
+      level: 'info',
+      device: '焊接机器人-B02',
+      message: '完成批次 #2024-0215 生产',
+      time: '45分钟前',
+    },
   ])
 
   // 模拟实时数据更新
@@ -171,10 +237,10 @@ const MonitoringDemo: React.FC = () => {
           <div className="flex items-center gap-6">
             {/* 实时状态指示器 */}
             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
-              <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`} />
-              <span className="text-sm text-slate-300">
-                {isLive ? '实时更新中' : '已暂停'}
-              </span>
+              <div
+                className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`}
+              />
+              <span className="text-sm text-slate-300">{isLive ? '实时更新中' : '已暂停'}</span>
             </div>
 
             {/* 当前时间 */}
@@ -285,15 +351,24 @@ const MonitoringDemo: React.FC = () => {
               </h3>
               <div className="space-y-2">
                 <button className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-xl transition-all text-left group">
-                  <Play size={18} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+                  <Play
+                    size={18}
+                    className="text-emerald-400 group-hover:scale-110 transition-transform"
+                  />
                   <span className="text-sm text-emerald-300">启动全部设备</span>
                 </button>
                 <button className="w-full flex items-center gap-3 px-4 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl transition-all text-left group">
-                  <Power size={18} className="text-red-400 group-hover:scale-110 transition-transform" />
+                  <Power
+                    size={18}
+                    className="text-red-400 group-hover:scale-110 transition-transform"
+                  />
                   <span className="text-sm text-red-300">紧急停止</span>
                 </button>
                 <button className="w-full flex items-center gap-3 px-4 py-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl transition-all text-left group">
-                  <Shield size={18} className="text-blue-400 group-hover:scale-110 transition-transform" />
+                  <Shield
+                    size={18}
+                    className="text-blue-400 group-hover:scale-110 transition-transform"
+                  />
                   <span className="text-sm text-blue-300">安全巡检</span>
                 </button>
               </div>
@@ -311,7 +386,10 @@ const MonitoringDemo: React.FC = () => {
                   { label: '数据库连接', status: 'online', latency: '5ms' },
                   { label: 'AI推理引擎', status: 'online', latency: '45ms' },
                 ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between py-2 border-b border-white/5 last:border-0"
+                  >
                     <span className="text-sm text-slate-300">{item.label}</span>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-slate-500">{item.latency}</span>
@@ -342,8 +420,7 @@ const MonitoringDemo: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-4 text-xs text-slate-400">
                   <span className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    6 台设备
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />6 台设备
                   </span>
                 </div>
               </div>
@@ -353,7 +430,9 @@ const MonitoringDemo: React.FC = () => {
                 {devices.map((device) => (
                   <div
                     key={device.id}
-                    onClick={() => setSelectedDevice(selectedDevice === device.id ? null : device.id)}
+                    onClick={() =>
+                      setSelectedDevice(selectedDevice === device.id ? null : device.id)
+                    }
                     className={`relative group cursor-pointer transition-all duration-300 ${
                       selectedDevice === device.id ? 'scale-105 z-10' : ''
                     }`}
@@ -367,8 +446,12 @@ const MonitoringDemo: React.FC = () => {
                     >
                       {/* 状态指示灯 */}
                       <div className="absolute top-3 right-3 flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${getStatusColor(device.status)} animate-pulse`} />
-                        <span className="text-xs text-slate-400">{getStatusText(device.status)}</span>
+                        <div
+                          className={`w-2 h-2 rounded-full ${getStatusColor(device.status)} animate-pulse`}
+                        />
+                        <span className="text-xs text-slate-400">
+                          {getStatusText(device.status)}
+                        </span>
                       </div>
 
                       {/* 设备图标 */}
@@ -459,7 +542,9 @@ const MonitoringDemo: React.FC = () => {
                   <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
                     <TrendingUp size={16} className="text-blue-400" /> 产量趋势
                   </h3>
-                  <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-1 rounded-full">+12.5% vs 昨日</span>
+                  <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-1 rounded-full">
+                    +12.5% vs 昨日
+                  </span>
                 </div>
                 <div className="h-28 flex items-end gap-1">
                   {Array.from({ length: 24 }).map((_, i) => (
@@ -485,7 +570,9 @@ const MonitoringDemo: React.FC = () => {
                   <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
                     <Zap size={16} className="text-amber-400" /> 能耗分析
                   </h3>
-                  <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-1 rounded-full">-8.3% vs 昨日</span>
+                  <span className="text-xs text-emerald-400 bg-emerald-500/20 px-2 py-1 rounded-full">
+                    -8.3% vs 昨日
+                  </span>
                 </div>
                 <div className="h-28 flex items-end gap-1">
                   {Array.from({ length: 24 }).map((_, i) => (
@@ -578,7 +665,8 @@ const MonitoringDemo: React.FC = () => {
                     onClick={() => navigate('/login')}
                     className="mt-3 text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
                   >
-                    立即登录 <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    立即登录{' '}
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
                   </button>
                 </div>
               </div>

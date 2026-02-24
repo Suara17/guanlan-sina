@@ -56,8 +56,10 @@ const CustomerCases: React.FC = () => {
       industry: '汽车制造',
       location: '华东地区',
       scale: '员工5000+ | 6大生产基地',
-      challenge: '多条冲压、焊接产线协同效率低，设备故障平均响应时间超过4小时，生产计划调整周期长达72小时，难以应对汽车主机厂JIT供货要求。设备综合效率（OEE）仅58%，远低于行业平均水平。',
-      solution: '部署天工·弈控全套解决方案：洞微引擎实现3000+设备点位实时采集（采集周期100ms）；格物平台构建1:1数字孪生模型，覆盖冲压、焊接、总装6大车间；天筹决策引擎实现AI驱动的动态排产优化；浑天仿真系统预演验证，确保零试错上线。',
+      challenge:
+        '多条冲压、焊接产线协同效率低，设备故障平均响应时间超过4小时，生产计划调整周期长达72小时，难以应对汽车主机厂JIT供货要求。设备综合效率（OEE）仅58%，远低于行业平均水平。',
+      solution:
+        '部署天工·弈控全套解决方案：洞微引擎实现3000+设备点位实时采集（采集周期100ms）；格物平台构建1:1数字孪生模型，覆盖冲压、焊接、总装6大车间；天筹决策引擎实现AI驱动的动态排产优化；浑天仿真系统预演验证，确保零试错上线。',
       highlights: [
         '实时设备监控与预测性维护',
         '多车间协同排产优化',
@@ -84,14 +86,11 @@ const CustomerCases: React.FC = () => {
       industry: '电子制造',
       location: '华南地区',
       scale: '员工3000+ | 12条SMT产线',
-      challenge: '产品种类多达1200+种，换线频繁导致产能损失严重，每次换线平均耗时2.5小时。品质追溯困难，不良率波动大（平均3.2%），客户投诉率高。人工质检效率低，漏检率约0.5%。',
-      solution: '柔性产线数字孪生建模，支持快速换线仿真验证；AI视觉检测替代人工质检，检测准确率99.7%；全流程质量追溯系统，建立每个产品的完整数据链；预测性维护模型，设备停机减少45%。',
-      highlights: [
-        'SMT产线智能化改造',
-        'AI视觉质检系统',
-        '柔性换线仿真优化',
-        '全流程质量追溯',
-      ],
+      challenge:
+        '产品种类多达1200+种，换线频繁导致产能损失严重，每次换线平均耗时2.5小时。品质追溯困难，不良率波动大（平均3.2%），客户投诉率高。人工质检效率低，漏检率约0.5%。',
+      solution:
+        '柔性产线数字孪生建模，支持快速换线仿真验证；AI视觉检测替代人工质检，检测准确率99.7%；全流程质量追溯系统，建立每个产品的完整数据链；预测性维护模型，设备停机减少45%。',
+      highlights: ['SMT产线智能化改造', 'AI视觉质检系统', '柔性换线仿真优化', '全流程质量追溯'],
       results: [
         { label: '换线时间', value: '45分钟', description: '从2.5小时缩短至45分钟' },
         { label: '良品率', value: '99.2%', description: '从96.8%提升至99.2%' },
@@ -107,8 +106,10 @@ const CustomerCases: React.FC = () => {
       industry: '机械加工',
       location: '长三角地区',
       scale: '员工800+ | 高端CNC设备120台',
-      challenge: '模具加工精度要求极高（±0.005mm），传统工艺高度依赖老师傅经验，人才培养周期长达3-5年。核心技术人员流失导致工艺知识断层，产能受限，订单交付周期长。',
-      solution: 'CNC设备联网采集，实时监控刀具磨损状态；工艺参数AI优化系统，自动推荐最佳切削参数；虚拟调试系统，新模具试制周期缩短60%；知识图谱沉淀老师傅经验，建立企业工艺知识库。',
+      challenge:
+        '模具加工精度要求极高（±0.005mm），传统工艺高度依赖老师傅经验，人才培养周期长达3-5年。核心技术人员流失导致工艺知识断层，产能受限，订单交付周期长。',
+      solution:
+        'CNC设备联网采集，实时监控刀具磨损状态；工艺参数AI优化系统，自动推荐最佳切削参数；虚拟调试系统，新模具试制周期缩短60%；知识图谱沉淀老师傅经验，建立企业工艺知识库。',
       highlights: [
         '高精度加工过程监控',
         '工艺知识数字化传承',
@@ -135,14 +136,11 @@ const CustomerCases: React.FC = () => {
       industry: '新能源',
       location: '中部地区',
       scale: '员工2000+ | 年产能20GWh',
-      challenge: '锂电池生产过程复杂，温度、湿度控制要求严格，安全隐患大。能耗成本占生产成本35%，缺乏精细化管理手段。热失控预警能力不足，存在安全风险。',
-      solution: '全产线环境监测系统，100ms级数据采集；AI热失控预警模型，提前30分钟精准预警；能耗优化算法，智能调节空调新风系统；MES系统集成，实现全流程数字化管理。',
-      highlights: [
-        '环境参数实时监控',
-        'AI热失控预警系统',
-        '能耗智能优化',
-        '安全风险管控',
-      ],
+      challenge:
+        '锂电池生产过程复杂，温度、湿度控制要求严格，安全隐患大。能耗成本占生产成本35%，缺乏精细化管理手段。热失控预警能力不足，存在安全风险。',
+      solution:
+        '全产线环境监测系统，100ms级数据采集；AI热失控预警模型，提前30分钟精准预警；能耗优化算法，智能调节空调新风系统；MES系统集成，实现全流程数字化管理。',
+      highlights: ['环境参数实时监控', 'AI热失控预警系统', '能耗智能优化', '安全风险管控'],
       results: [
         { label: '能耗降低', value: '-28%', description: '年节约成本超千万' },
         { label: '安全事件', value: '0起', description: '实现零安全事故' },
@@ -158,14 +156,11 @@ const CustomerCases: React.FC = () => {
       industry: '装备制造',
       location: '华北地区',
       scale: '员工1500+ | 年产值15亿',
-      challenge: '非标定制订单占比80%，设计变更频繁导致项目延期。供应链协同困难，供应商交付不及时影响整体进度。交付延期率高达25%，客户满意度下降。',
-      solution: '产品模块化设计平台，配置式快速报价系统；供应链数字孪生，实时监控供应商产能与交付状态；项目全生命周期管理系统，自动预警延期风险；远程运维平台，售后服务效率提升200%。',
-      highlights: [
-        '模块化产品设计平台',
-        '供应链协同管理',
-        '项目风险预警系统',
-        '远程运维服务',
-      ],
+      challenge:
+        '非标定制订单占比80%，设计变更频繁导致项目延期。供应链协同困难，供应商交付不及时影响整体进度。交付延期率高达25%，客户满意度下降。',
+      solution:
+        '产品模块化设计平台，配置式快速报价系统；供应链数字孪生，实时监控供应商产能与交付状态；项目全生命周期管理系统，自动预警延期风险；远程运维平台，售后服务效率提升200%。',
+      highlights: ['模块化产品设计平台', '供应链协同管理', '项目风险预警系统', '远程运维服务'],
       results: [
         { label: '报价周期', value: '2小时', description: '从3天缩短至2小时' },
         { label: '延期率', value: '3%', description: '从25%降至3%' },
@@ -181,14 +176,11 @@ const CustomerCases: React.FC = () => {
       industry: '航空航天',
       location: '西南地区',
       scale: '员工600+ | 特种设备200+台',
-      challenge: '产品精度要求极高，质量追溯要求严格符合军标要求。研发试制周期长，成本控制压力大。一次交检合格率仅92%，返工返修成本高。',
-      solution: '高精度测量设备集成，实现微米级数据采集；全流程质量追溯系统，满足航天军标要求；虚拟仿真验证平台，减少实物试制次数；并行工程管理系统，研发周期缩短40%。',
-      highlights: [
-        '高精度检测系统集成',
-        '军标质量追溯体系',
-        '虚拟仿真验证',
-        '并行工程管理',
-      ],
+      challenge:
+        '产品精度要求极高，质量追溯要求严格符合军标要求。研发试制周期长，成本控制压力大。一次交检合格率仅92%，返工返修成本高。',
+      solution:
+        '高精度测量设备集成，实现微米级数据采集；全流程质量追溯系统，满足航天军标要求；虚拟仿真验证平台，减少实物试制次数；并行工程管理系统，研发周期缩短40%。',
+      highlights: ['高精度检测系统集成', '军标质量追溯体系', '虚拟仿真验证', '并行工程管理'],
       results: [
         { label: '研发周期', value: '-40%', description: '加速新产品研发' },
         { label: '质量追溯', value: '100%', description: '全流程可追溯' },
@@ -248,7 +240,10 @@ const CustomerCases: React.FC = () => {
               onClick={() => navigate('/')}
               className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
             >
-              <ArrowRight size={20} className="rotate-180 group-hover:-translate-x-1 transition-transform" />
+              <ArrowRight
+                size={20}
+                className="rotate-180 group-hover:-translate-x-1 transition-transform"
+              />
               <span className="text-sm">返回首页</span>
             </button>
             <div className="w-px h-6 bg-white/20"></div>
@@ -283,7 +278,9 @@ const CustomerCases: React.FC = () => {
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-6">
               <Users size={16} className="text-blue-400" />
-              <span className="text-xs font-bold text-blue-300 tracking-wider uppercase">CUSTOMER SUCCESS</span>
+              <span className="text-xs font-bold text-blue-300 tracking-wider uppercase">
+                CUSTOMER SUCCESS
+              </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
               赋能离散制造业
@@ -329,7 +326,9 @@ const CustomerCases: React.FC = () => {
                 >
                   <Icon size={16} />
                   {ind.name}
-                  <span className="ml-1 px-2 py-0.5 bg-white/10 rounded-full text-xs">{ind.count}</span>
+                  <span className="ml-1 px-2 py-0.5 bg-white/10 rounded-full text-xs">
+                    {ind.count}
+                  </span>
                 </button>
               )
             })}
@@ -382,7 +381,9 @@ const CustomerCases: React.FC = () => {
                     <ChevronRight
                       size={20}
                       className={`flex-shrink-0 transition-transform ${
-                        activeCase === caseStudy.id ? 'text-blue-400 translate-x-1' : 'text-slate-600'
+                        activeCase === caseStudy.id
+                          ? 'text-blue-400 translate-x-1'
+                          : 'text-slate-600'
                       }`}
                     />
                   </div>
@@ -410,7 +411,9 @@ const CustomerCases: React.FC = () => {
                         <Factory size={14} />
                         {activeCaseData.industry}
                       </div>
-                      <h2 className="text-3xl font-black text-white mb-2">{activeCaseData.company}</h2>
+                      <h2 className="text-3xl font-black text-white mb-2">
+                        {activeCaseData.company}
+                      </h2>
                       <div className="flex items-center gap-4 text-white/80 text-sm">
                         <span className="flex items-center gap-1">
                           <MapPin size={14} /> {activeCaseData.location}
@@ -481,7 +484,9 @@ const CustomerCases: React.FC = () => {
                           <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-1">
                             {result.value}
                           </div>
-                          <div className="text-sm font-semibold text-white mb-1">{result.label}</div>
+                          <div className="text-sm font-semibold text-white mb-1">
+                            {result.label}
+                          </div>
                           <div className="text-xs text-slate-500">{result.description}</div>
                         </div>
                       ))}
@@ -502,8 +507,12 @@ const CustomerCases: React.FC = () => {
                           </span>
                         </div>
                         <div>
-                          <div className="font-semibold text-white">{activeCaseData.testimonial.author}</div>
-                          <div className="text-sm text-slate-400">{activeCaseData.testimonial.position}</div>
+                          <div className="font-semibold text-white">
+                            {activeCaseData.testimonial.author}
+                          </div>
+                          <div className="text-sm text-slate-400">
+                            {activeCaseData.testimonial.position}
+                          </div>
                         </div>
                       </div>
                     </div>

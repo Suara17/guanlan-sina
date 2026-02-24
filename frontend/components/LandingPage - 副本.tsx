@@ -1,0 +1,801 @@
+import {
+  Activity,
+  ArrowRight,
+  BarChart3,
+  CheckCircle,
+  ChevronDown,
+  Cpu,
+  Database,
+  Eye,
+  Factory,
+  Globe,
+  Layers,
+  MessageCircle,
+  MonitorPlay,
+  Network,
+  Play,
+  Shield,
+  Zap,
+} from 'lucide-react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import TiangongLogo from './TiangongLogo'
+
+const LandingPage: React.FC = () => {
+  const navigate = useNavigate()
+  const [scrolled, setScrolled] = useState(false)
+  const [activeEngine, setActiveEngine] = useState<number>(0)
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const ENGINES = [
+    {
+      id: 0,
+      name: '洞微 (Dongwei)',
+      sub: '工业感知引擎',
+      icon: Eye,
+      desc: '毫秒级数据采集，洞察设备细微波动。通过边缘计算实现数据初筛，构建工厂第一级感知网。',
+    },
+    {
+      id: 1,
+      name: '格物 (Gewu)',
+      sub: '数字孪生引擎',
+      icon: Layers,
+      desc: '1:1 还原物理世界，实现虚实映射。建立高精度的数字沙盘，为生产优化提供"上帝视角"。',
+    },
+    {
+      id: 2,
+      name: '天筹 (Tianchou)',
+      sub: '智能决策引擎',
+      icon: Cpu,
+      desc: '基于 AI 强化学习算法，实现排产与调度的全局最优解。动态应对扰动，重构柔性制造逻辑。',
+    },
+    {
+      id: 3,
+      name: '浑天 (Huntian)',
+      sub: '全局仿真引擎',
+      icon: MonitorPlay,
+      desc: '超实时演练推演，预测未来生产趋势。在决策下发前进行压力测试，确保物理世界"零试错"。',
+    },
+  ]
+
+  // 保留现有的登录导航功能
+  const handleLoginClick = () => {
+    navigate('/login')
+  }
+
+  const handleDashboardClick = () => {
+    navigate('/dashboard')
+  }
+
+  return (
+    <div className="bg-white text-slate-900 font-sans selection:bg-blue-100">
+      {/* 1. Header - 简约高级悬浮导航 */}
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-6 lg:px-20 flex items-center justify-between h-20 ${
+          scrolled
+            ? 'bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm'
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <TiangongLogo size={36} variant={scrolled ? 'light' : 'dark'} animate={true} />
+          <span
+            className={`font-bold text-xl tracking-tight uppercase italic transition-colors duration-500 ${
+              scrolled ? 'text-slate-900' : 'text-white'
+            }`}
+          >
+            天工·弈控
+          </span>
+        </div>
+
+        <div
+          className={`hidden md:flex items-center gap-10 text-sm font-semibold transition-colors duration-500 ${
+            scrolled ? 'text-slate-500' : 'text-slate-200'
+          }`}
+        >
+          <a
+            href="#"
+            className={`inline-block transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
+              scrolled ? 'text-blue-600' : 'text-white font-bold'
+            }`}
+          >
+            首页
+          </a>
+          <a
+            href="#engines"
+            className={`relative group cursor-pointer flex items-center gap-1 transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
+              scrolled ? 'hover:text-slate-900' : 'hover:text-white'
+            }`}
+          >
+            产品系统 <ChevronDown size={14} />
+          </a>
+          <button
+            type="button"
+            onClick={() => navigate('/monitoring-demo')}
+            className={`inline-block transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
+              scrolled ? 'hover:text-slate-900' : 'hover:text-white'
+            }`}
+          >
+            监控演示
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/customer-cases')}
+            className={`inline-block transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
+              scrolled ? 'hover:text-slate-900' : 'hover:text-white'
+            }`}
+          >
+            客户案例
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/about-us')}
+            className={`inline-block transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 ${
+              scrolled ? 'hover:text-slate-900' : 'hover:text-white'
+            }`}
+          >
+            关于我们
+          </button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleLoginClick}
+            className={`text-sm font-bold transition-colors duration-500 px-4 py-2 ${
+              scrolled ? 'text-slate-600 hover:text-slate-900' : 'text-slate-200 hover:text-white'
+            }`}
+          >
+            登录系统
+          </button>
+          <button
+            onClick={handleDashboardClick}
+            className={`px-6 py-2.5 rounded-full text-sm font-bold shadow-lg transition-all duration-500 ${
+              scrolled
+                ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/10'
+                : 'bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 text-white shadow-white/10'
+            }`}
+          >
+            申请试用
+          </button>
+        </div>
+      </nav>
+
+      {/* 2. Hero Section - 优化后的科技感背景 */}
+      <section className="relative min-h-[85vh] flex items-center pt-20 pb-12 overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+        {/* 动态网格背景 */}
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, #3b82f6 1px, transparent 1px), linear-gradient(to bottom, #3b82f6 1px, transparent 1px)',
+            backgroundSize: '80px 80px',
+          }}
+        ></div>
+
+        {/* 光晕效果 */}
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/30 blur-[120px] rounded-full animate-pulse"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-cyan-500/20 blur-[100px] rounded-full animate-pulse delay-700"></div>
+
+        <div className="container mx-auto px-6 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-6 shadow-lg">
+              <Shield size={16} className="text-blue-400" />
+              <span className="text-xs font-bold text-blue-300 tracking-wider uppercase">
+                新一代工业数字孪生操作系统
+              </span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tighter leading-[1.1]">
+              赋能制造 <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+                智控未来
+              </span>
+            </h1>
+            <p className="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed">
+              打破数据孤岛，实现物理车间与数字世界的毫秒级虚实共生。
+              基于"1+N+X"架构，为现代工厂提供全栈式算法支撑。
+            </p>
+            <div className="flex flex-col sm:flex-row items-start gap-5">
+              <button
+                onClick={handleDashboardClick}
+                className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-bold text-base hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
+              >
+                立即体验 Demo{' '}
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button className="group w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-xl font-bold text-base hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer">
+                <Play size={18} fill="currentColor" /> 观看宣传片
+              </button>
+            </div>
+
+            <div className="mt-12 flex items-center gap-10">
+              <div className="flex flex-col">
+                <span className="text-3xl font-black text-white tracking-tight">85% +</span>
+                <span className="text-xs font-semibold text-blue-300 uppercase">平均 OEE 提升</span>
+              </div>
+              <div className="w-px h-10 bg-white/20"></div>
+              <div className="flex flex-col">
+                <span className="text-3xl font-black text-white tracking-tight">100ms</span>
+                <span className="text-xs font-semibold text-blue-300 uppercase">
+                  端到端同步延迟
+                </span>
+              </div>
+              <div className="w-px h-10 bg-white/20"></div>
+              <div className="flex flex-col">
+                <span className="text-3xl font-black text-white tracking-tight">1+N+X</span>
+                <span className="text-xs font-semibold text-blue-300 uppercase">生态架构</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 右侧装饰：动态数据流可视化 */}
+          <div className="hidden lg:block relative h-[500px] overflow-hidden">
+            {/* 背景光效 */}
+            <div className="absolute inset-0">
+              <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] animate-pulse"></div>
+              <div
+                className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-cyan-500/15 rounded-full blur-[60px] animate-pulse"
+                style={{ animationDelay: '1s' }}
+              ></div>
+              <div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-violet-500/10 rounded-full blur-[50px] animate-pulse"
+                style={{ animationDelay: '2s' }}
+              ></div>
+            </div>
+
+            {/* 数据流粒子 */}
+            <div className="absolute inset-0">
+              {[
+                {
+                  left: '10%',
+                  top: '20%',
+                  delay: '0s',
+                  duration: '3s',
+                  size: 'w-1 h-1',
+                  color: 'bg-blue-400',
+                },
+                {
+                  left: '85%',
+                  top: '15%',
+                  delay: '0.5s',
+                  duration: '4s',
+                  size: 'w-1.5 h-1.5',
+                  color: 'bg-cyan-400',
+                },
+                {
+                  left: '20%',
+                  top: '70%',
+                  delay: '1s',
+                  duration: '3.5s',
+                  size: 'w-1 h-1',
+                  color: 'bg-blue-300',
+                },
+                {
+                  left: '75%',
+                  top: '65%',
+                  delay: '1.5s',
+                  duration: '4.5s',
+                  size: 'w-1 h-1',
+                  color: 'bg-cyan-300',
+                },
+                {
+                  left: '45%',
+                  top: '10%',
+                  delay: '2s',
+                  duration: '3s',
+                  size: 'w-1.5 h-1.5',
+                  color: 'bg-violet-400',
+                },
+                {
+                  left: '60%',
+                  top: '85%',
+                  delay: '0.3s',
+                  duration: '4s',
+                  size: 'w-1 h-1',
+                  color: 'bg-blue-400',
+                },
+                {
+                  left: '35%',
+                  top: '40%',
+                  delay: '0.8s',
+                  duration: '3.5s',
+                  size: 'w-2 h-2',
+                  color: 'bg-cyan-400',
+                },
+                {
+                  left: '80%',
+                  top: '45%',
+                  delay: '1.2s',
+                  duration: '3s',
+                  size: 'w-1 h-1',
+                  color: 'bg-blue-300',
+                },
+                {
+                  left: '15%',
+                  top: '55%',
+                  delay: '1.8s',
+                  duration: '4.5s',
+                  size: 'w-1.5 h-1.5',
+                  color: 'bg-violet-300',
+                },
+                {
+                  left: '55%',
+                  top: '75%',
+                  delay: '0.6s',
+                  duration: '3.5s',
+                  size: 'w-1 h-1',
+                  color: 'bg-cyan-300',
+                },
+              ].map((particle, i) => (
+                <div
+                  key={i}
+                  className={`absolute ${particle.size} ${particle.color} rounded-full animate-pulse`}
+                  style={{
+                    left: particle.left,
+                    top: particle.top,
+                    animationDelay: particle.delay,
+                    animationDuration: particle.duration,
+                  }}
+                ></div>
+              ))}
+            </div>
+
+            {/* 核心节点 */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+              {/* 外层脉冲环 */}
+              <div
+                className="absolute -inset-8 border border-blue-400/20 rounded-full animate-ping"
+                style={{ animationDuration: '3s' }}
+              ></div>
+              <div
+                className="absolute -inset-16 border border-cyan-400/10 rounded-full animate-ping"
+                style={{ animationDuration: '4s', animationDelay: '1s' }}
+              ></div>
+
+              {/* 核心发光体 */}
+              <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/40 via-cyan-500/30 to-blue-600/40 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-2xl shadow-blue-500/30">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-white/10 to-white/20"></div>
+                <Zap className="text-blue-200" size={36} />
+              </div>
+            </div>
+
+            {/* 数据节点群 */}
+            {[
+              {
+                x: '15%',
+                y: '25%',
+                icon: Eye,
+                color: 'from-blue-500/60 to-blue-600/50',
+                label: '洞微',
+                pulseColor: 'blue',
+              },
+              {
+                x: '80%',
+                y: '20%',
+                icon: Cpu,
+                color: 'from-cyan-500/60 to-teal-500/50',
+                label: '天筹',
+                pulseColor: 'cyan',
+              },
+              {
+                x: '25%',
+                y: '75%',
+                icon: Network,
+                color: 'from-amber-500/60 to-orange-500/50',
+                label: '格物',
+                pulseColor: 'amber',
+              },
+              {
+                x: '75%',
+                y: '80%',
+                icon: MonitorPlay,
+                color: 'from-violet-500/60 to-purple-500/50',
+                label: '浑天',
+                pulseColor: 'violet',
+              },
+              {
+                x: '50%',
+                y: '15%',
+                icon: Database,
+                color: 'from-blue-400/60 to-cyan-500/50',
+                label: '数据',
+                pulseColor: 'blue',
+              },
+              {
+                x: '85%',
+                y: '55%',
+                icon: Activity,
+                color: 'from-emerald-500/60 to-green-500/50',
+                label: '监控',
+                pulseColor: 'emerald',
+              },
+            ].map((node, i) => (
+              <div
+                key={i}
+                className="absolute group cursor-pointer"
+                style={{ left: node.x, top: node.y, transform: 'translate(-50%, -50%)' }}
+              >
+                {/* 连接到核心的流线 */}
+                <svg className="absolute left-1/2 top-1/2 w-40 h-40 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-30">
+                  <line
+                    x1="50%"
+                    y1="50%"
+                    x2={50 + (50 - parseInt(node.x)) * 0.8 + '%'}
+                    y2={50 + (50 - parseInt(node.y)) * 0.8 + '%'}
+                    stroke="url(#flowGradient)"
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
+                    className="animate-pulse"
+                  />
+                </svg>
+
+                {/* 节点脉冲 */}
+                <div
+                  className={`absolute -inset-2 bg-${node.pulseColor}-500/20 rounded-full blur-md animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                ></div>
+
+                {/* 节点主体 */}
+                <div
+                  className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${node.color} backdrop-blur-sm border border-white/20 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}
+                >
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-transparent via-white/10 to-white/20"></div>
+                  <node.icon className="text-white/90" size={20} />
+                </div>
+
+                {/* 悬停标签 */}
+                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="text-[10px] font-medium text-white/70 bg-slate-900/50 px-2 py-0.5 rounded backdrop-blur-sm">
+                    {node.label}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {/* 流动的数据连线 SVG */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+              <defs>
+                <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.6" />
+                  <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.4" />
+                </linearGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                  <feMerge>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {/* 动态曲线路径 */}
+              <path
+                d="M 50 100 Q 100 50 200 120 T 350 80"
+                fill="none"
+                stroke="url(#flowGradient)"
+                strokeWidth="1.5"
+                strokeDasharray="8 4"
+                filter="url(#glow)"
+                className="animate-dash"
+                style={{ opacity: 0.4 }}
+              />
+              <path
+                d="M 350 150 Q 300 200 200 180 T 80 250"
+                fill="none"
+                stroke="url(#flowGradient)"
+                strokeWidth="1"
+                strokeDasharray="6 3"
+                filter="url(#glow)"
+                className="animate-dash"
+                style={{ opacity: 0.3, animationDelay: '1s' }}
+              />
+              <path
+                d="M 100 300 Q 200 280 250 350 T 380 300"
+                fill="none"
+                stroke="url(#flowGradient)"
+                strokeWidth="1.5"
+                strokeDasharray="8 4"
+                filter="url(#glow)"
+                className="animate-dash"
+                style={{ opacity: 0.35, animationDelay: '2s' }}
+              />
+            </svg>
+
+            {/* 浮动数据标签 */}
+            <div className="absolute top-[30%] right-[10%] px-3 py-1.5 bg-slate-800/60 backdrop-blur-sm rounded-lg border border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-[10px] font-mono text-green-400">实时同步</span>
+              </div>
+            </div>
+            <div className="absolute bottom-[25%] left-[8%] px-3 py-1.5 bg-slate-800/60 backdrop-blur-sm rounded-lg border border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span className="text-[10px] font-mono text-cyan-400">AI 决策中</span>
+              </div>
+            </div>
+            <div className="absolute top-[60%] right-[15%] px-3 py-1.5 bg-slate-800/60 backdrop-blur-sm rounded-lg border border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
+                <span className="text-[10px] font-mono text-blue-400">数据处理</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Four Engines Section - 优化后的紧凑卡片布局 */}
+      <section id="engines" className="py-24 px-6 lg:px-16 bg-white overflow-hidden relative">
+        <div
+          className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 2px 2px, #334155 1px, transparent 0)',
+            backgroundSize: '40px 40px',
+          }}
+        ></div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-black mb-3 tracking-tighter text-slate-900">
+                四大引擎系统
+              </h2>
+              <p className="text-slate-600 max-w-lg text-base">
+                天工操作系统核心能力矩阵，覆盖感知、建模、决策与仿真全生命周期。
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {ENGINES.map((e) => (
+                <button
+                  key={e.id}
+                  onClick={() => setActiveEngine(e.id)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${activeEngine === e.id ? 'bg-blue-600 w-10' : 'bg-slate-300 hover:bg-slate-400'}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            {ENGINES.map((engine) => {
+              const Icon = engine.icon
+              const isActive = activeEngine === engine.id
+              return (
+                <div
+                  key={engine.id}
+                  onMouseEnter={() => setActiveEngine(engine.id)}
+                  onClick={() => setActiveEngine(engine.id)}
+                  className={`group relative rounded-3xl border-2 overflow-hidden transition-all duration-500 cursor-pointer flex flex-col p-8 ${
+                    isActive
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500 shadow-2xl shadow-blue-600/30 scale-105'
+                      : 'bg-slate-50 border-slate-200 hover:border-blue-300 hover:shadow-xl'
+                  }`}
+                >
+                  {/* 图标 */}
+                  <div
+                    className={`mb-6 p-4 rounded-2xl w-fit transition-all duration-500 ${
+                      isActive ? 'bg-white/20 backdrop-blur-sm' : 'bg-white group-hover:bg-blue-50'
+                    }`}
+                  >
+                    <Icon
+                      className={`transition-colors ${isActive ? 'text-white' : 'text-blue-600'}`}
+                      size={32}
+                    />
+                  </div>
+
+                  {/* 标题 */}
+                  <h3
+                    className={`font-black tracking-tight mb-2 transition-all ${isActive ? 'text-white text-2xl' : 'text-slate-900 text-xl group-hover:text-blue-600'}`}
+                  >
+                    {engine.name.split(' ')[0]}
+                  </h3>
+
+                  {/* 英文名称 */}
+                  <p
+                    className={`text-xs font-bold uppercase tracking-wider mb-4 transition-all ${isActive ? 'text-blue-100' : 'text-slate-500'}`}
+                  >
+                    {engine.name.match(/\(([^)]+)\)/)?.[1]}
+                  </p>
+
+                  {/* 副标题 */}
+                  <p
+                    className={`text-sm font-semibold mb-3 transition-all ${isActive ? 'text-white/90' : 'text-blue-600'}`}
+                  >
+                    {engine.sub}
+                  </p>
+
+                  {/* 描述 */}
+                  <p
+                    className={`text-sm leading-relaxed transition-all ${isActive ? 'text-white/80' : 'text-slate-600'}`}
+                  >
+                    {engine.desc}
+                  </p>
+
+                  {/* 底部按钮 */}
+                  <div
+                    className={`mt-6 pt-6 border-t transition-all ${isActive ? 'border-white/20' : 'border-slate-200'}`}
+                  >
+                    <button
+                      className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider group/btn transition-all ${isActive ? 'text-white' : 'text-blue-600'}`}
+                    >
+                      <span>进入控制台</span>
+                      <ArrowRight
+                        size={14}
+                        className="group-hover/btn:translate-x-1 transition-transform"
+                      />
+                    </button>
+                  </div>
+
+                  {/* 背景装饰 */}
+                  {isActive && (
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Customer Cases - 优化后紧凑布局 */}
+      <section id="cases" className="py-20 bg-gradient-to-b from-slate-50 to-white">
+        <div className="container mx-auto px-6 lg:px-16">
+          <div className="text-center mb-14">
+            <h2 className="text-4xl md:text-5xl font-black mb-3 tracking-tighter text-slate-900">
+              赋能头部企业
+            </h2>
+            <p className="text-slate-600">深耕汽车、电子、半导体等 12 个关键制造行业</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-16 items-center justify-items-center">
+            {['天汽工业', '中国钢铁', '通用机械', '未来能源', '精密模具', '新能材料'].map((l) => (
+              <div key={l} className="group cursor-pointer">
+                <div className="text-lg font-black tracking-tight text-slate-400 group-hover:text-slate-900 transition-colors">
+                  {l}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {[
+              {
+                label: '产能提升',
+                value: '+18.5%',
+                color: 'blue',
+                gradient: 'from-blue-500 to-blue-600',
+                icon: BarChart3,
+              },
+              {
+                label: '能耗降低',
+                value: '-12.0%',
+                color: 'emerald',
+                gradient: 'from-emerald-500 to-emerald-600',
+                icon: Zap,
+              },
+              {
+                label: '故障停机',
+                value: '-35.0%',
+                color: 'red',
+                gradient: 'from-red-500 to-red-600',
+                icon: Shield,
+              },
+            ].map((card) => (
+              <div
+                key={card.label}
+                className={`group relative p-8 bg-gradient-to-br ${card.gradient} rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-${card.color}-500/30`}
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                <card.icon className="mb-4 text-white/80" size={32} />
+                <h4 className="text-white/90 font-semibold text-xs uppercase tracking-wider mb-2">
+                  {card.label}
+                </h4>
+                <p className="text-4xl font-black text-white tracking-tight">{card.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Footer - 优化后紧凑布局 */}
+      <footer className="bg-slate-950 text-white py-16 px-6 lg:px-16">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-10">
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <TiangongLogo size={28} variant="dark" animate={true} />
+              <span className="font-bold text-base tracking-tight uppercase">天工·弈控</span>
+            </div>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              让每一次工业生产都成为一场精密的博弈，以算法之名，弈控未来生产。
+            </p>
+          </div>
+
+          <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-10 lg:justify-items-end">
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">产品矩阵</p>
+              <ul className="space-y-2 text-sm text-slate-400">
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition-colors">
+                    洞微感知
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition-colors">
+                    格物孪生
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition-colors">
+                    天筹决策
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition-colors">
+                    浑天仿真
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                支持与资源
+              </p>
+              <ul className="space-y-2 text-sm text-slate-400">
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition-colors">
+                    开发者中心
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition-colors">
+                    白皮书下载
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition-colors">
+                    API 文档
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">联系我们</p>
+              <ul className="space-y-2 text-sm text-slate-400">
+                <li>400-223608838</li>
+                <li>admin@tiangongna.com</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600 uppercase font-semibold tracking-wider">
+          <span>© 2024 TIANGONG YIKONG OS</span>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-slate-400 transition-colors">
+              Privacy
+            </a>
+            <a href="#" className="hover:text-slate-400 transition-colors">
+              Terms
+            </a>
+            <a href="#" className="hover:text-slate-400 transition-colors">
+              Security
+            </a>
+          </div>
+        </div>
+      </footer>
+
+      {/* Floating Action */}
+      <button
+        onClick={handleDashboardClick}
+        className="fixed bottom-10 right-10 z-40 px-8 py-4 bg-blue-600 text-white rounded-full shadow-2xl shadow-blue-600/30 flex items-center gap-3 font-black text-sm uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
+      >
+        <MessageCircle size={20} /> 在线咨询
+      </button>
+    </div>
+  )
+}
+
+export default LandingPage

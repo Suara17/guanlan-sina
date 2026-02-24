@@ -4,6 +4,13 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/
 
+# 安装中文字体支持（用于 matplotlib 生成中文图片）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    fonts-wqy-zenhei \
+    fonts-wqy-microhei \
+    && rm -rf /var/lib/apt/lists/* \
+    && fc-cache -fv
+
 # Install uv
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
 COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/

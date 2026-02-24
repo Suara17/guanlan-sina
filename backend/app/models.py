@@ -269,6 +269,42 @@ class Anomaly(AnomalyBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     closed_at: datetime | None = Field(default=None)
+    root_cause_confidence: float | None = Field(default=None)
+    causation_chain: list | None = Field(default=None, sa_column=Column(JSONB))
+
+
+class AnomalyDetail(SQLModel):
+    """异常详情响应模型"""
+    id: uuid.UUID
+    line_id: uuid.UUID
+    station_id: uuid.UUID
+    defect_type: str
+    severity: str
+    detected_at: datetime
+    status: str
+    root_cause: str | None = None
+    root_cause_confidence: float | None = None
+    causation_chain: list = []
+    solutions: list["SolutionPublic"] = []
+    location: str = ""
+    message: str = ""
+    created_at: datetime
+
+
+class AnomalyWithRootCause(SQLModel):
+    """带根因分析的异常模型"""
+    id: uuid.UUID
+    line_id: uuid.UUID
+    station_id: uuid.UUID
+    defect_type: str
+    severity: str
+    detected_at: datetime
+    status: str
+    root_cause: str | None = None
+    root_cause_confidence: float | None = None
+    causation_chain: list = []
+    location: str = ""
+    created_at: datetime
 
 
 class DiagnosisBase(SQLModel):
@@ -304,6 +340,15 @@ class Solution(SolutionBase, table=True):
     diagnosis_id: uuid.UUID | None = Field(default=None, foreign_key="diagnoses.id")
     simulation_result: dict | None = Field(default=None, sa_column=Column(JSONB))
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    # 成本相关字段
+    repair_cost: float | None = Field(default=0.0)
+    delivery_impact_hours: float | None = Field(default=0.0)
+    delivery_impact_cost: float | None = Field(default=0.0)
+    quality_risk_cost: float | None = Field(default=0.0)
+    downtime_cost: float | None = Field(default=0.0)
+    total_expected_loss: float | None = Field(default=0.0)
+    implementation_time_hours: float | None = Field(default=0.0)
+    risk_level: str | None = Field(default="low", max_length=20)
 
     diagnosis: Diagnosis | None = Relationship(back_populates="solutions")
 
@@ -311,6 +356,23 @@ class Solution(SolutionBase, table=True):
 class SolutionPublic(SolutionBase):
     id: uuid.UUID
     diagnosis_id: uuid.UUID | None
+
+
+class SolutionWithCost(SolutionBase):
+    """带成本分析的解决方案模型"""
+    id: uuid.UUID
+    diagnosis_id: uuid.UUID | None
+    repair_cost: float = 0.0
+    delivery_impact_hours: float = 0.0
+    delivery_impact_cost: float = 0.0
+    quality_risk_cost: float = 0.0
+    downtime_cost: float = 0.0
+    total_expected_loss: float = 0.0
+    implementation_time_hours: float = 0.0
+    success_rate: float = 0.0
+    risk_level: str = "low"
+    recommended: bool = False
+    cost_matrix: dict | None = None
 
 
 class DiagnosisPublic(DiagnosisBase):
@@ -598,4 +660,67 @@ class ProcessFlow(ProcessFlowBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    product: Product = Relationship()
+    product: Product = Relationship(sa_relationship_kwargs={"foreign_keys": "[ProcessFlow.product_id]"})
+
+
+# ==================== 模拟情境相关模型 ====================
+
+
+class SimulationScenario(SQLModel, table=True):
+    """模拟情境表"""
+    __tablename__ = "simulation_scenarios"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    scenario_code: str = Field(unique=True, index=True, max_length=50)
+    scenario_name: str = Field(max_length=200)
+    description: str | None = Field(default=None)
+    anomaly_type: str = Field(max_length=100)
+    anomaly_location: str = Field(max_length=200)
+    severity: str = Field(max_length=20)
+    root_cause: str | None = Field(default=None)
+    root_cause_confidence: float | None = Field(default=None)
+    solutions: list = Field(default=[], sa_column=Column(JSONB))
+    knowledge_graph_nodes: list = Field(default=[], sa_column=Column(JSONB))
+    knowledge_graph_edges: list = Field(default=[], sa_column=Column(JSONB))
+    causation_chain: list = Field(default=[], sa_column=Column(JSONB))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class SimulationScenarioSummary(SQLModel):
+    """模拟情境摘要"""
+    id: uuid.UUID
+    scenario_code: str
+    scenario_name: str
+    severity: str
+    description: str | None = None
+
+
+class SimulationScenarioPublic(SQLModel):
+    """模拟情境公开信息"""
+    id: uuid.UUID
+    scenario_code: str
+    scenario_name: str
+    description: str | None = None
+    anomaly_type: str
+    anomaly_location: str
+    severity: str
+    root_cause: str | None = None
+    root_cause_confidence: float | None = None
+    solutions: list = []
+    knowledge_graph_nodes: list = []
+    knowledge_graph_edges: list = []
+
+
+class SimulationExecuteRequest(SQLModel):
+    """模拟执行请求"""
+    scenario_id: uuid.UUID | None = None
+    scenario_code: str | None = None
+    parameters: dict | None = None
+
+
+class SimulationExecuteResponse(SQLModel):
+    """模拟执行响应"""
+    success: bool
+    message: str
+    scenario_id: uuid.UUID | None = None
+    results: dict | None = None

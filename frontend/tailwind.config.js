@@ -1,6 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}', './pages/**/*.{js,ts,jsx,tsx}'],
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './pages/**/*.{js,ts,jsx,tsx}',
+  ],
   theme: {
     extend: {
       animation: {
@@ -8,7 +13,7 @@ export default {
         'spin-slower': 'spin 30s linear infinite',
         'spin-reverse': 'spin 15s linear infinite reverse',
         'spin-counter': 'spin 25s linear infinite reverse',
-        'dash': 'dash 20s linear infinite',
+        dash: 'dash 20s linear infinite',
       },
       keyframes: {
         dash: {
@@ -17,9 +22,9 @@ export default {
         },
       },
       animationDelay: {
-        '500': '500ms',
-        '1000': '1000ms',
-        '1500': '1500ms',
+        500: '500ms',
+        1000: '1000ms',
+        1500: '1500ms',
       },
     },
   },

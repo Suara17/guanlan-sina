@@ -1,59 +1,59 @@
 import {
-  ReactFlow,
-  type Node,
-  type Edge,
-  type OnNodesChange,
-  type OnEdgesChange,
-  type OnConnect,
-  applyNodeChanges,
-  applyEdgeChanges,
   addEdge,
-  Handle,
-  Position,
-  type NodeProps,
-  useReactFlow,
-  ReactFlowProvider,
-  Controls,
+  applyEdgeChanges,
+  applyNodeChanges,
   Background,
   BackgroundVariant,
+  Controls,
+  type Edge,
+  Handle,
+  type Node,
+  type NodeProps,
+  type OnConnect,
+  type OnEdgesChange,
+  type OnNodesChange,
+  Position,
+  ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import { motion } from 'framer-motion'
 import {
+  AlertTriangle,
+  BarChart3,
+  Bot,
+  Brain,
+  Calculator,
   Camera,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Cloud,
+  Combine,
   Cpu,
   Database,
   FileJson,
+  Filter,
   Gauge,
-  Radio,
+  GitBranch,
+  Globe2,
+  HardDrive,
+  Mail,
+  Microscope,
   Network,
-  Brain,
-  Calculator,
+  Play,
+  Radio,
+  RefreshCw,
   RotateCcw,
   Save,
-  Play,
-  Zap,
-  GitBranch,
-  RefreshCw,
-  Combine,
-  Filter,
-  Clock,
-  BarChart3,
-  Bot,
-  Truck,
-  AlertTriangle,
-  Cloud,
-  Mail,
-  HardDrive,
-  Trash2,
-  Microscope,
-  Globe2,
   Target,
-  ChevronDown,
-  ChevronRight,
+  Trash2,
+  Truck,
+  Zap,
 } from 'lucide-react'
 import type React from 'react'
-import { useState, useCallback, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { useCallback, useRef, useState } from 'react'
 
 // 组件库项类型定义
 type ComponentItem = {
@@ -75,12 +75,54 @@ const componentLibrary: {
   actions: ComponentItem[]
 } = {
   dataSources: [
-    { id: 'camera', label: '工业相机', description: '实时图像采集', icon: Camera, iconName: 'Camera', color: 'slate' },
-    { id: 'plc', label: 'PLC 信号', description: '设备状态/触发信号', icon: Cpu, iconName: 'Cpu', color: 'slate' },
-    { id: 'mqtt', label: 'MQTT 订阅', description: '消息队列数据接入', icon: Radio, iconName: 'Radio', color: 'slate' },
-    { id: 'database', label: '数据库查询', description: '历史数据读取', icon: Database, iconName: 'Database', color: 'slate' },
-    { id: 'file', label: '文件监听', description: '本地文件变化监测', icon: FileJson, iconName: 'FileJson', color: 'slate' },
-    { id: 'sensor', label: '传感器数据', description: '温度/压力/振动等', icon: Gauge, iconName: 'Gauge', color: 'slate' },
+    {
+      id: 'camera',
+      label: '工业相机',
+      description: '实时图像采集',
+      icon: Camera,
+      iconName: 'Camera',
+      color: 'slate',
+    },
+    {
+      id: 'plc',
+      label: 'PLC 信号',
+      description: '设备状态/触发信号',
+      icon: Cpu,
+      iconName: 'Cpu',
+      color: 'slate',
+    },
+    {
+      id: 'mqtt',
+      label: 'MQTT 订阅',
+      description: '消息队列数据接入',
+      icon: Radio,
+      iconName: 'Radio',
+      color: 'slate',
+    },
+    {
+      id: 'database',
+      label: '数据库查询',
+      description: '历史数据读取',
+      icon: Database,
+      iconName: 'Database',
+      color: 'slate',
+    },
+    {
+      id: 'file',
+      label: '文件监听',
+      description: '本地文件变化监测',
+      icon: FileJson,
+      iconName: 'FileJson',
+      color: 'slate',
+    },
+    {
+      id: 'sensor',
+      label: '传感器数据',
+      description: '温度/压力/振动等',
+      icon: Gauge,
+      iconName: 'Gauge',
+      color: 'slate',
+    },
   ],
   atomicCapabilities: [
     {
@@ -121,20 +163,104 @@ const componentLibrary: {
     },
   ],
   dataProcessing: [
-    { id: 'split', label: '数据分流', description: '多路分发', icon: GitBranch, iconName: 'GitBranch', color: 'amber' },
-    { id: 'transform', label: '数据转换', description: '格式标准化', icon: RefreshCw, iconName: 'RefreshCw', color: 'amber' },
-    { id: 'aggregate', label: '数据聚合', description: '多源合并', icon: Combine, iconName: 'Combine', color: 'amber' },
-    { id: 'filter', label: '条件过滤', description: '规则筛选', icon: Filter, iconName: 'Filter', color: 'amber' },
-    { id: 'delay', label: '延时器', description: '定时/延时触发', icon: Clock, iconName: 'Clock', color: 'amber' },
-    { id: 'stats', label: '数据统计', description: '实时统计计算', icon: BarChart3, iconName: 'BarChart3', color: 'amber' },
+    {
+      id: 'split',
+      label: '数据分流',
+      description: '多路分发',
+      icon: GitBranch,
+      iconName: 'GitBranch',
+      color: 'amber',
+    },
+    {
+      id: 'transform',
+      label: '数据转换',
+      description: '格式标准化',
+      icon: RefreshCw,
+      iconName: 'RefreshCw',
+      color: 'amber',
+    },
+    {
+      id: 'aggregate',
+      label: '数据聚合',
+      description: '多源合并',
+      icon: Combine,
+      iconName: 'Combine',
+      color: 'amber',
+    },
+    {
+      id: 'filter',
+      label: '条件过滤',
+      description: '规则筛选',
+      icon: Filter,
+      iconName: 'Filter',
+      color: 'amber',
+    },
+    {
+      id: 'delay',
+      label: '延时器',
+      description: '定时/延时触发',
+      icon: Clock,
+      iconName: 'Clock',
+      color: 'amber',
+    },
+    {
+      id: 'stats',
+      label: '数据统计',
+      description: '实时统计计算',
+      icon: BarChart3,
+      iconName: 'BarChart3',
+      color: 'amber',
+    },
   ],
   actions: [
-    { id: 'robot', label: '机械臂控制', description: 'NG剔除/分拣', icon: Bot, iconName: 'Bot', color: 'rose' },
-    { id: 'agv', label: 'AGV 调度', description: '物料运输调度', icon: Truck, iconName: 'Truck', color: 'rose' },
-    { id: 'alarm', label: '报警触发', description: '异常告警推送', icon: AlertTriangle, iconName: 'AlertTriangle', color: 'rose' },
-    { id: 'mqtt-send', label: '发送至 MQTT', description: '指令下发', icon: Cloud, iconName: 'Cloud', color: 'rose' },
-    { id: 'notify', label: '消息通知', description: '邮件/短信/钉钉', icon: Mail, iconName: 'Mail', color: 'rose' },
-    { id: 'db-write', label: '写入数据库', description: '结果持久化', icon: HardDrive, iconName: 'HardDrive', color: 'rose' },
+    {
+      id: 'robot',
+      label: '机械臂控制',
+      description: 'NG剔除/分拣',
+      icon: Bot,
+      iconName: 'Bot',
+      color: 'rose',
+    },
+    {
+      id: 'agv',
+      label: 'AGV 调度',
+      description: '物料运输调度',
+      icon: Truck,
+      iconName: 'Truck',
+      color: 'rose',
+    },
+    {
+      id: 'alarm',
+      label: '报警触发',
+      description: '异常告警推送',
+      icon: AlertTriangle,
+      iconName: 'AlertTriangle',
+      color: 'rose',
+    },
+    {
+      id: 'mqtt-send',
+      label: '发送至 MQTT',
+      description: '指令下发',
+      icon: Cloud,
+      iconName: 'Cloud',
+      color: 'rose',
+    },
+    {
+      id: 'notify',
+      label: '消息通知',
+      description: '邮件/短信/钉钉',
+      icon: Mail,
+      iconName: 'Mail',
+      color: 'rose',
+    },
+    {
+      id: 'db-write',
+      label: '写入数据库',
+      description: '结果持久化',
+      icon: HardDrive,
+      iconName: 'HardDrive',
+      color: 'rose',
+    },
   ],
 }
 
@@ -289,19 +415,37 @@ const initialNodes: Node<CustomNodeData>[] = [
     id: '3',
     type: 'custom',
     position: { x: 280, y: 80 },
-    data: { label: '洞微感知', description: '缺陷检测', color: 'violet', icon: 'Microscope', featured: true },
+    data: {
+      label: '洞微感知',
+      description: '缺陷检测',
+      color: 'violet',
+      icon: 'Microscope',
+      featured: true,
+    },
   },
   {
     id: '4',
     type: 'custom',
     position: { x: 280, y: 200 },
-    data: { label: '格物图谱', description: '根因分析', color: 'emerald', icon: 'Network', featured: true },
+    data: {
+      label: '格物图谱',
+      description: '根因分析',
+      color: 'emerald',
+      icon: 'Network',
+      featured: true,
+    },
   },
   {
     id: '5',
     type: 'custom',
     position: { x: 500, y: 140 },
-    data: { label: '天筹优化', description: '处置决策', color: 'blue', icon: 'Calculator', featured: true },
+    data: {
+      label: '天筹优化',
+      description: '处置决策',
+      color: 'blue',
+      icon: 'Calculator',
+      featured: true,
+    },
   },
   // 数据处理
   {
@@ -339,19 +483,85 @@ const initialNodes: Node<CustomNodeData>[] = [
 
 const initialEdges: Edge[] = [
   // 数据源到原子能力
-  { id: 'e1-3', source: '1', target: '3', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
-  { id: 'e2-3', source: '2', target: '3', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
-  { id: 'e1-4', source: '1', target: '4', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
-  { id: 'e2-4', source: '2', target: '4', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
+  {
+    id: 'e1-3',
+    source: '1',
+    target: '3',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
+  {
+    id: 'e2-3',
+    source: '2',
+    target: '3',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
+  {
+    id: 'e1-4',
+    source: '1',
+    target: '4',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
+  {
+    id: 'e2-4',
+    source: '2',
+    target: '4',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
   // 原子能力之间
-  { id: 'e3-5', source: '3', target: '5', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
-  { id: 'e4-5', source: '4', target: '5', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
-  { id: 'e4-6', source: '4', target: '6', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
+  {
+    id: 'e3-5',
+    source: '3',
+    target: '5',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
+  {
+    id: 'e4-5',
+    source: '4',
+    target: '5',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
+  {
+    id: 'e4-6',
+    source: '4',
+    target: '6',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
   // 到执行动作
-  { id: 'e5-7', source: '5', target: '7', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
-  { id: 'e5-8', source: '5', target: '8', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
-  { id: 'e6-9', source: '6', target: '9', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
-  { id: 'e6-10', source: '6', target: '10', animated: false, style: { stroke: '#94a3b8', strokeWidth: 2 } },
+  {
+    id: 'e5-7',
+    source: '5',
+    target: '7',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
+  {
+    id: 'e5-8',
+    source: '5',
+    target: '8',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
+  {
+    id: 'e6-9',
+    source: '6',
+    target: '9',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
+  {
+    id: 'e6-10',
+    source: '6',
+    target: '10',
+    animated: false,
+    style: { stroke: '#94a3b8', strokeWidth: 2 },
+  },
 ]
 
 // 组件库项组件
@@ -425,11 +635,7 @@ function CollapsibleSection({
           <span className="w-3.5" />
         )}
         {icon} {title}
-        {hasMore && (
-          <span className="font-normal text-slate-400 ml-auto">
-            {items.length}
-          </span>
-        )}
+        {hasMore && <span className="font-normal text-slate-400 ml-auto">{items.length}</span>}
       </button>
       <div className="space-y-2">
         {displayItems.map((item) => (
@@ -472,20 +678,15 @@ function FlowCanvas() {
 
   const onConnect: OnConnect = useCallback(
     (params) =>
-      setEdges((eds) =>
-        addEdge({ ...params, style: { stroke: '#94a3b8', strokeWidth: 2 } }, eds)
-      ),
+      setEdges((eds) => addEdge({ ...params, style: { stroke: '#94a3b8', strokeWidth: 2 } }, eds)),
     [setEdges]
   )
 
   // 拖拽添加节点
-  const onDragStart = useCallback(
-    (event: React.DragEvent, item: ComponentItem) => {
-      event.dataTransfer.setData('application/reactflow', JSON.stringify(item))
-      event.dataTransfer.effectAllowed = 'move'
-    },
-    []
-  )
+  const onDragStart = useCallback((event: React.DragEvent, item: ComponentItem) => {
+    event.dataTransfer.setData('application/reactflow', JSON.stringify(item))
+    event.dataTransfer.effectAllowed = 'move'
+  }, [])
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault()
@@ -527,7 +728,9 @@ function FlowCanvas() {
   const deleteSelectedNodes = useCallback(() => {
     setNodes((nds) => nds.filter((node) => !selectedNodes.includes(node.id)))
     setEdges((eds) =>
-      eds.filter((edge) => !selectedNodes.includes(edge.source) && !selectedNodes.includes(edge.target))
+      eds.filter(
+        (edge) => !selectedNodes.includes(edge.source) && !selectedNodes.includes(edge.target)
+      )
     )
     setSelectedNodes([])
   }, [selectedNodes])

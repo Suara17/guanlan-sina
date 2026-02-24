@@ -54,32 +54,38 @@ const AboutUs: React.FC = () => {
     {
       year: '2019',
       title: '创立起步',
-      description: '天工·弈控在杭州成立，核心团队来自清华大学、浙江大学等知名院校，专注于工业互联网与智能制造领域。',
+      description:
+        '天工·弈控在杭州成立，核心团队来自清华大学、浙江大学等知名院校，专注于工业互联网与智能制造领域。',
     },
     {
       year: '2020',
       title: '技术突破',
-      description: '发布洞微感知引擎1.0，实现毫秒级设备数据采集。完成Pre-A轮融资，获得国内头部汽车制造商首个订单。',
+      description:
+        '发布洞微感知引擎1.0，实现毫秒级设备数据采集。完成Pre-A轮融资，获得国内头部汽车制造商首个订单。',
     },
     {
       year: '2021',
       title: '产品矩阵',
-      description: '格物数字孪生平台上线，支持1:1高精度工厂数字化建模。团队规模突破100人，服务企业超过50家。',
+      description:
+        '格物数字孪生平台上线，支持1:1高精度工厂数字化建模。团队规模突破100人，服务企业超过50家。',
     },
     {
       year: '2022',
       title: 'AI赋能',
-      description: '天筹智能决策引擎发布，AI驱动的排产优化系统投入商用。入选工信部智能制造系统解决方案供应商推荐目录。',
+      description:
+        '天筹智能决策引擎发布，AI驱动的排产优化系统投入商用。入选工信部智能制造系统解决方案供应商推荐目录。',
     },
     {
       year: '2023',
       title: '生态扩展',
-      description: '浑天仿真引擎上线，实现超实时生产推演。完成B轮融资，估值超10亿，服务企业突破300家，覆盖12个行业。',
+      description:
+        '浑天仿真引擎上线，实现超实时生产推演。完成B轮融资，估值超10亿，服务企业突破300家，覆盖12个行业。',
     },
     {
       year: '2024',
       title: '行业领先',
-      description: '发布天工·弈控2.0，构建"1+N+X"生态架构。荣获国家级专精特新"小巨人"企业称号，服务客户超500家。',
+      description:
+        '发布天工·弈控2.0，构建"1+N+X"生态架构。荣获国家级专精特新"小巨人"企业称号，服务客户超500家。',
     },
   ]
 
@@ -144,7 +150,8 @@ const AboutUs: React.FC = () => {
       id: 'mission',
       title: '企业使命',
       icon: Rocket,
-      content: '以"视-空协同"技术为核心，打破工业数据孤岛，让每一次生产决策都有数据支撑，让每一个工厂都拥有智慧大脑。',
+      content:
+        '以"视-空协同"技术为核心，打破工业数据孤岛，让每一次生产决策都有数据支撑，让每一个工厂都拥有智慧大脑。',
     },
     {
       id: 'values',
@@ -179,8 +186,18 @@ const AboutUs: React.FC = () => {
               onClick={() => navigate('/')}
               className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
             >
-              <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                className="w-5 h-5 group-hover:-translate-x-1 transition-transform"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               <span className="text-sm">返回首页</span>
             </button>
@@ -218,7 +235,9 @@ const AboutUs: React.FC = () => {
               {/* 标签 */}
               <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-8">
                 <Users size={16} className="text-blue-400" />
-                <span className="text-sm font-bold text-blue-300 tracking-wider uppercase">ABOUT US</span>
+                <span className="text-sm font-bold text-blue-300 tracking-wider uppercase">
+                  ABOUT US
+                </span>
               </div>
 
               {/* 主标题 */}
@@ -227,16 +246,15 @@ const AboutUs: React.FC = () => {
                   天工·弈控
                 </span>
               </h1>
-              
+
               {/* 副标题 */}
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-8">
-                赋能制造，智控未来
-              </h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-8">赋能制造，智控未来</h2>
 
               {/* 企业简介 */}
               <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto mb-12">
-                天工·弈控是一家专注于工业数字孪生操作系统研发的国家高新技术企业。
-                我们以<span className="text-cyan-400 font-semibold">"视-空协同"</span>技术为核心，为离散制造业提供从数据采集、数字孪生建模、
+                天工·弈控是一家专注于工业数字孪生操作系统研发的国家高新技术企业。 我们以
+                <span className="text-cyan-400 font-semibold">"视-空协同"</span>
+                技术为核心，为离散制造业提供从数据采集、数字孪生建模、
                 智能决策到仿真验证的全栈式解决方案。
               </p>
 
@@ -244,18 +262,29 @@ const AboutUs: React.FC = () => {
               <div className="flex justify-center gap-6 mb-16">
                 {capabilities.map((cap, idx) => (
                   <div key={idx} className="group">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${
-                      cap.color === 'blue' ? 'from-blue-500/20 to-blue-600/20 border-blue-500/30' :
-                      cap.color === 'cyan' ? 'from-cyan-500/20 to-cyan-600/20 border-cyan-500/30' :
-                      cap.color === 'emerald' ? 'from-emerald-500/20 to-emerald-600/20 border-emerald-500/30' :
-                      'from-violet-500/20 to-violet-600/20 border-violet-500/30'
-                    } border backdrop-blur-sm flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300`}>
-                      <cap.icon size={28} className={`${
-                        cap.color === 'blue' ? 'text-blue-400' :
-                        cap.color === 'cyan' ? 'text-cyan-400' :
-                        cap.color === 'emerald' ? 'text-emerald-400' :
-                        'text-violet-400'
-                      }`} />
+                    <div
+                      className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${
+                        cap.color === 'blue'
+                          ? 'from-blue-500/20 to-blue-600/20 border-blue-500/30'
+                          : cap.color === 'cyan'
+                            ? 'from-cyan-500/20 to-cyan-600/20 border-cyan-500/30'
+                            : cap.color === 'emerald'
+                              ? 'from-emerald-500/20 to-emerald-600/20 border-emerald-500/30'
+                              : 'from-violet-500/20 to-violet-600/20 border-violet-500/30'
+                      } border backdrop-blur-sm flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300`}
+                    >
+                      <cap.icon
+                        size={28}
+                        className={`${
+                          cap.color === 'blue'
+                            ? 'text-blue-400'
+                            : cap.color === 'cyan'
+                              ? 'text-cyan-400'
+                              : cap.color === 'emerald'
+                                ? 'text-emerald-400'
+                                : 'text-violet-400'
+                        }`}
+                      />
                     </div>
                     <div className="text-sm font-semibold text-white">{cap.title}</div>
                     <div className="text-xs text-slate-400">{cap.desc}</div>
@@ -266,11 +295,13 @@ const AboutUs: React.FC = () => {
               {/* 数据统计卡片 */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
                 {stats.map((stat, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group hover:-translate-y-1"
                   >
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                    <div
+                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}
+                    >
                       <stat.icon size={24} className="text-white" />
                     </div>
                     <div className="text-3xl font-black text-white mb-1">{stat.value}</div>
@@ -336,7 +367,9 @@ const AboutUs: React.FC = () => {
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-6">
                 <Flame size={16} className="text-orange-400" />
-                <span className="text-sm font-bold text-orange-300 tracking-wider uppercase">MILESTONE</span>
+                <span className="text-sm font-bold text-orange-300 tracking-wider uppercase">
+                  MILESTONE
+                </span>
               </div>
               <h2 className="text-3xl font-black mb-4">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
@@ -362,9 +395,13 @@ const AboutUs: React.FC = () => {
                     <div className="absolute left-8 lg:left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 border-4 border-slate-900 z-10 shadow-lg shadow-blue-500/50"></div>
 
                     {/* 内容卡片 */}
-                    <div className={`flex-1 ml-16 lg:ml-0 ${idx % 2 === 0 ? 'lg:pr-16 lg:text-right' : 'lg:pl-16'}`}>
+                    <div
+                      className={`flex-1 ml-16 lg:ml-0 ${idx % 2 === 0 ? 'lg:pr-16 lg:text-right' : 'lg:pl-16'}`}
+                    >
                       <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-blue-500/30 transition-all group">
-                        <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-2">{item.year}</div>
+                        <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-2">
+                          {item.year}
+                        </div>
                         <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
                         <p className="text-sm text-slate-400 leading-relaxed">{item.description}</p>
                       </div>
@@ -385,7 +422,9 @@ const AboutUs: React.FC = () => {
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-6">
                 <Users size={16} className="text-emerald-400" />
-                <span className="text-sm font-bold text-emerald-300 tracking-wider uppercase">TEAM</span>
+                <span className="text-sm font-bold text-emerald-300 tracking-wider uppercase">
+                  TEAM
+                </span>
               </div>
               <h2 className="text-3xl font-black mb-4">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
@@ -420,7 +459,9 @@ const AboutUs: React.FC = () => {
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-6">
                 <Medal size={16} className="text-amber-400" />
-                <span className="text-sm font-bold text-amber-300 tracking-wider uppercase">HONORS</span>
+                <span className="text-sm font-bold text-amber-300 tracking-wider uppercase">
+                  HONORS
+                </span>
               </div>
               <h2 className="text-3xl font-black mb-4">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
@@ -458,11 +499,13 @@ const AboutUs: React.FC = () => {
               {/* 装饰元素 */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[80px] rounded-full"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 blur-[60px] rounded-full"></div>
-              
+
               <div className="text-center mb-8 relative z-10">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-4">
                   <Hexagon size={16} className="text-cyan-400" />
-                  <span className="text-sm font-bold text-cyan-300 tracking-wider uppercase">CONTACT</span>
+                  <span className="text-sm font-bold text-cyan-300 tracking-wider uppercase">
+                    CONTACT
+                  </span>
                 </div>
                 <h2 className="text-2xl font-black mb-2">联系我们</h2>
                 <p className="text-slate-400">期待与您携手，共创智能制造新未来</p>
@@ -499,7 +542,12 @@ const AboutUs: React.FC = () => {
                 >
                   预约产品演示
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
                 <button
