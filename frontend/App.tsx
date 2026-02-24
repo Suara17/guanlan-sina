@@ -11,12 +11,14 @@ import { AuthProvider } from './contexts/AuthContext'
 import AboutUs from './pages/AboutUs'
 import CustomerCases from './pages/CustomerCases'
 import Dashboard from './pages/Dashboard'
+import Ecosystem from './pages/Ecosystem'
 import Huntian from './pages/Huntian'
 import KernelConnect from './pages/KernelConnect'
 import KnowledgeGraph from './pages/KnowledgeGraph'
 import Marketplace from './pages/Marketplace'
 import MonitoringDemo from './pages/MonitoringDemo'
 import ScenarioBuilder from './pages/ScenarioBuilder'
+import Settings from './pages/Settings'
 import Simulation from './pages/Simulation'
 import SinanAnalysis from './pages/SinanAnalysis'
 import SubscriptionValue from './pages/SubscriptionValue'
@@ -52,6 +54,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return '场景编排'
       case '/app/ecosystem':
         return '开发者生态'
+      case '/app/settings':
+        return '系统设置'
       default:
         return '天工·弈控'
     }
@@ -108,16 +112,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   )
 }
 
-const EcosystemPlaceholder = () => (
-  <div className="p-10 flex flex-col items-center justify-center text-slate-400 h-full">
-    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-3xl">
-      🛠️
-    </div>
-    <h2 className="text-xl font-bold text-slate-600">开发者生态</h2>
-    <p className="mt-2">OpenAPI 门户与开发者沙箱正在建设中...</p>
-  </div>
-)
-
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -145,7 +139,8 @@ const App: React.FC = () => {
                     <Route path="/kernel" element={<KernelConnect />} />
                     <Route path="/marketplace" element={<Marketplace />} />
                     <Route path="/builder" element={<ScenarioBuilder />} />
-                    <Route path="/ecosystem" element={<EcosystemPlaceholder />} />
+                    <Route path="/ecosystem" element={<Ecosystem />} />
+                    <Route path="/settings" element={<Settings />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>

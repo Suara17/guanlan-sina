@@ -258,14 +258,22 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
       <div className="p-4 border-t border-slate-800">
         <button
           type="button"
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer group ${
-            collapsed ? 'justify-center' : ''
-          }`}
+          onClick={() => onNavigate('/app/settings')}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all cursor-pointer group ${
+            currentPath === '/app/settings'
+              ? 'bg-gradient-to-r from-blue-600/90 to-blue-500/80 text-white shadow-lg shadow-blue-900/50'
+              : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+          } ${collapsed ? 'justify-center' : ''}`}
           title={collapsed ? '系统设置' : undefined}
         >
           <Settings
             size={20}
-            className="flex-shrink-0 group-hover:rotate-90 transition-transform duration-300"
+            className={`flex-shrink-0 transition-all ${
+              currentPath === '/app/settings'
+                ? 'text-white drop-shadow-[0_0_8px_rgba(96,165,250,0.8)] group-hover:rotate-90'
+                : 'text-slate-400 group-hover:text-white group-hover:rotate-90'
+            }`}
+            strokeWidth={currentPath === '/app/settings' ? 2.5 : 2}
           />
           {!collapsed && <span className="font-medium text-sm">系统设置</span>}
         </button>

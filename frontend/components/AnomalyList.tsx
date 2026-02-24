@@ -7,9 +7,10 @@ import type { AnomalyDetail } from '../types'
 
 interface Props {
   lineType: 'SMT' | 'PCB' | '3C'
+  className?: string
 }
 
-const AnomalyList: React.FC<Props> = ({ lineType }) => {
+const AnomalyList: React.FC<Props> = ({ lineType, className }) => {
   const navigate = useNavigate()
 
   // 根据产线类型获取异常数据
@@ -67,7 +68,7 @@ const AnomalyList: React.FC<Props> = ({ lineType }) => {
   const warningCount = filteredAnomalies.filter((a) => a.level === 'warning').length
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col h-full">
+    <div className={`bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex flex-col ${className || ''}`}>
       {/* 头部标题和统计 */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
@@ -98,13 +99,13 @@ const AnomalyList: React.FC<Props> = ({ lineType }) => {
       </div>
 
       {/* 异常列表 */}
-      <div className="flex-1 overflow-y-auto pr-2 space-y-3 relative">
+      <div className="flex-1 overflow-y-auto pr-2 space-y-2 relative">
         {/* 时间轴线 */}
-        <div className="absolute left-2 top-2 bottom-2 w-px bg-slate-200" />
+        <div className="absolute left-2 top-1 bottom-1 w-px bg-slate-200" />
 
         {filteredAnomalies.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-            <AlertCircle size={48} className="mb-3 opacity-50" />
+          <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+            <AlertCircle size={36} className="mb-2 opacity-50" />
             <p className="text-sm">暂无异常信息</p>
           </div>
         ) : (
@@ -113,7 +114,7 @@ const AnomalyList: React.FC<Props> = ({ lineType }) => {
               key={anomaly.id}
               onClick={() => handleAnomalyClick(anomaly.id)}
               onKeyDown={(e) => e.key === 'Enter' && handleAnomalyClick(anomaly.id)}
-              className="relative pl-6 group cursor-pointer hover:bg-slate-50 p-3 rounded-lg transition-all hover:shadow-sm border border-transparent hover:border-blue-100"
+              className="relative pl-6 group cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-all hover:shadow-sm border border-transparent hover:border-blue-100"
             >
               {/* 时间轴点 */}
               <div
@@ -150,7 +151,7 @@ const AnomalyList: React.FC<Props> = ({ lineType }) => {
 
       {/* 底部提示 */}
       {filteredAnomalies.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-slate-100">
+        <div className="mt-3 pt-3 border-t border-slate-100">
           <p className="text-xs text-slate-500 text-center">
             共 {filteredAnomalies.length} 条异常 · 点击查看格物图谱分析
           </p>

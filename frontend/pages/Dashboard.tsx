@@ -252,8 +252,9 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
-        {/* Left Column: Data Dashboard & Charts */}
+      {/* 上半部分：左右布局 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        {/* Left Column: Data Dashboard & Production Plan */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* 数据看板 */}
           <DataDashboard metrics={dashboardMetrics} />
@@ -265,178 +266,178 @@ const Dashboard: React.FC = () => {
             productChangeWarning={productionPlan.productChangeWarning}
             onOptimize={handleOptimize}
           />
+        </div>
 
-          {/* Production Monitor */}
-          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex-1">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <Clock size={18} className="text-blue-500" /> 实时产量监控
-              </h3>
-              <div className="flex gap-4 text-xs">
-                <span className="flex items-center gap-1">
-                  <span className="w-3 h-3 bg-slate-200 rounded-sm"></span> 计划产量
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-3 h-3 bg-blue-500 rounded-sm"></span> 实际产量
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-3 h-3 bg-red-400 rounded-sm"></span> 异常差异{' '}
-                </span>
-              </div>
-            </div>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={PRODUCTION_DATA} barGap={0}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis
-                    dataKey="time"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
-                    dy={10}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
-                  />
-                  <Tooltip
-                    cursor={{ fill: '#f1f5f9' }}
-                    contentStyle={{
-                      borderRadius: '8px',
-                      border: 'none',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                    }}
-                  />
-                  <Bar dataKey="planned" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={20} />
-                  <Bar dataKey="actual" radius={[4, 4, 0, 0]} barSize={20}>
-                    {PRODUCTION_DATA.map((entry) => (
-                      <Cell
-                        key={`cell-${entry.time}`}
-                        fill={entry.actual < entry.planned * 0.95 ? '#f87171' : '#3b82f6'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+        {/* Right Column: Anomaly List (高度与左侧对齐) */}
+        <div className="flex flex-col h-full">
+          {selectedLine && <AnomalyList lineType={selectedLine.type} className="h-full" />}
+        </div>
+      </div>
+
+      {/* 下半部分：全宽卡片 */}
+      {/* Production Monitor - 全宽 */}
+      <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+            <Clock size={18} className="text-blue-500" /> 实时产量监控
+          </h3>
+          <div className="flex gap-4 text-xs">
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 bg-slate-200 rounded-sm"></span> 计划产量
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 bg-blue-500 rounded-sm"></span> 实际产量
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 bg-red-400 rounded-sm"></span> 异常差异{' '}
+            </span>
           </div>
+        </div>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={PRODUCTION_DATA} barGap={0}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis
+                dataKey="time"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+                dy={10}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12 }}
+              />
+              <Tooltip
+                cursor={{ fill: '#f1f5f9' }}
+                contentStyle={{
+                  borderRadius: '8px',
+                  border: 'none',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                }}
+              />
+              <Bar dataKey="planned" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={20} />
+              <Bar dataKey="actual" radius={[4, 4, 0, 0]} barSize={20}>
+                {PRODUCTION_DATA.map((entry) => (
+                  <Cell
+                    key={`cell-${entry.time}`}
+                    fill={entry.actual < entry.planned * 0.95 ? '#f87171' : '#3b82f6'}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-          {/* Quality Monitor */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-64">
-            <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
-              <h3 className="font-bold text-slate-800 mb-2">质量实时看板</h3>
-              <div className="h-full -mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={QUALITY_DATA}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      paddingAngle={5}
-                      dataKey="value"
-                      activeIndex={1}
-                      activeShape={renderActiveShape}
-                    >
-                      <Cell key="cell-0" fill="#22c55e" /> {/* Green for Good */}
-                      <Cell key="cell-1" fill="#ef4444" /> {/* Red for Bad */}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="absolute bottom-4 left-0 right-0 text-center">
-                <span className="text-xs font-medium text-red-500 bg-red-50 px-2 py-1 rounded-full">
-                  环比昨日 ↓3.8%
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center gap-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">设备综合效率 (OEE)</span>
-                <span className="text-xl font-bold text-slate-800">
-                  {((dashboardMetrics.completionRate + dashboardMetrics.efficiency) / 2).toFixed(1)}
-                  %
-                </span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full"
-                  style={{
-                    width: `${(dashboardMetrics.completionRate + dashboardMetrics.efficiency) / 2}%`,
-                  }}
-                ></div>
-              </div>
-
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-sm text-slate-500">本班次完成率</span>
-                <span className="text-xl font-bold text-slate-800">
-                  {dashboardMetrics.completionRate.toFixed(1)}%
-                </span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div
-                  className="bg-emerald-500 h-2 rounded-full"
-                  style={{ width: `${dashboardMetrics.completionRate}%` }}
-                ></div>
-              </div>
-
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-sm text-slate-500">平均节拍 (CT)</span>
-                <span className="text-xl font-bold text-slate-800">24s</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-amber-500 h-2 rounded-full" style={{ width: '60%' }}></div>
-              </div>
-            </div>
+      {/* Quality Monitor - 全宽 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-64">
+        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
+          <h3 className="font-bold text-slate-800 mb-2">质量实时看板</h3>
+          <div className="h-full -mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={QUALITY_DATA}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  dataKey="value"
+                  activeIndex={1}
+                  activeShape={renderActiveShape}
+                >
+                  <Cell key="cell-0" fill="#22c55e" /> {/* Green for Good */}
+                  <Cell key="cell-1" fill="#ef4444" /> {/* Red for Bad */}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-
-          {/* 订阅价值复盘 */}
-          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-800">订阅价值复盘</h3>
-              <button
-                type="button"
-                onClick={() => navigate('/app/subscription-value')}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-              >
-                查看详情 →
-              </button>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-slate-50 rounded-lg">
-                <p className="text-2xl font-bold text-slate-800">+35%</p>
-                <p className="text-xs text-slate-500 mt-1">OEE提升</p>
-              </div>
-              <div className="text-center p-4 bg-slate-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">¥128.5万</p>
-                <p className="text-xs text-slate-500 mt-1">年度节省</p>
-              </div>
-              <div className="text-center p-4 bg-slate-50 rounded-lg">
-                <p className="text-2xl font-bold text-purple-600">3.2x</p>
-                <p className="text-xs text-slate-500 mt-1">ROI</p>
-              </div>
-            </div>
+          <div className="absolute bottom-4 left-0 right-0 text-center">
+            <span className="text-xs font-medium text-red-500 bg-red-50 px-2 py-1 rounded-full">
+              环比昨日 ↓3.8%
+            </span>
           </div>
         </div>
 
-        {/* Right Column: Anomaly List & Sinan */}
-        <div className="flex flex-col gap-6">
-          {/* 异常列表 */}
-          {selectedLine && <AnomalyList lineType={selectedLine.type} />}
+        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center gap-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-500">设备综合效率 (OEE)</span>
+            <span className="text-xl font-bold text-slate-800">
+              {((dashboardMetrics.completionRate + dashboardMetrics.efficiency) / 2).toFixed(1)}
+              %
+            </span>
+          </div>
+          <div className="w-full bg-slate-100 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full"
+              style={{
+                width: `${(dashboardMetrics.completionRate + dashboardMetrics.efficiency) / 2}%`,
+              }}
+            ></div>
+          </div>
 
-          {/* Sinan Assistant Area */}
-          <div className="h-64 relative">
-            <SinanAvatar
-              mode={sinanMode}
-              alertMessage={alertMessage}
-              className="h-full justify-end pb-4"
-            />
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-sm text-slate-500">本班次完成率</span>
+            <span className="text-xl font-bold text-slate-800">
+              {dashboardMetrics.completionRate.toFixed(1)}%
+            </span>
+          </div>
+          <div className="w-full bg-slate-100 rounded-full h-2">
+            <div
+              className="bg-emerald-500 h-2 rounded-full"
+              style={{ width: `${dashboardMetrics.completionRate}%` }}
+            ></div>
+          </div>
+
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-sm text-slate-500">平均节拍 (CT)</span>
+            <span className="text-xl font-bold text-slate-800">24s</span>
+          </div>
+          <div className="w-full bg-slate-100 rounded-full h-2">
+            <div className="bg-amber-500 h-2 rounded-full" style={{ width: '60%' }}></div>
           </div>
         </div>
+      </div>
+
+      {/* 订阅价值复盘 - 全宽 */}
+      <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-slate-800">订阅价值复盘</h3>
+          <button
+            type="button"
+            onClick={() => navigate('/app/subscription-value')}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+          >
+            查看详情 →
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-slate-50 rounded-lg">
+            <p className="text-2xl font-bold text-slate-800">+35%</p>
+            <p className="text-xs text-slate-500 mt-1">OEE提升</p>
+          </div>
+          <div className="text-center p-4 bg-slate-50 rounded-lg">
+            <p className="text-2xl font-bold text-green-600">¥128.5万</p>
+            <p className="text-xs text-slate-500 mt-1">年度节省</p>
+          </div>
+          <div className="text-center p-4 bg-slate-50 rounded-lg">
+            <p className="text-2xl font-bold text-purple-600">3.2x</p>
+            <p className="text-xs text-slate-500 mt-1">ROI</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 司南数字人 - 悬浮定位 */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <SinanAvatar
+          mode={sinanMode}
+          alertMessage={alertMessage}
+          className="h-48 w-48"
+        />
       </div>
 
       {/* 3.2 优化路线：产品切换预警弹窗 */}
