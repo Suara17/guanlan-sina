@@ -8,15 +8,16 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 import { AuthProvider } from './contexts/AuthContext'
+import AboutUs from './pages/AboutUs'
+import CustomerCases from './pages/CustomerCases'
 import Dashboard from './pages/Dashboard'
 import Huntian from './pages/Huntian'
 import KernelConnect from './pages/KernelConnect'
 import KnowledgeGraph from './pages/KnowledgeGraph'
 import Marketplace from './pages/Marketplace'
 import MonitoringDemo from './pages/MonitoringDemo'
-import CustomerCases from './pages/CustomerCases'
-import AboutUs from './pages/AboutUs'
 import ScenarioBuilder from './pages/ScenarioBuilder'
+import Simulation from './pages/Simulation'
 import SinanAnalysis from './pages/SinanAnalysis'
 import SubscriptionValue from './pages/SubscriptionValue'
 import Tianchou from './pages/Tianchou'
@@ -140,6 +141,7 @@ const App: React.FC = () => {
                     <Route path="/gewu" element={<KnowledgeGraph />} />
                     <Route path="/huntian" element={<Huntian />} />
                     <Route path="/tianchou" element={<Tianchou />} />
+                    <Route path="/simulation" element={<Simulation />} />
                     <Route path="/kernel" element={<KernelConnect />} />
                     <Route path="/marketplace" element={<Marketplace />} />
                     <Route path="/builder" element={<ScenarioBuilder />} />

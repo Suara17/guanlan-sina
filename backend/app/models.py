@@ -262,6 +262,8 @@ class AnomalyBase(SQLModel):
     assigned_to: uuid.UUID | None = Field(default=None)
     root_cause: str | None = Field(default=None)
     solution_id: uuid.UUID | None = Field(default=None, foreign_key="solutions.id")
+    root_cause_confidence: float | None = Field(default=None)
+    causation_chain: dict | None = Field(default=None, sa_column=Column(JSONB))
 
 
 class Anomaly(AnomalyBase, table=True):
@@ -269,6 +271,26 @@ class Anomaly(AnomalyBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     closed_at: datetime | None = Field(default=None)
+
+
+class AnomalyWithRootCause(SQLModel):
+    id: uuid.UUID
+    line_id: uuid.UUID
+    station_id: uuid.UUID
+    defect_type: str
+    severity: str
+    detected_at: datetime
+    status: str
+    root_cause: str | None
+    root_cause_confidence: float | None
+    causation_chain: list[dict] | None = None
+    solutions: list["SolutionPublic"] = []
+
+
+class AnomalyDetail(AnomalyWithRootCause):
+    location: str | None = None
+    message: str | None = None
+    created_at: datetime | None = None
 
 
 class DiagnosisBase(SQLModel):
@@ -296,6 +318,14 @@ class SolutionBase(SQLModel):
     expected_loss: float | None = Field(default=None)
     roi: float | None = Field(default=None)
     recommended: bool = Field(default=False)
+    repair_cost: float = Field(default=0)
+    delivery_impact_hours: float = Field(default=0)
+    delivery_impact_cost: float = Field(default=0)
+    quality_risk_cost: float = Field(default=0)
+    downtime_cost: float = Field(default=0)
+    total_expected_loss: float = Field(default=0)
+    implementation_time_hours: float = Field(default=0)
+    risk_level: str = Field(default="low", max_length=20)
 
 
 class Solution(SolutionBase, table=True):
@@ -311,6 +341,10 @@ class Solution(SolutionBase, table=True):
 class SolutionPublic(SolutionBase):
     id: uuid.UUID
     diagnosis_id: uuid.UUID | None
+
+
+class SolutionWithCost(SolutionPublic):
+    cost_matrix: dict | None = None
 
 
 class DiagnosisPublic(DiagnosisBase):
@@ -536,3 +570,110 @@ class DecisionRecord(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     task: OptimizationTask = Relationship(back_populates="decisions")
+
+
+# --- Simulation (异常模拟) ---
+
+
+class SimulationScenarioBase(SQLModel):
+    """异常模拟情境基础模型"""
+
+    scenario_code: str = Field(unique=True, max_length=20)  # SIM-001
+    scenario_name: str = Field(max_length=200)
+    description: str | None = Field(default=None)
+
+    # 异常信息
+    anomaly_type: str = Field(max_length=100)  # 异常类型
+    anomaly_location: str | None = Field(default=None, max_length=100)  # 发生位置
+    severity: str = Field(default="warning", max_length=20)  # 严重程度: critical/error/warning
+
+    # 根因数据
+    root_cause: str | None = Field(default=None)
+    root_cause_confidence: float | None = Field(default=None)  # 置信度
+
+
+class SimulationScenario(SimulationScenarioBase, table=True):
+    """异常模拟情境"""
+
+    __tablename__ = "simulation_scenarios"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+    # 方案数据 (多个方案)
+    solutions: list[dict] = Field(default=[], sa_column=Column(JSONB))
+    # 示例:
+    # [{
+    #   "id": "A",
+    #   "title": "方案A：立即更换吸嘴",
+    #   "repair_cost": 2500,
+    #   "delivery_impact_hours": 0.25,
+    #   "delivery_impact_cost": 8000,
+    #   "quality_risk_cost": 500,
+    #   "downtime_cost": 12000,
+    #   "total_expected_loss": 23000,
+    #   "implementation_time_hours": 0.25,
+    #   "success_rate": 0.92,
+    #   "risk_level": "low",
+    #   "is_recommended": true
+    # }]
+
+    # 知识图谱数据
+    knowledge_graph_nodes: list[dict] = Field(default=[], sa_column=Column(JSONB))
+    # 示例:
+    # [{
+    #   "id": "node-1",
+    #   "type": "phenomenon",
+    #   "label": "贴片抛料率超8%",
+    #   "description": "贴片机抛料率超过标准值",
+    #   "x": 100, "y": 50
+    # }]
+
+    knowledge_graph_edges: list[dict] = Field(default=[], sa_column=Column(JSONB))
+    # 示例:
+    # [{
+    #   "id": "edge-1",
+    #   "source": "node-1",
+    #   "target": "node-2",
+    #   "type": "caused_by"
+    # }]
+
+    # 因果链数据
+    causation_chain: list[dict] = Field(default=[], sa_column=Column(JSONB))
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class SimulationScenarioPublic(SimulationScenarioBase):
+    """模拟情境公开模型"""
+
+    id: uuid.UUID
+    solutions: list[dict] = []
+    knowledge_graph_nodes: list[dict] = []
+    knowledge_graph_edges: list[dict] = []
+
+
+class SimulationScenarioSummary(SQLModel):
+    """模拟情境摘要（列表展示用）"""
+
+    id: uuid.UUID
+    scenario_code: str
+    scenario_name: str
+    severity: str
+    description: str | None = None
+
+
+class SimulationExecuteRequest(SQLModel):
+    """执行模拟请求"""
+
+    scenario_id: uuid.UUID
+
+
+class SimulationExecuteResponse(SQLModel):
+    """执行模拟响应"""
+
+    simulation_id: uuid.UUID
+    anomaly_data: dict
+    root_cause: dict
+    solutions: list[dict]
+    knowledge_graph: dict
+    redirect_url: str

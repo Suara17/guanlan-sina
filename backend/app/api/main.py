@@ -8,6 +8,7 @@ from app.api.routes import (
     login,
     private,
     production,
+    simulation,
     solutions,
     tianchou,
     users,
@@ -27,6 +28,9 @@ api_router.include_router(cases.router, prefix="/cases", tags=["cases"])
 
 # 注册天筹优化路由
 api_router.include_router(tianchou.router, prefix="/tianchou", tags=["tianchou"])
+
+# 注册异常模拟路由
+api_router.include_router(simulation.router, prefix="/simulation", tags=["simulation"])
 
 # 注册知识图谱路由
 if settings.neo4j_enabled:

@@ -1,6 +1,6 @@
-import { Clock, Factory } from 'lucide-react'
+import { Beaker, Clock, Factory } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Bar,
@@ -18,6 +18,7 @@ import {
 import AnomalyList from '../components/AnomalyList'
 import DataDashboard from '../components/DataDashboard'
 import ProductionLineSelector from '../components/ProductionLineSelector'
+import SimulationSelector from '../components/SimulationSelector'
 import SinanAvatar from '../components/SinanAvatar'
 import { DASHBOARD_METRICS, getAnomaliesByLineType, PRODUCTION_LINES } from '../mockData'
 import type { DashboardMetrics, ProductionData, ProductionLine } from '../types'
@@ -42,6 +43,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const [sinanMode, setSinanMode] = useState<'idle' | 'alert'>('idle')
   const [selectedLine, setSelectedLine] = useState<ProductionLine | null>(PRODUCTION_LINES[0]) // 默认选中第一条产线
+  const [showSimulationSelector, setShowSimulationSelector] = useState(false)
 
   // Get anomalies for the selected line
   const currentAnomalies = useMemo(() => {
@@ -77,6 +79,12 @@ const Dashboard: React.FC = () => {
   // 产线选择处理函数
   const handleLineSelect = (line: ProductionLine) => {
     setSelectedLine(line)
+  }
+
+  // 模拟情境选择处理
+  const handleSimulationSelect = async (scenarioId: string) => {
+    setShowSimulationSelector(false)
+    navigate(`/app/simulation?scenario_id=${scenarioId}`)
   }
 
   // 获取当前选中产线的数据
@@ -341,8 +349,38 @@ const Dashboard: React.FC = () => {
               className="h-full justify-end pb-4"
             />
           </div>
+
+          {/* 异常模拟入口 */}
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-5 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Beaker size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold">异常模拟</h3>
+                  <p className="text-xs text-white/80">演示系统运行流程</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSimulationSelector(true)}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <Beaker size={16} />
+                开始模拟
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* 模拟情境选择器 */}
+      <SimulationSelector
+        isOpen={showSimulationSelector}
+        onClose={() => setShowSimulationSelector(false)}
+        onSelect={handleSimulationSelect}
+      />
     </div>
   )
 }
