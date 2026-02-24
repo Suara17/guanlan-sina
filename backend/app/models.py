@@ -543,6 +543,7 @@ class DecisionRecord(SQLModel, table=True):
 
 class ProductBase(SQLModel):
     """产品基础信息"""
+
     product_code: str = Field(unique=True, index=True, max_length=100)
     product_name: str = Field(max_length=200)
     category: str | None = Field(default=None, max_length=50)
@@ -551,25 +552,29 @@ class ProductBase(SQLModel):
 
 class Product(ProductBase, table=True):
     """产品信息表"""
+
     __tablename__ = "products"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    
+
     # 尺寸信息 (JSON)
     dimensions: dict | None = Field(default=None, sa_column=Column(JSONB))
-    
+
     # 所需工位列表
     required_stations: list[str] = Field(default=[], sa_column=Column(ARRAY(String)))
-    
+
     # 关联默认工艺流程
-    default_flow_id: uuid.UUID | None = Field(default=None, foreign_key="process_flows.id")
-    
+    default_flow_id: uuid.UUID | None = Field(
+        default=None, foreign_key="process_flows.id"
+    )
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class ProcessFlowBase(SQLModel):
     """工艺流程基础信息"""
+
     product_id: uuid.UUID = Field(foreign_key="products.id")
     flow_name: str = Field(max_length=200)
     version: str = Field(default="v1.0", max_length=20)
@@ -579,54 +584,18 @@ class ProcessFlowBase(SQLModel):
 
 class ProcessFlow(ProcessFlowBase, table=True):
     """工艺流程定义表"""
+
     __tablename__ = "process_flows"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    
+
     # 工序列表 (JSON) - 示例: [{"step": 1, "name": "印刷", "station_type": "printer", "cycle_time": 30}]
     steps: list[dict] = Field(default=[], sa_column=Column(JSONB))
-    
+
     # 设备约束 (JSON)
     equipment_requirements: dict = Field(default={}, sa_column=Column(JSONB))
-    
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     product: Product = Relationship()
-
-
-class WorkOrder(SQLModel, table=True):
-    """生产工单表 (扩展原有WorkOrder)"""
-    __tablename__ = "work_orders"
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    
-    # 工单基本信息
-    work_order_no: str = Field(unique=True, index=True, max_length=50)
-    order_type: str | None = Field(default=None, max_length=50)
-    
-    # 关联产品和工艺流程
-    product_id: uuid.UUID | None = Field(default=None, foreign_key="products.id")
-    process_flow_id: uuid.UUID | None = Field(default=None, foreign_key="process_flows.id")
-    
-    # 计划数量
-    planned_quantity: int = Field(default=0)
-    actual_quantity: int = Field(default=0)
-    
-    # 负责人
-    responsible_person: str | None = Field(default=None, max_length=100)
-    instructions: str | None = Field(default=None)
-    
-    # 时间信息
-    estimated_duration_hours: float | None = Field(default=None)
-    actual_duration_hours: float | None = Field(default=None)
-    
-    # 状态
-    status: str = Field(default="pending", max_length=20)
-    execution_result: str | None = Field(default=None, max_length=20)
-    actual_loss: float | None = Field(default=None)
-    notes: str | None = Field(default=None)
-    
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    started_at: datetime | None = Field(default=None)
-    completed_at: datetime | None = Field(default=None)

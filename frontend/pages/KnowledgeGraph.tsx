@@ -267,7 +267,7 @@ const KnowledgeGraphPage: React.FC = () => {
 
   const handleGenerateSolution = () => {
     if (graphData) {
-      navigate('/app/tianchou', {
+      navigate(`/app/sinan?anomalyId=${graphData.anomalyId}`, {
         state: {
           anomaly: {
             id: graphData.anomalyId,
@@ -378,7 +378,7 @@ const KnowledgeGraphPage: React.FC = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 shadow-sm"
             >
               <Settings size={16} />
-              转到天筹决策
+              智能决策
             </button>
           </div>
         </div>
