@@ -70,20 +70,34 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* 动态网格背景 */}
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, #3b82f6 1px, transparent 1px), linear-gradient(to bottom, #3b82f6 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
+        }}
+      ></div>
+
+      {/* 光晕效果 */}
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/30 blur-[120px] rounded-full animate-pulse"></div>
+      <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-cyan-500/20 blur-[100px] rounded-full animate-pulse"></div>
+
+      <div className="w-full max-w-md relative z-10">
         {/* Back button */}
         <button
           type="button"
           onClick={handleBackToLanding}
-          className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors mb-8 group"
+          className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           返回首页
         </button>
 
         {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 p-8">
           {/* Logo/Icon */}
           <div className="flex justify-center mb-8">
             <TiangongLogo size={64} animate={true} variant="light" />
@@ -116,7 +130,7 @@ const LoginPage: React.FC = () => {
                 value={formData.username}
                 onChange={handleInputChange}
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-slate-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-slate-100 disabled:cursor-not-allowed text-slate-900 placeholder-slate-400"
                 placeholder="请输入邮箱地址"
               />
             </div>
@@ -136,7 +150,7 @@ const LoginPage: React.FC = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   disabled={isLoading}
-                  className="w-full px-4 py-3 pr-12 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-slate-100 disabled:cursor-not-allowed text-slate-900 placeholder-slate-400"
                   placeholder="请输入密码"
                 />
                 <button
@@ -154,7 +168,7 @@ const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-blue-600/50 disabled:to-blue-500/50 text-white font-semibold rounded-lg transition-all disabled:cursor-not-allowed shadow-lg shadow-blue-500/30"
             >
               {isLoading ? (
                 <>
@@ -168,7 +182,7 @@ const LoginPage: React.FC = () => {
           </form>
 
           {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-slate-200 text-center">
+          <div className="mt-8 pt-6 border-t border-slate-100 text-center">
             <p className="text-sm text-slate-500">忘记密码？请联系系统管理员</p>
           </div>
         </div>

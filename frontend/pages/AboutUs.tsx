@@ -52,84 +52,72 @@ const AboutUs: React.FC = () => {
 
   const timeline: TimelineItem[] = [
     {
-      year: '2019',
-      title: '创立起步',
+      year: '2025 Q1',
+      title: '项目启动',
       description:
-        '天工·弈控在杭州成立，核心团队来自清华大学、浙江大学等知名院校，专注于工业互联网与智能制造领域。',
+        '天工·弈控项目正式启动，完成核心架构设计，确定"1+N+X"技术路线。',
     },
     {
-      year: '2020',
-      title: '技术突破',
+      year: '2025 Q2',
+      title: '洞微感知引擎',
       description:
-        '发布洞微感知引擎1.0，实现毫秒级设备数据采集。完成Pre-A轮融资，获得国内头部汽车制造商首个订单。',
+        '完成洞微感知引擎基础版开发，实现设备数据采集与边缘计算功能。',
     },
     {
-      year: '2021',
-      title: '产品矩阵',
+      year: '2025 Q3',
+      title: '格物孪生引擎',
       description:
-        '格物数字孪生平台上线，支持1:1高精度工厂数字化建模。团队规模突破100人，服务企业超过50家。',
+        '格物数字孪生引擎上线，支持工厂数字化建模与虚实映射可视化。',
     },
     {
-      year: '2022',
-      title: 'AI赋能',
+      year: '2025 Q4',
+      title: '天筹决策引擎',
       description:
-        '天筹智能决策引擎发布，AI驱动的排产优化系统投入商用。入选工信部智能制造系统解决方案供应商推荐目录。',
-    },
-    {
-      year: '2023',
-      title: '生态扩展',
-      description:
-        '浑天仿真引擎上线，实现超实时生产推演。完成B轮融资，估值超10亿，服务企业突破300家，覆盖12个行业。',
-    },
-    {
-      year: '2024',
-      title: '行业领先',
-      description:
-        '发布天工·弈控2.0，构建"1+N+X"生态架构。荣获国家级专精特新"小巨人"企业称号，服务客户超500家。',
+        '天筹智能决策引擎投入开发，基于多目标优化算法实现排产调度优化。',
     },
   ]
 
   const team: TeamMember[] = [
     {
-      name: '陈博士',
-      position: '创始人 & CEO',
-      background: '清华大学自动化系博士，前西门子智能制造首席架构师，15年工业自动化经验',
-      avatar: 'C',
-    },
-    {
-      name: '李博士',
-      position: '联合创始人 & CTO',
-      background: '浙江大学计算机系博士，前阿里云工业互联网技术总监，AI算法专家',
+      name: '刘同学',
+      position: '项目负责人 · 商业分析',
+      background: '经管学院，负责项目统筹与商业模式设计',
       avatar: 'L',
     },
     {
-      name: '王总',
-      position: '首席运营官 COO',
-      background: '中欧国际工商学院EMBA，前富士康智能制造事业群总经理，20年制造业管理经验',
-      avatar: 'W',
+      name: '陈同学',
+      position: '技术研发负责人',
+      background: '计算机学院，专注前端架构与算法实现',
+      avatar: 'C',
     },
     {
-      name: '张博士',
-      position: '首席科学家',
-      background: 'MIT博士后，IEEE Fellow，工业AI与数字孪生领域国际知名学者',
+      name: '张同学',
+      position: '技术研发',
+      background: '电子信息学院，负责后端开发与系统架构',
       avatar: 'Z',
+    },
+    {
+      name: '王同学',
+      position: '美工设计',
+      background: '人文学院，负责UI设计与产品视觉呈现',
+      avatar: 'W',
     },
   ]
 
   const honors: Honor[] = [
-    { title: '国家级专精特新"小巨人"企业', organization: '工信部', year: '2024' },
-    { title: '智能制造系统解决方案供应商', organization: '工信部', year: '2022' },
-    { title: '中国工业互联网50强', organization: '中国工业互联网研究院', year: '2023' },
-    { title: '浙江省数字经济领军企业', organization: '浙江省经信厅', year: '2023' },
-    { title: '国家高新技术企业', organization: '科技部', year: '2020' },
-    { title: '工信部智能制造试点示范', organization: '工信部', year: '2022' },
+    { title: '工业数字孪生操作系统', organization: '自主研发', year: '2025' },
+    { title: '多目标优化排产算法', organization: '核心技术', year: '2025' },
+    { title: '边缘计算数据采集', organization: '自主研发', year: '2025' },
+    { title: '虚实映射可视化引擎', organization: '核心技术', year: '2025' },
+    { title: '知识图谱构建与应用', organization: '自主研发', year: '2025' },
+    { title: '生产数据分析平台', organization: '核心技术', year: '2025' },
   ]
 
   const stats = [
-    { value: '500+', label: '服务企业', icon: Building2, color: 'from-blue-500 to-cyan-500' },
-    { value: '300+', label: '专业团队', icon: Users, color: 'from-emerald-500 to-teal-500' },
-    { value: '12', label: '覆盖行业', icon: Globe, color: 'from-violet-500 to-purple-500' },
-    { value: '20+', label: '发明专利', icon: Lightbulb, color: 'from-amber-500 to-orange-500' },
+    { value: '4', label: '核心引擎', icon: Cpu, color: 'from-blue-500 to-cyan-500' },
+    { value: '10+', label: '技术团队', icon: Users, color: 'from-emerald-500 to-teal-500' },
+    { value: '3', label: '试点产线', icon: Factory, color: 'from-violet-500 to-purple-500' },
+    { value: '5+', label: '研发成果', icon: Lightbulb, color: 'from-amber-500 to-orange-500' },
   ]
 
   const capabilities = [
@@ -144,20 +132,20 @@ const AboutUs: React.FC = () => {
       id: 'vision',
       title: '企业愿景',
       icon: Target,
-      content: '成为全球领先的工业数字孪生操作系统提供商，赋能百万制造企业实现智能化转型升级。',
+      content: '打造国内领先的工业数字孪生操作系统，助力制造企业实现智能化转型升级。',
     },
     {
       id: 'mission',
       title: '企业使命',
       icon: Rocket,
       content:
-        '以"视-空协同"技术为核心，打破工业数据孤岛，让每一次生产决策都有数据支撑，让每一个工厂都拥有智慧大脑。',
+        '以"视-空协同"技术为核心，打破工业数据孤岛，为工厂提供从感知到决策的全栈式智能解决方案。',
     },
     {
       id: 'values',
       title: '核心价值观',
       icon: Heart,
-      content: '客户至上 · 技术创新 · 诚信务实 · 合作共赢 · 追求卓越',
+      content: '技术为本 · 客户优先 · 持续创新 · 务实进取',
     },
   ]
 
@@ -252,9 +240,9 @@ const AboutUs: React.FC = () => {
 
               {/* 企业简介 */}
               <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto mb-12">
-                天工·弈控是一家专注于工业数字孪生操作系统研发的国家高新技术企业。 我们以
+                天工·弈控是一家专注于工业数字孪生操作系统研发的科技企业。 我们以
                 <span className="text-cyan-400 font-semibold">"视-空协同"</span>
-                技术为核心，为离散制造业提供从数据采集、数字孪生建模、
+                技术为核心，致力于为离散制造业提供从数据采集、数字孪生建模、
                 智能决策到仿真验证的全栈式解决方案。
               </p>
 
@@ -376,7 +364,7 @@ const AboutUs: React.FC = () => {
                   发展历程
                 </span>
               </h2>
-              <p className="text-slate-400">从创立到行业领先，我们始终专注工业数字化转型</p>
+              <p className="text-slate-400">聚焦核心技术突破，稳步推进产品研发</p>
             </div>
 
             <div className="relative">
@@ -431,7 +419,7 @@ const AboutUs: React.FC = () => {
                   核心团队
                 </span>
               </h2>
-              <p className="text-slate-400">汇聚行业顶尖人才，引领工业智能化变革</p>
+              <p className="text-slate-400">技术驱动，专注产品研发与创新</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -453,22 +441,22 @@ const AboutUs: React.FC = () => {
           </div>
         </section>
 
-        {/* 企业荣誉 */}
+        {/* 技术研发 */}
         <section className="px-6 lg:px-20 mb-24">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-6">
                 <Medal size={16} className="text-amber-400" />
                 <span className="text-sm font-bold text-amber-300 tracking-wider uppercase">
-                  HONORS
+                  R&amp;D
                 </span>
               </div>
               <h2 className="text-3xl font-black mb-4">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                  企业荣誉
+                  技术研发
                 </span>
               </h2>
-              <p className="text-slate-400">专业认可，实力见证</p>
+              <p className="text-slate-400">专注核心技术攻关，持续迭代产品能力</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -531,7 +519,7 @@ const AboutUs: React.FC = () => {
                     <MapPin size={20} className="text-white" />
                   </div>
                   <div className="text-sm text-slate-400 mb-1">公司地址</div>
-                  <div className="font-semibold text-white">杭州市滨江区</div>
+                  <div className="font-semibold text-white">天津市西青区</div>
                 </div>
               </div>
 

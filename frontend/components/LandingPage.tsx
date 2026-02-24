@@ -53,9 +53,9 @@ const LandingPage: React.FC = () => {
     {
       id: 1,
       name: '格物 (Gewu)',
-      sub: '数字孪生引擎',
+      sub: '知识图谱引擎',
       icon: Layers,
-      desc: '1:1 还原物理世界，实现虚实映射。建立高精度的数字沙盘，为生产优化提供"上帝视角"。',
+      desc: '构建工业知识图谱，沉淀领域专家经验。通过语义关联实现知识推理，为智能决策提供知识支撑。',
     },
     {
       id: 2,
@@ -307,17 +307,17 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 卫星球体 - 左下 (数据基座) */}
+              {/* 卫星球体 - 左下 (格物-图谱) */}
               <div className="absolute bottom-24 left-20">
                 <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-xl shadow-blue-500/40 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
                   <div className="absolute top-1 left-1.5 w-4 h-2.5 bg-white/30 rounded-full blur-sm"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Server size={20} className="text-white/90" strokeWidth={1.5} />
+                    <Network size={20} className="text-white/90" strokeWidth={1.5} />
                   </div>
                 </div>
                 {/* 标签 */}
                 <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                  <span className="text-xs font-semibold text-blue-300">数据·基座</span>
+                  <span className="text-xs font-semibold text-blue-300">格物·图谱</span>
                 </div>
               </div>
 
@@ -557,7 +557,7 @@ const LandingPage: React.FC = () => {
                 </li>
                 <li>
                   <a href="#" className="hover:text-blue-400 transition-colors">
-                    格物孪生
+                    格物图谱
                   </a>
                 </li>
                 <li>
