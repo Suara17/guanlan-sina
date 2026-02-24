@@ -142,15 +142,17 @@ const SimulationSelector: React.FC<SimulationSelectorProps> = ({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {scenarios.map((scenario) => {
-                const config = severityConfig[scenario.severity]
-                const isSelected = selectedId === scenario.id
+                const config = severityConfig[scenario.severity] || severityConfig.warning
+                // 使用 scenario_code 作为唯一标识（支持 API 和默认数据两种格式）
+                const scenarioKey = scenario.scenario_code || scenario.id
+                const isSelected = selectedId === scenarioKey || selectedId === scenario.id
                 const isExecuting = executing && isSelected
 
                 return (
                   <button
-                    key={scenario.id}
+                    key={scenarioKey}
                     type="button"
-                    onClick={() => handleSelect(scenario.id)}
+                    onClick={() => handleSelect(scenarioKey)}
                     disabled={executing}
                     className={`relative text-left p-4 rounded-xl border-2 transition-all duration-200 group
                       ${config.borderColor} ${config.bgColor}

@@ -651,6 +651,44 @@ def get_simulation_scenarios(
     ]
 
 
+@router.get("/scenarios/by-code/{scenario_code}", response_model=SimulationScenarioPublic)
+def get_simulation_scenario_by_code(
+    *,
+    session: SessionDep,
+    scenario_code: str,
+) -> Any:
+    """通过 scenario_code 获取模拟情境详情"""
+    init_default_scenarios(session)
+
+    # 规范化 scenario_code（支持 sim-001 和 SIM-001 两种格式）
+    normalized_code = scenario_code.upper()
+    if not normalized_code.startswith("SIM-"):
+        normalized_code = f"SIM-{normalized_code.replace('SIM', '').zfill(3)}"
+
+    statement = select(SimulationScenario).where(
+        SimulationScenario.scenario_code == normalized_code
+    )
+    scenario = session.exec(statement).first()
+
+    if not scenario:
+        raise HTTPException(status_code=404, detail=f"Simulation scenario '{scenario_code}' not found")
+
+    return SimulationScenarioPublic(
+        id=scenario.id,
+        scenario_code=scenario.scenario_code,
+        scenario_name=scenario.scenario_name,
+        description=scenario.description,
+        anomaly_type=scenario.anomaly_type,
+        anomaly_location=scenario.anomaly_location,
+        severity=scenario.severity,
+        root_cause=scenario.root_cause,
+        root_cause_confidence=scenario.root_cause_confidence,
+        solutions=scenario.solutions,
+        knowledge_graph_nodes=scenario.knowledge_graph_nodes,
+        knowledge_graph_edges=scenario.knowledge_graph_edges,
+    )
+
+
 @router.get("/scenarios/{scenario_id}", response_model=SimulationScenarioPublic)
 def get_simulation_scenario_detail(
     *,

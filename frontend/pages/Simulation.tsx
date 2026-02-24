@@ -144,8 +144,12 @@ const Simulation: React.FC = () => {
   useEffect(() => {
     if (scenarioId) {
       setLoading(true)
-      fetch(`/api/v1/simulation/scenarios/${scenarioId}`)
-        .then((res) => res.json())
+      // 首先尝试通过 scenario_code 加载（支持 sim-001 格式）
+      fetch(`/api/v1/simulation/scenarios/by-code/${scenarioId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error('Not found')
+          return res.json()
+        })
         .then((data) => {
           setScenario(data)
           if (data.solutions?.length > 0) {
@@ -154,8 +158,24 @@ const Simulation: React.FC = () => {
           }
         })
         .catch(() => {
-          // 使用默认数据
-          const defaultData = DEFAULT_SIMULATION_DATA[scenarioId]
+          // 使用默认数据 - 先尝试按 ID 匹配，再尝试按 scenario_code 匹配
+          let defaultData = DEFAULT_SIMULATION_DATA[scenarioId]
+
+          // 如果 ID 不匹配，尝试从 ID 中提取 scenario_code（如 sim-001 -> SIM-001）
+          if (!defaultData && scenarioId) {
+            const codeFromId = scenarioId.replace(/^sim-?/i, 'SIM-').replace(/^sim/i, 'SIM')
+            const normalizedCode = codeFromId.startsWith('SIM-') ? codeFromId : `SIM-${codeFromId.padStart(3, '0')}`
+
+            // 遍历默认数据查找匹配的 scenario_code
+            for (const key of Object.keys(DEFAULT_SIMULATION_DATA)) {
+              const data = DEFAULT_SIMULATION_DATA[key]
+              if (data.scenario_code === normalizedCode || data.scenario_code === scenarioId) {
+                defaultData = data
+                break
+              }
+            }
+          }
+
           if (defaultData) {
             setScenario(defaultData)
             if (defaultData.solutions.length > 0) {
@@ -280,7 +300,7 @@ const Simulation: React.FC = () => {
     )
   }
 
-  const sevConfig = severityConfig[scenario.severity]
+  const sevConfig = severityConfig[scenario.severity as keyof typeof severityConfig] || severityConfig.warning
 
   return (
     <div className="h-full flex flex-col bg-slate-50 overflow-hidden">
