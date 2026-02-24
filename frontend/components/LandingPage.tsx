@@ -2,6 +2,7 @@ import {
   Activity,
   ArrowRight,
   BarChart3,
+  Brain,
   CheckCircle,
   ChevronDown,
   Cpu,
@@ -9,12 +10,20 @@ import {
   Eye,
   Factory,
   Globe,
+  Globe2,
+  HardDrive,
   Layers,
   MessageCircle,
   MonitorPlay,
   Network,
+  Orbit,
   Play,
+  Radar,
+  Scan,
+  Server,
   Shield,
+  Sparkles,
+  Target,
   Zap,
 } from 'lucide-react'
 import type React from 'react'
@@ -233,264 +242,121 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 右侧装饰：优化后的工业科技可视化 */}
+          {/* 右侧装饰：抽象几何科技感 */}
           <div className="hidden lg:block relative h-[500px]">
-            {/* 主要框架容器 */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              {/* 外层旋转环 - 增强动态效果 */}
-              <div className="absolute w-[420px] h-[420px] border-2 border-blue-400/30 rounded-full animate-spin-slow">
-                {/* 装饰性断点 */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-blue-400 rounded-full"></div>
-              </div>
-              <div className="absolute w-[380px] h-[380px] border border-cyan-400/20 rounded-full animate-spin-reverse">
-                {/* 装饰性断点 */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-cyan-400 rounded-full"></div>
-              </div>
-
-              {/* 中心菱形（主视觉焦点）- 添加缓慢旋转 */}
-              <div className="relative w-72 h-72 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-sm border border-white/20 rounded-3xl rotate-45 flex items-center justify-center shadow-2xl animate-spin-slower">
-                <div className="-rotate-45 flex items-center justify-center animate-spin-counter">
-                  <Layers className="text-blue-400" size={80} />
-                </div>
-              </div>
-
-              {/* 四个卫星节点 - 高级玻璃态设计 + 科技纹理 */}
-              {/* 上方：洞微 (Eye) - 感知层 */}
-              <div
-                className="group/node absolute left-1/2 -translate-x-1/2 cursor-pointer"
-                style={{ top: 'calc(50% - 180px)' }}
-              >
-                {/* 外层光晕 */}
-                <div className="absolute inset-0 w-16 h-16 bg-blue-500/20 rounded-full blur-xl group-hover/node:bg-blue-400/40 transition-all duration-500"></div>
-
-                {/* 主容器 */}
-                <div className="relative w-16 h-16 rounded-2xl overflow-hidden transition-all duration-300 group-hover/node:scale-110">
-                  {/* 背景渐变 */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/80 via-blue-600/70 to-cyan-600/60 backdrop-blur-md"></div>
-
-                  {/* 玻璃态光泽 */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent"></div>
-
-                  {/* 科技网格纹理 */}
-                  <div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                      backgroundImage:
-                        'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
-                      backgroundSize: '4px 4px',
-                    }}
-                  ></div>
-
-                  {/* 边框 */}
-                  <div className="absolute inset-0 border border-white/30 rounded-2xl group-hover/node:border-white/50 transition-colors duration-300"></div>
-
-                  {/* 图标 */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Eye
-                      className="text-white drop-shadow-lg transition-transform duration-300 group-hover/node:scale-110"
-                      size={24}
-                    />
-                  </div>
-                </div>
-
-                {/* 悬浮标签 */}
-                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 text-xs text-blue-300 whitespace-nowrap font-medium">
-                  洞微·感知
-                </div>
-              </div>
-
-              {/* 右侧：天筹 (Cpu) - 决策层 */}
-              <div
-                className="group/node absolute top-1/2 -translate-y-1/2 cursor-pointer"
-                style={{ right: 'calc(50% - 180px)' }}
-              >
-                {/* 外层光晕 */}
-                <div className="absolute inset-0 w-16 h-16 bg-cyan-500/20 rounded-full blur-xl group-hover/node:bg-cyan-400/40 transition-all duration-500"></div>
-
-                {/* 主容器 */}
-                <div className="relative w-16 h-16 rounded-2xl overflow-hidden transition-all duration-300 group-hover/node:scale-110">
-                  {/* 背景渐变 */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/80 via-cyan-600/70 to-blue-600/60 backdrop-blur-md"></div>
-
-                  {/* 玻璃态光泽 */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent"></div>
-
-                  {/* 科技网格纹理 */}
-                  <div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                      backgroundImage:
-                        'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
-                      backgroundSize: '4px 4px',
-                    }}
-                  ></div>
-
-                  {/* 边框 */}
-                  <div className="absolute inset-0 border border-white/30 rounded-2xl group-hover/node:border-white/50 transition-colors duration-300"></div>
-
-                  {/* 图标 */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Cpu
-                      className="text-white drop-shadow-lg transition-transform duration-300 group-hover/node:scale-110"
-                      size={24}
-                    />
-                  </div>
-                </div>
-
-                {/* 悬浮标签 */}
-                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 text-xs text-cyan-300 whitespace-nowrap font-medium">
-                  天筹·决策
-                </div>
-              </div>
-
-              {/* 下方：浑天 (MonitorPlay) - 验证层 */}
-              <div
-                className="group/node absolute left-1/2 -translate-x-1/2 cursor-pointer"
-                style={{ bottom: 'calc(50% - 180px)' }}
-              >
-                {/* 外层光晕 */}
-                <div className="absolute inset-0 w-16 h-16 bg-violet-500/20 rounded-full blur-xl group-hover/node:bg-violet-400/40 transition-all duration-500"></div>
-
-                {/* 主容器 */}
-                <div className="relative w-16 h-16 rounded-2xl overflow-hidden transition-all duration-300 group-hover/node:scale-110">
-                  {/* 背景渐变 */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/80 via-violet-600/70 to-cyan-600/60 backdrop-blur-md"></div>
-
-                  {/* 玻璃态光泽 */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent"></div>
-
-                  {/* 科技网格纹理 */}
-                  <div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                      backgroundImage:
-                        'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
-                      backgroundSize: '4px 4px',
-                    }}
-                  ></div>
-
-                  {/* 边框 */}
-                  <div className="absolute inset-0 border border-white/30 rounded-2xl group-hover/node:border-white/50 transition-colors duration-300"></div>
-
-                  {/* 图标 */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <MonitorPlay
-                      className="text-white drop-shadow-lg transition-transform duration-300 group-hover/node:scale-110"
-                      size={24}
-                    />
-                  </div>
-                </div>
-
-                {/* 悬浮标签 */}
-                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 text-xs text-violet-300 whitespace-nowrap font-medium">
-                  浑天·验证
-                </div>
-              </div>
-
-              {/* 左侧：数据层 (Database) */}
-              <div
-                className="group/node absolute top-1/2 -translate-y-1/2 cursor-pointer"
-                style={{ left: 'calc(50% - 180px)' }}
-              >
-                {/* 外层光晕 */}
-                <div className="absolute inset-0 w-16 h-16 bg-blue-400/20 rounded-full blur-xl group-hover/node:bg-blue-300/40 transition-all duration-500"></div>
-
-                {/* 主容器 */}
-                <div className="relative w-16 h-16 rounded-2xl overflow-hidden transition-all duration-300 group-hover/node:scale-110">
-                  {/* 背景渐变 */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400/80 via-blue-500/70 to-cyan-500/60 backdrop-blur-md"></div>
-
-                  {/* 玻璃态光泽 */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent"></div>
-
-                  {/* 科技网格纹理 */}
-                  <div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                      backgroundImage:
-                        'repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
-                      backgroundSize: '4px 4px',
-                    }}
-                  ></div>
-
-                  {/* 边框 */}
-                  <div className="absolute inset-0 border border-white/30 rounded-2xl group-hover/node:border-white/50 transition-colors duration-300"></div>
-
-                  {/* 图标 */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Database
-                      className="text-white drop-shadow-lg transition-transform duration-300 group-hover/node:scale-110"
-                      size={24}
-                    />
-                  </div>
-                </div>
-
-                {/* 悬浮标签 */}
-                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 text-xs text-blue-300 whitespace-nowrap font-medium">
-                  数据·基座
-                </div>
-              </div>
+            {/* 背景光晕效果 */}
+            <div className="absolute inset-0 overflow-hidden">
+              {/* 主光晕 - 蓝色 */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-blue-500/25 rounded-full blur-[120px] animate-pulse"></div>
+              {/* 辅助光晕 - 青色 */}
+              <div className="absolute top-1/4 right-1/4 w-[250px] h-[250px] bg-cyan-400/20 rounded-full blur-[100px] animate-pulse delay-300"></div>
+              {/* 辅助光晕 - 紫色 */}
+              <div className="absolute bottom-1/4 left-1/3 w-[200px] h-[200px] bg-violet-500/15 rounded-full blur-[80px] animate-pulse delay-700"></div>
             </div>
 
-            {/* 连接线 - 统一蓝-青色系 + 移除持续脉冲动画 */}
-            <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none">
-              <line
-                x1="50%"
-                y1="calc(50% - 180px)"
-                x2="50%"
-                y2="50%"
-                stroke="url(#lineGradient1)"
-                strokeWidth="2"
-                strokeDasharray="5,5"
-              />
-              <line
-                x1="calc(50% + 180px)"
-                y1="50%"
-                x2="50%"
-                y2="50%"
-                stroke="url(#lineGradient2)"
-                strokeWidth="2"
-                strokeDasharray="5,5"
-              />
-              <line
-                x1="50%"
-                y1="calc(50% + 180px)"
-                x2="50%"
-                y2="50%"
-                stroke="url(#lineGradient3)"
-                strokeWidth="2"
-                strokeDasharray="5,5"
-              />
-              <line
-                x1="calc(50% - 180px)"
-                y1="50%"
-                x2="50%"
-                y2="50%"
-                stroke="url(#lineGradient4)"
-                strokeWidth="2"
-                strokeDasharray="5,5"
-              />
+            {/* 核心视觉：渐变球体组合 */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* 主球体 - 核心 */}
+              <div className="relative">
+                {/* 外层光圈 */}
+                <div className="absolute -inset-10 rounded-full border border-blue-400/20 animate-spin" style={{ animationDuration: '20s' }}></div>
+                <div className="absolute -inset-16 rounded-full border border-cyan-400/10 animate-spin" style={{ animationDuration: '30s', animationDirection: 'reverse' }}></div>
+                
+                {/* 主球体 */}
+                <div className="relative w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-400 shadow-2xl shadow-blue-500/50">
+                  {/* 内部高光 */}
+                  <div className="absolute top-3 left-5 w-12 h-8 bg-white/30 rounded-full blur-xl"></div>
+                  {/* 底部反光 */}
+                  <div className="absolute bottom-5 right-5 w-8 h-4 bg-cyan-300/20 rounded-full blur-lg"></div>
+                  {/* 核心图标 */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Globe2 size={44} className="text-white/90" strokeWidth={1.5} />
+                  </div>
+                </div>
+              </div>
 
-              {/* 渐变定义 */}
-              <defs>
-                <linearGradient id="lineGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#06b6d4" />
-                </linearGradient>
-                <linearGradient id="lineGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#06b6d4" />
-                  <stop offset="100%" stopColor="#0891b2" />
-                </linearGradient>
-                <linearGradient id="lineGradient3" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#0891b2" />
-                  <stop offset="100%" stopColor="#3b82f6" />
-                </linearGradient>
-                <linearGradient id="lineGradient4" x1="100%" y1="0%" x2="0%" y2="0%">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#60a5fa" />
-                </linearGradient>
-              </defs>
-            </svg>
+              {/* 卫星球体 - 左上 (洞微-感知) */}
+              <div className="absolute top-16 left-16">
+                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 shadow-xl shadow-violet-500/40 animate-bounce" style={{ animationDuration: '3s' }}>
+                  <div className="absolute top-1.5 left-2.5 w-5 h-3 bg-white/30 rounded-full blur-md"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Radar size={24} className="text-white/90" strokeWidth={1.5} />
+                  </div>
+                </div>
+                {/* 连接线 */}
+                <div className="absolute top-1/2 left-full w-16 h-px bg-gradient-to-r from-violet-400/60 to-transparent"></div>
+                {/* 标签 */}
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                  <span className="text-xs font-semibold text-violet-300">洞微·感知</span>
+                </div>
+              </div>
+
+              {/* 卫星球体 - 右上 (天筹-决策) */}
+              <div className="absolute top-16 right-16">
+                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 shadow-xl shadow-cyan-500/40 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
+                  <div className="absolute top-1.5 left-2 w-5 h-3 bg-white/30 rounded-full blur-sm"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Target size={24} className="text-white/90" strokeWidth={1.5} />
+                  </div>
+                </div>
+                {/* 连接线 */}
+                <div className="absolute top-1/2 right-full w-16 h-px bg-gradient-to-l from-cyan-400/60 to-transparent"></div>
+                {/* 标签 */}
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                  <span className="text-xs font-semibold text-cyan-300">天筹·决策</span>
+                </div>
+              </div>
+
+              {/* 卫星球体 - 左下 (数据基座) */}
+              <div className="absolute bottom-24 left-20">
+                <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-xl shadow-blue-500/40 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
+                  <div className="absolute top-1 left-1.5 w-4 h-2.5 bg-white/30 rounded-full blur-sm"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Server size={20} className="text-white/90" strokeWidth={1.5} />
+                  </div>
+                </div>
+                {/* 标签 */}
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                  <span className="text-xs font-semibold text-blue-300">数据·基座</span>
+                </div>
+              </div>
+
+              {/* 卫星球体 - 右下 (浑天-仿真) */}
+              <div className="absolute bottom-24 right-20">
+                <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-xl shadow-emerald-500/40 animate-bounce" style={{ animationDuration: '3.8s', animationDelay: '0.8s' }}>
+                  <div className="absolute top-1 left-1.5 w-4 h-2.5 bg-white/30 rounded-full blur-sm"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Orbit size={20} className="text-white/90" strokeWidth={1.5} />
+                  </div>
+                </div>
+                {/* 标签 */}
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                  <span className="text-xs font-semibold text-emerald-300">浑天·仿真</span>
+                </div>
+              </div>
+
+              {/* 装饰性粒子 */}
+              <div className="absolute top-1/3 left-1/4 w-2.5 h-2.5 bg-blue-400 rounded-full animate-ping opacity-60"></div>
+              <div className="absolute top-2/3 right-1/3 w-2 h-2 bg-cyan-400 rounded-full animate-ping opacity-50" style={{ animationDelay: '1s' }}></div>
+              <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-violet-400 rounded-full animate-ping opacity-40" style={{ animationDelay: '2s' }}></div>
+              <div className="absolute top-1/4 right-1/4 w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-50" style={{ animationDelay: '1.5s' }}></div>
+            </div>
+
+            {/* 底部数据指标条 */}
+            <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-8 pb-4">
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full border border-white/10">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span className="text-xs text-slate-400">12 产线在线</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full border border-white/10">
+                <Zap size={12} className="text-amber-400" />
+                <span className="text-xs text-slate-400">实时同步</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full border border-white/10">
+                <Shield size={12} className="text-blue-400" />
+                <span className="text-xs text-slate-400">99.9% 可用</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
