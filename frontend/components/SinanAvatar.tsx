@@ -28,14 +28,14 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
       {/* Chat Bubble */}
       <button
         type="button"
-        tabIndex={mode === 'alert' ? 0 : -1}
+        tabIndex={0}
         className={`absolute bottom-28 w-64 bg-white p-4 rounded-2xl rounded-br-none shadow-xl border border-blue-100 transition-all duration-300 transform origin-bottom-right cursor-pointer
         ${mode === 'alert' ? 'opacity-100 scale-100' : isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}`}
-        onClick={() => mode === 'alert' && navigate('/sinan-analysis')}
+        onClick={() => navigate('/app/sinan')}
         onKeyDown={(e) => {
-          if (mode === 'alert' && (e.key === 'Enter' || e.key === ' ')) {
+          if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
-            navigate('/sinan-analysis')
+            navigate('/app/sinan')
           }
         }}
       >
@@ -60,7 +60,13 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
             </p>
             {mode === 'alert' && (
               <div className="mt-2 text-xs font-semibold text-blue-600 flex items-center">
-                查看分析与对策
+                点击查看司南分析
+                <ChevronRight size={12} />
+              </div>
+            )}
+            {mode === 'idle' && (
+              <div className="mt-2 text-xs font-semibold text-blue-600 flex items-center">
+                点击打开司南智控
                 <ChevronRight size={12} />
               </div>
             )}
@@ -71,15 +77,15 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
       {/* Robot Avatar */}
       <button
         type="button"
-        tabIndex={mode === 'alert' ? 0 : -1}
+        tabIndex={0}
         className="relative w-32 h-32 animate-float cursor-pointer group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => mode === 'alert' && navigate('/sinan-analysis')}
+        onClick={() => navigate('/app/sinan')}
         onKeyDown={(e) => {
-          if (mode === 'alert' && (e.key === 'Enter' || e.key === ' ')) {
+          if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
-            navigate('/sinan-analysis')
+            navigate('/app/sinan')
           }
         }}
       >

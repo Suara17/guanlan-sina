@@ -1,17 +1,13 @@
 import {
-  Activity,
   ArrowRight,
   BarChart3,
-  Brain,
-  CheckCircle,
   ChevronDown,
+  ChevronUp,
   Cpu,
-  Database,
   Eye,
   Factory,
   Globe,
   Globe2,
-  HardDrive,
   Layers,
   MessageCircle,
   MonitorPlay,
@@ -19,11 +15,10 @@ import {
   Orbit,
   Play,
   Radar,
-  Scan,
   Server,
   Shield,
-  Sparkles,
   Target,
+  Users,
   Zap,
 } from 'lucide-react'
 import type React from 'react'
@@ -31,10 +26,23 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TiangongLogo from './TiangongLogo'
 
+// 行业数据类型定义
+interface IndustryData {
+  id: string
+  name: string
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  color: string
+  gradient: string
+  description: string
+  highlights: string[]
+  companies: { name: string; desc: string }[]
+}
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
   const [activeEngine, setActiveEngine] = useState<number>(0)
+  const [activeIndustry, setActiveIndustry] = useState<string | null>(null)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50)
@@ -70,6 +78,112 @@ const LandingPage: React.FC = () => {
       sub: '全局仿真引擎',
       icon: MonitorPlay,
       desc: '超实时演练推演，预测未来生产趋势。在决策下发前进行压力测试，确保物理世界"零试错"。',
+    },
+  ]
+
+  // 行业数据 - 基于行业数据.txt文件内容
+  const INDUSTRIES: IndustryData[] = [
+    {
+      id: 'autoparts',
+      name: '汽配制造',
+      icon: Factory,
+      color: 'blue',
+      gradient: 'from-blue-500 to-blue-600',
+      description: '汽配行业智能化解决方案，专注高混流产线的动态瓶颈治理与工艺参数自适应优化。成都某汽配厂试点将瓶颈响应从30分钟缩短至45秒。',
+      highlights: [
+        '视-空协同：实时感知瓶颈漂移，自动调整AGV路径',
+        '缺陷趋势反向优化工艺参数',
+        '分钟级自适应调度响应',
+      ],
+      companies: [
+        { name: '西门子', desc: '18.5%市场份额，Opcenter系列，实施周期12-18个月，首年TCO 300-500万元，面向大型车企汽配厂' },
+        { name: '成都某汽配厂', desc: '天工·弈控试点项目，瓶颈响应从30分钟缩短至45秒，ROI周期5.8个月' },
+      ],
+    },
+    {
+      id: 'electronics',
+      name: '电子组装',
+      icon: Cpu,
+      color: 'violet',
+      gradient: 'from-violet-500 to-violet-600',
+      description: '电子组装行业轻量级智能协同方案，实现生产数据在线化与透明化，专注长三角地区中小型离散制造企业。',
+      highlights: [
+        '云原生SaaS架构，即开即用',
+        '移动端无缝连接一线工人',
+        '实时进度追踪与异常预警',
+      ],
+      companies: [
+        { name: '黑湖科技', desc: '超3万家付费工厂用户，国产轻量级MES榜首，部署周期2-4周，首年投入5-15万元，中小微企业渗透率60%+' },
+        { name: '长三角电子组装厂', desc: '云原生SaaS模式，按年订阅约7万元/年，快速部署解决管理协同问题' },
+      ],
+    },
+    {
+      id: 'aerospace',
+      name: '航空航天',
+      icon: Orbit,
+      color: 'indigo',
+      gradient: 'from-indigo-500 to-indigo-600',
+      description: '航空航天高端制造业数字化双胞胎方案，提供高保真静态仿真与虚拟验证能力，确保物理世界"零试错"。',
+      highlights: [
+        '全栈数字化双胞胎方案',
+        'Teamcenter统一数据底座，PLM打通设计到制造',
+        '虚拟环境下的压力测试验证',
+      ],
+      companies: [
+        { name: '西门子', desc: '目标客户为大型国企、跨国车企、航空航天企业，基于Teamcenter实现高保真静态仿真' },
+        { name: '达索', desc: '国际全能型厂商，提供全栈式数字化双胞胎方案，面向高端制造业' },
+      ],
+    },
+    {
+      id: 'automotive',
+      name: '汽车制造',
+      icon: Globe,
+      color: 'cyan',
+      gradient: 'from-cyan-500 to-cyan-600',
+      description: '汽车整车制造智能排产与调度方案，应对多车型混线生产的复杂场景，支持EV产线适应性改造。',
+      highlights: [
+        '多车型混线智能排产',
+        'EV产线输送设备适应性改造',
+        '涂装车间智能调度',
+      ],
+      companies: [
+        { name: '广汽传祺', desc: '一线涂装车间EV车型输送设备适应性改造项目，首年投入约550万元人民币' },
+        { name: '西门子', desc: '汽配厂中标公告显示单项目金额超300万元，工艺变更重配置需14-21天' },
+      ],
+    },
+    {
+      id: 'precision',
+      name: '精密加工',
+      icon: Target,
+      color: 'emerald',
+      gradient: 'from-emerald-500 to-emerald-600',
+      description: '精密加工行业机器视觉质检方案，基于深度学习实现高精度缺陷识别，单点检测精度可达99.9%。',
+      highlights: [
+        'VM算法平台，深度学习缺陷识别',
+        'OK/NG信号实时输出',
+        '硬件销售+点位授权模式',
+      ],
+      companies: [
+        { name: '海康机器人', desc: '25%+市场份额，机器视觉领域第一，单条产线投入20-80万元，检测精度99.9%' },
+        { name: '成都电子厂', desc: 'AOI检测设备采购，单套设备3-15万元，但76%设备未与MES系统打通' },
+      ],
+    },
+    {
+      id: 'equipment',
+      name: '智能装备',
+      icon: Server,
+      color: 'amber',
+      gradient: 'from-amber-500 to-amber-600',
+      description: '智能装备制造业视-空协同解决方案，RK3588边缘计算盒子成本控制在3000元以内，系统部署门槛降低90%。',
+      highlights: [
+        '视-空协同智能决策',
+        '边缘计算毫秒级响应',
+        '若无法提升OEE达8%以上，退还服务费',
+      ],
+      companies: [
+        { name: '宝信软件', desc: '国产协同型厂商代表，侧重流程在线化与轻量化协同' },
+        { name: '凌云光', desc: '单点技术型厂商，专注图像处理与缺陷识别，输出OK/NG信号' },
+      ],
     },
   ]
 
@@ -473,27 +587,145 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Customer Cases - 优化后紧凑布局 */}
-      <section id="cases" className="py-20 bg-gradient-to-b from-slate-50 to-white">
+      {/* 4. Customer Cases - 行业交互展示 */}
+      <section id="cases" className="py-20 bg-gradient-to-b from-slate-50 to-white overflow-hidden">
         <div className="container mx-auto px-6 lg:px-16">
           <div className="text-center mb-14">
             <h2 className="text-4xl md:text-5xl font-black mb-3 tracking-tighter text-slate-900">
-              赋能头部企业
+              赋能头部行业
             </h2>
-            <p className="text-slate-600">深耕汽车、电子、半导体等 12 个关键制造行业</p>
+            <p className="text-slate-600">深耕离散制造 12 个关键领域，点击查看行业详情与案例</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-16 items-center justify-items-center">
-            {['天汽工业', '中国钢铁', '通用机械', '未来能源', '精密模具', '新能材料'].map((l) => (
-              <div key={l} className="group cursor-pointer">
-                <div className="text-lg font-black tracking-tight text-slate-400 group-hover:text-slate-900 transition-colors">
-                  {l}
+          {/* 行业标签卡片 */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            {INDUSTRIES.map((industry) => {
+              const Icon = industry.icon
+              const isActive = activeIndustry === industry.id
+              return (
+                <button
+                  key={industry.id}
+                  onClick={() => setActiveIndustry(isActive ? null : industry.id)}
+                  className={`group relative p-4 rounded-2xl border-2 transition-all duration-300 cursor-pointer text-left ${
+                    isActive
+                      ? `bg-gradient-to-br ${industry.gradient} border-transparent shadow-xl scale-105`
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-lg'
+                  }`}
+                >
+                  {/* 背景装饰 */}
+                  {isActive && (
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
+                  )}
+                  
+                  {/* 图标 */}
+                  <div
+                    className={`mb-3 p-2 rounded-xl w-fit transition-all ${
+                      isActive ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-slate-50'
+                    }`}
+                  >
+                    <Icon
+                      size={20}
+                      className={`transition-colors ${isActive ? 'text-white' : 'text-slate-600'}`}
+                    />
+                  </div>
+
+                  {/* 行业名称 */}
+                  <h3
+                    className={`font-bold text-sm transition-colors ${
+                      isActive ? 'text-white' : 'text-slate-700 group-hover:text-slate-900'
+                    }`}
+                  >
+                    {industry.name}
+                  </h3>
+
+                  {/* 展开指示器 */}
+                  <div
+                    className={`absolute bottom-2 right-2 transition-all ${
+                      isActive ? 'text-white/70' : 'text-slate-400'
+                    }`}
+                  >
+                    {isActive ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* 展开详情面板 */}
+          <div
+            className={`transition-all duration-500 ease-out overflow-hidden ${
+              activeIndustry ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+            }`}
+          >
+            {activeIndustry && (() => {
+              const industry = INDUSTRIES.find((i) => i.id === activeIndustry)
+              if (!industry) return null
+              const Icon = industry.icon
+              
+              return (
+                <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-8 lg:p-10 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* 左侧：行业描述 */}
+                    <div className="lg:col-span-2">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`p-3 rounded-xl bg-gradient-to-br ${industry.gradient}`}>
+                          <Icon size={24} className="text-white" />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-900">{industry.name}</h3>
+                      </div>
+                      
+                      <p className="text-slate-600 mb-6 leading-relaxed">{industry.description}</p>
+
+                      {/* 核心亮点 */}
+                      <div className="mb-6">
+                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">
+                          核心能力
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {industry.highlights.map((h, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium"
+                            >
+                              {h}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 代表企业 */}
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">
+                          代表企业
+                        </h4>
+                        <div className="space-y-3">
+                          {industry.companies.map((company, idx) => (
+                            <div
+                              key={idx}
+                              className="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors"
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className={`p-2 rounded-lg bg-gradient-to-br ${industry.gradient} flex-shrink-0`}>
+                                  <Users size={16} className="text-white" />
+                                </div>
+                                <div>
+                                  <h5 className="font-bold text-slate-900 mb-1">{company.name}</h5>
+                                  <p className="text-sm text-slate-600 leading-relaxed">{company.desc}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })()}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {/* 底部数据卡片 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-12">
             {[
               {
                 label: '产能提升',

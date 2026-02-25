@@ -1,4 +1,4 @@
-import { Clock, Factory } from 'lucide-react'
+import { Beaker, Clock, Factory } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -21,6 +21,7 @@ import ProductionLineSelector from '../components/ProductionLineSelector'
 import ProductionPlanCard from '../components/ProductionPlanCard'
 import ProductChangeAlert from '../components/ProductChangeAlert'
 import SinanAvatar from '../components/SinanAvatar'
+import SimulationSelector from '../components/SimulationSelector'
 import { DASHBOARD_METRICS, getAnomaliesByLineType, PRODUCTION_LINES } from '../mockData'
 import type { DashboardMetrics, NextPlan, OptimizationParams, ProductionData, ProductionLine, ProductChangeWarning } from '../types'
 
@@ -68,6 +69,7 @@ const Dashboard: React.FC = () => {
   })
 
   const [showProductAlert, setShowProductAlert] = useState(false)
+  const [showSimulation, setShowSimulation] = useState(false)
 
   // 3.2 优化路线：加载生产计划数据（Mock数据）
   useEffect(() => {
@@ -268,9 +270,20 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* Right Column: Anomaly List (高度与左侧对齐) */}
-        <div className="flex flex-col h-full">
-          {selectedLine && <AnomalyList lineType={selectedLine.type} className="h-full" />}
+        {/* Right Column: Anomaly List + Simulation Button */}
+        <div className="flex flex-col gap-4 h-full">
+          {/* 异常信息面板 - 自动填充剩余空间 */}
+          {selectedLine && <AnomalyList lineType={selectedLine.type} className="flex-1 min-h-0" />}
+          
+          {/* 异常模拟按钮 - 与面板宽度相同 */}
+          <button
+            type="button"
+            onClick={() => setShowSimulation(true)}
+            className="w-full flex-shrink-0 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-medium hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+          >
+            <Beaker size={18} />
+            异常模拟
+          </button>
         </div>
       </div>
 
@@ -458,6 +471,16 @@ const Dashboard: React.FC = () => {
           })
         }}
         onDismiss={() => setShowProductAlert(false)}
+      />
+
+      {/* 异常模拟弹窗 */}
+      <SimulationSelector
+        isOpen={showSimulation}
+        onClose={() => setShowSimulation(false)}
+        onSelect={(scenarioId) => {
+          setShowSimulation(false)
+          navigate(`/app/simulation?scenario_id=${scenarioId}`)
+        }}
       />
     </div>
   )

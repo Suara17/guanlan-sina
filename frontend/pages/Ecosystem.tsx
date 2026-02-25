@@ -123,22 +123,19 @@ const Ecosystem: React.FC = () => {
       {/* 统计卡片 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'API 接口', value: '42', icon: FileCode },
-          { label: 'SDK 下载', value: '12.8K', icon: Download },
-          { label: '活跃开发者', value: '1,256', icon: Code2 },
-          { label: '社区话题', value: '328', icon: MessageSquare },
+          { label: 'API 接口', icon: FileCode },
+          { label: 'SDK 下载', icon: Download },
+          { label: '活跃开发者', icon: Code2 },
+          { label: '社区话题', icon: MessageSquare },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm"
+            className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4"
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                <stat.icon size={18} />
-              </div>
-              <span className="text-sm text-slate-500">{stat.label}</span>
+            <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+              <stat.icon size={24} />
             </div>
-            <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
+            <p className="text-lg font-semibold text-slate-800">{stat.label}</p>
           </div>
         ))}
       </div>

@@ -1,5 +1,9 @@
 import {
+  AlertCircle,
+  AlertTriangle,
   ArrowLeft,
+  ArrowRight,
+  BarChart3,
   Check,
   ChevronRight,
   Clock,
@@ -10,10 +14,10 @@ import {
   Zap,
 } from 'lucide-react'
 import type React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { getAnomalyAnalysis, getSolutionsByAnomalyId } from '../mockData'
-import type { AnomalyAnalysis, SolutionWithCost } from '../types'
+import { getAnomalyAnalysis, getAnomaliesByLineType, getSolutionsByAnomalyId, SMT_ANOMALIES, PCB_ANOMALIES, THREE_C_ANOMALIES } from '../mockData'
+import type { AnomalyAnalysis, AnomalyDetail, SolutionWithCost } from '../types'
 
 const SinanAnalysis: React.FC = () => {
   const navigate = useNavigate()
@@ -114,10 +118,48 @@ const SinanAnalysis: React.FC = () => {
     }
   }
 
+  // 获取所有异常数据用于默认页面
+  const allAnomalies = useMemo(() => {
+    return [
+      ...SMT_ANOMALIES,
+      ...PCB_ANOMALIES,
+      ...THREE_C_ANOMALIES,
+    ].sort((a, b) => {
+      const levelOrder = { critical: 0, error: 1, warning: 2 }
+      return (levelOrder[a.level] || 2) - (levelOrder[b.level] || 2)
+    })
+  }, [])
+
+  // 统计数据
+  const stats = useMemo(() => {
+    const critical = allAnomalies.filter(a => a.level === 'critical').length
+    const error = allAnomalies.filter(a => a.level === 'error').length
+    const warning = allAnomalies.filter(a => a.level === 'warning').length
+    return { critical, error, warning, total: allAnomalies.length }
+  }, [allAnomalies])
+
+  // 处理异常项点击
+  const handleAnomalyClick = (id: string) => {
+    navigate(`/app/sinan?anomalyId=${id}`)
+  }
+
+  // 获取等级样式
+  const getLevelStyle = (level: AnomalyDetail['level']) => {
+    switch (level) {
+      case 'critical':
+        return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' }
+      case 'error':
+        return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' }
+      case 'warning':
+        return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-700' }
+    }
+  }
+
   if (!anomalyId || !anomaly) {
     return (
-      <div className="p-6 max-w-7xl mx-auto h-full flex flex-col">
-        <div className="flex items-center gap-4 mb-8">
+      <div className="p-6 max-w-7xl mx-auto h-full flex flex-col overflow-hidden">
+        {/* 头部 */}
+        <div className="flex items-center gap-4 mb-6 flex-shrink-0">
           <button
             type="button"
             onClick={() => navigate('/app/')}
@@ -125,28 +167,180 @@ const SinanAnalysis: React.FC = () => {
           >
             <ArrowLeft size={24} />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-slate-800">
               司南 · 智能诊断中心
-              <span className="text-xs font-normal text-white bg-blue-600 px-2 py-0.5 rounded-full">
-                AI Powered
-              </span>
             </h1>
+            <p className="text-slate-500 text-sm mt-1">实时监控 · 智能分析 · 快速决策</p>
           </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-slate-400 mb-4">
-              <Sparkles size={48} className="mx-auto opacity-50" />
+        {/* 主内容区 */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0 overflow-hidden">
+          {/* 左侧：状态概览 + 快速诊断 */}
+          <div className="flex flex-col gap-4 overflow-hidden">
+            {/* 系统状态卡片 */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex-shrink-0">
+              <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <BarChart3 size={18} className="text-blue-500" />
+                诊断状态概览
+              </h2>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-red-50 rounded-lg p-3 border border-red-100">
+                  <p className="text-2xl font-bold text-red-600">{stats.critical}</p>
+                  <p className="text-xs text-red-500 mt-1">严重异常</p>
+                </div>
+                <div className="bg-orange-50 rounded-lg p-3 border border-orange-100">
+                  <p className="text-2xl font-bold text-orange-600">{stats.error}</p>
+                  <p className="text-xs text-orange-500 mt-1">高优先级</p>
+                </div>
+                <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+                  <p className="text-2xl font-bold text-amber-600">{stats.warning}</p>
+                  <p className="text-xs text-amber-500 mt-1">一般告警</p>
+                </div>
+                <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                  <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+                  <p className="text-xs text-blue-500 mt-1">待处理总数</p>
+                </div>
+              </div>
             </div>
-            <p className="text-slate-600 mb-4">请从格物页面跳转以查看智能诊断结果</p>
-            <button
-              onClick={() => navigate('/app/gewu')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              前往格物
-            </button>
+
+            {/* 快速诊断入口 */}
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-5 text-white flex-shrink-0">
+              <h3 className="font-bold mb-2 flex items-center gap-2">
+                <Sparkles size={18} />
+                智能诊断
+              </h3>
+              <p className="text-sm text-blue-100 mb-4">
+                输入问题描述，系统将自动分析并推荐最优解决方案
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate('/app/gewu')}
+                className="w-full py-2.5 bg-white/20 hover:bg-white/30 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                前往格物知识图谱
+                <ArrowRight size={16} />
+              </button>
+            </div>
+
+            {/* 功能卡片 */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex-1 min-h-0 overflow-hidden">
+              <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <Zap size={18} className="text-amber-500" />
+                快捷功能
+              </h2>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/app/gewu')}
+                  className="w-full p-3 bg-slate-50 hover:bg-slate-100 rounded-lg text-left transition-colors flex items-center justify-between group"
+                >
+                  <div>
+                    <p className="font-medium text-slate-700">格物 · 知识图谱</p>
+                    <p className="text-xs text-slate-500">查看异常根因分析</p>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-400 group-hover:text-blue-500" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/app/tianchou')}
+                  className="w-full p-3 bg-slate-50 hover:bg-slate-100 rounded-lg text-left transition-colors flex items-center justify-between group"
+                >
+                  <div>
+                    <p className="font-medium text-slate-700">天筹 · 决策优化</p>
+                    <p className="text-xs text-slate-500">产线布局优化</p>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-400 group-hover:text-blue-500" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/app/')}
+                  className="w-full p-3 bg-slate-50 hover:bg-slate-100 rounded-lg text-left transition-colors flex items-center justify-between group"
+                >
+                  <div>
+                    <p className="font-medium text-slate-700">生产看板</p>
+                    <p className="text-xs text-slate-500">实时生产监控</p>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-400 group-hover:text-blue-500" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 中间 + 右侧：异常列表 */}
+          <div className="lg:col-span-2 flex flex-col overflow-hidden">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-bold text-slate-800 flex items-center gap-2">
+                    <AlertTriangle size={18} className="text-amber-500" />
+                    待诊断异常列表
+                  </h2>
+                  <div className="flex items-center gap-2 text-xs">
+                    {stats.critical > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">
+                        {stats.critical} 严重
+                      </span>
+                    )}
+                    {stats.error > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium">
+                        {stats.error} 高优
+                      </span>
+                    )}
+                    {stats.warning > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                        {stats.warning} 告警
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 异常列表 */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="space-y-3">
+                  {allAnomalies.map((anomaly) => {
+                    const style = getLevelStyle(anomaly.level)
+                    return (
+                      <button
+                        key={anomaly.id}
+                        type="button"
+                        onClick={() => handleAnomalyClick(anomaly.id)}
+                        className="w-full text-left p-4 rounded-xl border transition-all hover:shadow-md group"
+                        style={{ backgroundColor: style.bg.includes('red') ? '#fef2f2' : style.bg.includes('orange') ? '#fff7ed' : '#fffbeb' }}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${style.badge}`}>
+                                {anomaly.level === 'critical' ? '严重' : anomaly.level === 'error' ? '高优' : '告警'}
+                              </span>
+                              <span className="text-xs text-slate-400 font-mono">{anomaly.time}</span>
+                              <span className="text-xs text-slate-500">{anomaly.lineType}</span>
+                            </div>
+                            <p className="font-semibold text-slate-800 text-sm mb-1">{anomaly.location}</p>
+                            <p className="text-xs text-slate-600 line-clamp-2">{anomaly.message}</p>
+                          </div>
+                          <div className="flex items-center gap-2 text-slate-400 group-hover:text-blue-500 transition-colors flex-shrink-0">
+                            <span className="text-xs font-medium">诊断</span>
+                            <ChevronRight size={16} />
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* 底部提示 */}
+              <div className="p-4 border-t border-slate-100 bg-slate-50 flex-shrink-0">
+                <p className="text-xs text-slate-500 text-center">
+                  点击异常条目进入智能诊断流程，系统将自动分析根因并推荐解决方案
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -164,11 +358,8 @@ const SinanAnalysis: React.FC = () => {
           <ArrowLeft size={24} />
         </button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-800">
             司南 · 智能诊断中心
-            <span className="text-xs font-normal text-white bg-blue-600 px-2 py-0.5 rounded-full">
-              AI Powered
-            </span>
           </h1>
           <p className="text-slate-500 text-sm mt-1">
             异常：{anomaly.defectType} | 置信度：
@@ -222,7 +413,7 @@ const SinanAnalysis: React.FC = () => {
                   {sol.type === 'recommended' && (
                     <div className="absolute -top-3 left-6 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
                       <Sparkles size={12} />
-                      AI 推荐
+                      推荐
                     </div>
                   )}
 

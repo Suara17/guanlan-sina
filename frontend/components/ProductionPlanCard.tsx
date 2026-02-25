@@ -120,21 +120,12 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
   return (
     <div className={`bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden ${className}`}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-slate-100 flex items-center">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
             <Package size={20} />
           </div>
           <h3 className="font-bold text-slate-800 text-lg">生产计划</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleViewDetails}
-            className="text-sm text-slate-500 hover:text-blue-600 font-medium flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            详情
-            <ChevronRight size={16} />
-          </button>
         </div>
       </div>
 
