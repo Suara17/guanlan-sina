@@ -3,7 +3,7 @@
  * 采用玻璃拟态设计风格，带有动态曲线绘制效果
  */
 
-import { AlertTriangle, ArrowRight } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Clock, X } from 'lucide-react'
 import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -54,6 +54,8 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   const [currentGenIndex, setCurrentGenIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date())
+  // 弹窗提示状态：首次进入时显示
+  const [showTipModal, setShowTipModal] = useState(true)
 
   // 最大代数（从后端获取或使用默认值）
   const MAX_GENERATIONS = 200
@@ -62,11 +64,15 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   const labels = getMetricLabels(task.industry_type)
 
   // 根据实际数据计算进度（实时更新，不过依赖后端返回的progress）
+  // 运行中时最大显示90%，只有任务真正完成才显示100%
   const calculatedProgress = (() => {
     // 如果已经有实际数据，使用实际数据的代数计算进度
     if (animatedData.length > 0) {
       const latestGen = animatedData[animatedData.length - 1]?.generation || 0
-      return Math.min(Math.round((latestGen / MAX_GENERATIONS) * 100), 100)
+      // 运行中时进度映射到 5%-90% 范围
+      const rawProgress = Math.round((latestGen / MAX_GENERATIONS) * 100)
+      // 将 0-100 映射到 5-90
+      return Math.min(5 + Math.round(rawProgress * 0.85), 90)
     }
     // 如果没有数据但正在运行，显示最小进度
     if (task.status === TaskStatus.RUNNING) {
@@ -78,13 +84,13 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
     return 0
   })()
 
-  // 使用计算的进度，而不是依赖task.progress
+  // 使用计算的进度，运行中最大90%，只有完成才显示100%
   const displayProgress =
     task.status === TaskStatus.COMPLETED
       ? 100
       : task.status === TaskStatus.FAILED
         ? calculatedProgress
-        : calculatedProgress
+        : Math.min(calculatedProgress, 90)
 
   // 更新最后时间
   useEffect(() => {
@@ -366,6 +372,64 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto h-full flex flex-col">
+      {/* 悬浮弹窗提示：优化算法耗时较长 - 悬浮在右上角不影响页面布局 */}
+      {showTipModal && task.status === TaskStatus.RUNNING && (
+        <div className="fixed top-6 right-6 z-50 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/80 w-80 overflow-hidden">
+            {/* 顶部装饰条 */}
+            <div className="h-1.5 bg-gradient-to-r from-blue-500 via-violet-500 to-indigo-500" />
+            
+            <div className="p-4 relative">
+              {/* 关闭按钮 */}
+              <button
+                onClick={() => setShowTipModal(false)}
+                className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              
+              {/* 图标和标题 */}
+              <div className="flex items-center gap-3 mb-3 pr-8">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-200 flex-shrink-0">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-800">优化任务执行中</h3>
+                  <p className="text-xs text-slate-500">多目标遗传算法正在运行</p>
+                </div>
+              </div>
+              
+              {/* 提示内容 */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 mb-3 border border-blue-100">
+                <div className="flex items-start gap-2.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-slate-600 leading-relaxed">
+                    <p className="font-medium text-slate-700 mb-0.5">优化算法耗时较长，请耐心等待</p>
+                    <p className="text-slate-500 text-xs">
+                      完成后将展示帕累托前沿分析和优化方案对比。
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 底部信息栏 */}
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                  预计耗时：1-3 分钟
+                </span>
+                <button
+                  onClick={() => setShowTipModal(false)}
+                  className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs rounded-lg font-medium hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md shadow-blue-200"
+                >
+                  我知道了
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 顶部合并组件：进度条 + 任务信息 */}
       <div className="bg-white/70 backdrop-blur-lg p-4 rounded-2xl border border-white/30 shadow-sm">
         <div className="flex items-center gap-4">
