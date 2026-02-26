@@ -226,16 +226,23 @@ export default function TianchouPage() {
       const poll = async () => {
         try {
           const status = await tianchouService.getTaskStatus(taskId)
+          console.log('[Tianchou] 任务状态:', status.status, '任务ID:', taskId)
           setTask(status)
 
-          if (status.status === TaskStatus.RUNNING) {
+          // 使用字符串比较确保兼容性
+          const isRunning = status.status === TaskStatus.RUNNING || status.status === 'running'
+          const isCompleted = status.status === TaskStatus.COMPLETED || status.status === 'completed'
+          const isFailed = status.status === TaskStatus.FAILED || status.status === 'failed'
+
+          if (isRunning) {
             setTimeout(poll, 2000)
-          } else if (status.status === TaskStatus.COMPLETED) {
+          } else if (isCompleted) {
             // 加载方案列表
+            console.log('[Tianchou] 任务完成，加载方案列表...')
             const sols = await tianchouService.getSolutions(taskId)
             setSolutions(sols)
             setView('results')
-          } else if (status.status === TaskStatus.FAILED) {
+          } else if (isFailed) {
             alert('任务执行失败，请检查参数或联系管理员')
           }
         } catch (error) {

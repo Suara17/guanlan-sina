@@ -13,8 +13,8 @@ const LoginPage: React.FC = () => {
   // 获取重定向路径（如果用户被重定向到登录页面）
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/app'
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: 'admin@example.com',
+    password: 'changethis',
   })
   const [showPassword, setShowPassword] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)

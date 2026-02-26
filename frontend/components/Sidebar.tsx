@@ -200,7 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
       {/* 导航菜单 */}
       <div className="flex-1 py-6 px-3 space-y-6 overflow-y-auto">
         {NAV_GROUPS.map((group) => (
-          <div key={group.id} data-tour={group.id === 'monitoring' ? 'monitoring-group' : group.id === 'subscription' ? 'subscription-group' : undefined}>
+          <div key={group.id} data-tour={group.id === 'monitoring' ? 'monitoring-group' : group.id === 'subscription' ? 'subscription-group' : group.id === 'components' ? 'components-group' : undefined}>
             {/* 分组标题 */}
             {!collapsed && (
               <div className="px-4 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">

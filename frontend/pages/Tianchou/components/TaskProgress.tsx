@@ -60,6 +60,12 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   // 最大代数（从后端获取或使用默认值）
   const MAX_GENERATIONS = 200
 
+  // 状态辅助变量 - 统一处理状态比较（兼容枚举和字符串）
+  const isRunning = task.status === TaskStatus.RUNNING || task.status === 'running'
+  const isCompleted = task.status === TaskStatus.COMPLETED || task.status === 'completed'
+  const isFailed = task.status === TaskStatus.FAILED || task.status === 'failed'
+  const isPending = task.status === TaskStatus.PENDING || task.status === 'pending'
+
   // 获取行业类型对应的标签
   const labels = getMetricLabels(task.industry_type)
 
@@ -75,22 +81,17 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
       return Math.min(5 + Math.round(rawProgress * 0.85), 90)
     }
     // 如果没有数据但正在运行，显示最小进度
-    if (task.status === TaskStatus.RUNNING) {
+    if (isRunning) {
       return 5 // 初始进度5%
     }
     // 任务完成或失败时
-    if (task.status === TaskStatus.COMPLETED) return 100
-    if (task.status === TaskStatus.FAILED) return 0
+    if (isCompleted) return 100
+    if (isFailed) return 0
     return 0
   })()
 
   // 使用计算的进度，运行中最大90%，只有完成才显示100%
-  const displayProgress =
-    task.status === TaskStatus.COMPLETED
-      ? 100
-      : task.status === TaskStatus.FAILED
-        ? calculatedProgress
-        : Math.min(calculatedProgress, 90)
+  const displayProgress = isCompleted ? 100 : isFailed ? calculatedProgress : Math.min(calculatedProgress, 90)
 
   // 更新最后时间
   useEffect(() => {
@@ -100,24 +101,20 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   // 检测进度完成并触发回调
   useEffect(() => {
     // 只有在任务真正完成时才触发回调（排除 PENDING 等初始状态）
-    if (
-      displayProgress >= 100 &&
-      !hasCompleted &&
-      onComplete &&
-      task.status === TaskStatus.COMPLETED
-    ) {
+    if (displayProgress >= 100 && !hasCompleted && onComplete && isCompleted) {
       setHasCompleted(true)
       // 立即调用完成回调，不等待下一个轮询
+      console.log('[TaskProgress] 任务完成，触发 onComplete 回调')
       onComplete()
     }
-  }, [displayProgress, hasCompleted, onComplete, task.status])
+  }, [displayProgress, hasCompleted, onComplete, isCompleted])
 
   // 重置完成状态当任务重新开始时
   useEffect(() => {
-    if (task.status === TaskStatus.RUNNING) {
+    if (isRunning) {
       setHasCompleted(false)
     }
-  }, [task.status])
+  }, [isRunning])
 
   // 基于实际运行结果的曲线数据
   const fullEvolutionData = [
@@ -236,7 +233,7 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   const fetchEvolutionData = useCallback(async () => {
     if (!task.task_id) {
       // 无task_id时使用模拟数据并启动动画
-      if (task.status === TaskStatus.RUNNING && !isAnimating) {
+      if (isRunning && !isAnimating) {
         setIsAnimating(true)
         setAnimatedData(fullEvolutionData.slice(0, 3))
         setCurrentGenIndex(3)
@@ -254,39 +251,39 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
         setIsAnimating(false)
       } else {
         // 后端无数据，使用模拟数据
-        if (task.status === TaskStatus.RUNNING && !isAnimating) {
+        if (isRunning && !isAnimating) {
           setAnimatedData(fullEvolutionData.slice(0, 3))
           setCurrentGenIndex(3)
           setIsAnimating(true)
-        } else if (task.status !== TaskStatus.RUNNING) {
+        } else if (!isRunning) {
           setAnimatedData(fullEvolutionData)
         }
       }
     } catch (error) {
       console.error('获取进化数据失败:', error)
       // 请求失败，使用模拟数据
-      if (task.status === TaskStatus.RUNNING && !isAnimating) {
+      if (isRunning && !isAnimating) {
         setAnimatedData(fullEvolutionData.slice(0, 3))
         setCurrentGenIndex(3)
         setIsAnimating(true)
-      } else if (task.status !== TaskStatus.RUNNING) {
+      } else if (!isRunning) {
         setAnimatedData(fullEvolutionData)
       }
     }
-  }, [task.task_id, task.status, isAnimating])
+  }, [task.task_id, isRunning, isAnimating])
 
   // 初始化数据
   useEffect(() => {
     fetchEvolutionData()
-  }, [task.task_id, task.status])
+  }, [task.task_id, isRunning])
 
   // 任务运行中时，轮询后端数据
   useEffect(() => {
-    if (task.status === TaskStatus.RUNNING && task.task_id) {
+    if (isRunning && task.task_id) {
       const interval = setInterval(fetchEvolutionData, 2000)
       return () => clearInterval(interval)
     }
-  }, [task.status, task.task_id, fetchEvolutionData])
+  }, [isRunning, task.task_id, fetchEvolutionData])
 
   // 模拟数据逐步增加动画
   useEffect(() => {
@@ -343,37 +340,24 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   }))
 
   const getStatusText = () => {
-    switch (task.status) {
-      case TaskStatus.PENDING:
-        return '等待执行'
-      case TaskStatus.RUNNING:
-        return '正在优化'
-      case TaskStatus.COMPLETED:
-        return '优化完成'
-      case TaskStatus.FAILED:
-        return '优化失败'
-      default:
-        return '未知状态'
-    }
+    if (isPending) return '等待执行'
+    if (isRunning) return '正在优化'
+    if (isCompleted) return '优化完成'
+    if (isFailed) return '优化失败'
+    return '未知状态'
   }
 
   const getStatusColor = () => {
-    switch (task.status) {
-      case TaskStatus.RUNNING:
-        return 'bg-gradient-to-r from-blue-500 to-indigo-500'
-      case TaskStatus.COMPLETED:
-        return 'bg-gradient-to-r from-green-500 to-emerald-500'
-      case TaskStatus.FAILED:
-        return 'bg-gradient-to-r from-red-500 to-rose-500'
-      default:
-        return 'bg-gradient-to-r from-slate-400 to-slate-500'
-    }
+    if (isRunning) return 'bg-gradient-to-r from-blue-500 to-indigo-500'
+    if (isCompleted) return 'bg-gradient-to-r from-green-500 to-emerald-500'
+    if (isFailed) return 'bg-gradient-to-r from-red-500 to-rose-500'
+    return 'bg-gradient-to-r from-slate-400 to-slate-500'
   }
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto h-full flex flex-col">
       {/* 悬浮弹窗提示：优化算法耗时较长 - 悬浮在右上角不影响页面布局 */}
-      {showTipModal && task.status === TaskStatus.RUNNING && (
+      {showTipModal && (task.status === TaskStatus.RUNNING || task.status === 'running') && (
         <div className="fixed top-6 right-6 z-50 animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/80 w-80 overflow-hidden">
             {/* 顶部装饰条 */}
@@ -436,7 +420,7 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
           {/* 左侧：状态指示 + 任务名 */}
           <div className="flex items-center gap-3">
             <div
-              className={`w-2.5 h-2.5 rounded-full ${getStatusColor()} ${task.status === TaskStatus.RUNNING ? 'animate-pulse' : ''}`}
+              className={`w-2.5 h-2.5 rounded-full ${getStatusColor()} ${isRunning ? 'animate-pulse' : ''}`}
             />
             <span className="text-sm font-medium text-slate-500">任务:</span>
             <span className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-100/50 rounded-lg px-3 py-1 text-sm font-medium">
@@ -448,16 +432,12 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
           <div className="flex-1">
             <div className="flex justify-between text-sm mb-1.5">
               <span
-                className={`font-medium flex items-center gap-2 ${task.status === TaskStatus.RUNNING ? 'text-blue-600' : 'text-slate-600'}`}
+                className={`font-medium flex items-center gap-2 ${isRunning ? 'text-blue-600' : 'text-slate-600'}`}
               >
-                {task.status === TaskStatus.RUNNING && (
+                {isRunning && (
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                 )}
-                {task.status === TaskStatus.RUNNING
-                  ? '进化中'
-                  : task.status === TaskStatus.COMPLETED
-                    ? '优化完成'
-                    : '等待中'}
+                {isRunning ? '进化中' : isCompleted ? '优化完成' : '等待中'}
                 {/* 显示当前代数 */}
                 {animatedData.length > 0 && (
                   <span className="text-xs text-slate-400 ml-1">
@@ -470,20 +450,19 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
             <div className="h-2 bg-slate-100/80 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full relative overflow-hidden transition-all duration-500 ease-out ${
-                  task.status === TaskStatus.COMPLETED
+                  isCompleted
                     ? 'bg-gradient-to-r from-green-400 to-emerald-500'
                     : 'bg-gradient-to-r from-blue-400 via-violet-500 to-indigo-500'
                 }`}
                 style={{
                   width: `${displayProgress}%`,
-                  boxShadow:
-                    task.status === TaskStatus.RUNNING
-                      ? '0 0 15px rgba(99, 102, 241, 0.4)'
-                      : '0 0 15px rgba(16, 185, 129, 0.4)',
+                  boxShadow: isRunning
+                    ? '0 0 15px rgba(99, 102, 241, 0.4)'
+                    : '0 0 15px rgba(16, 185, 129, 0.4)',
                 }}
               >
                 {/* 流光动画 */}
-                {task.status === TaskStatus.RUNNING && (
+                {isRunning && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]" />
                 )}
               </div>
@@ -492,7 +471,7 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
 
           {/* 右侧：停止按钮 + 最后更新时间 */}
           <div className="flex items-center gap-4">
-            {task.status === TaskStatus.RUNNING && onCancel && (
+            {isRunning && onCancel && (
               <button
                 type="button"
                 onClick={onCancel}
@@ -731,7 +710,7 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
                     </div>
                   </div>
                 ))}
-              {task.status === TaskStatus.RUNNING && (
+              {isRunning && (
                 <div className="flex items-center justify-center gap-2 text-xs text-slate-400 py-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                   <span>计算中...</span>
