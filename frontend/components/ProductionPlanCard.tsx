@@ -2,11 +2,13 @@
  * 生产计划卡片组件
  * 用于展示当前工单信息和下一工单预览
  * 支持产品切换预警和一键优化功能
+ * 支持工艺流程折叠展开和差异对比
  */
 
-import { AlertTriangle, ArrowRight, ChevronRight, Clock, Package, Settings2 } from 'lucide-react'
+import { AlertTriangle, ArrowRight, ChevronDown, ChevronRight, Clock, Package, Settings2, Timer } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import type { NextPlan, OptimizationParams, ProductChangeWarning } from '../types'
+import { useState, useMemo } from 'react'
+import type { NextPlan, OptimizationParams, ProductChangeWarning, ProcessStep } from '../types'
 
 interface ProductionPlanCardProps {
   className?: string
@@ -21,12 +23,56 @@ interface ProductionPlanCardProps {
     progress_percent: number
     estimated_completion_time: string | null
     status: 'running' | 'paused' | 'completed'
+    process_flow?: ProcessStep[]
   } | null
   nextPlan: NextPlan | null
   productChangeWarning: ProductChangeWarning | null
   loading?: boolean
   onViewDetails?: () => void
   onOptimize?: (params: OptimizationParams) => void
+}
+
+// 比较两个工艺流程的差异
+const compareProcessFlows = (flowA: ProcessStep[], flowB: ProcessStep[]) => {
+  const differences: {
+    type: 'added' | 'removed' | 'modified'
+    stepA?: ProcessStep
+    stepB?: ProcessStep
+    index: number
+  }[] = []
+
+  const maxLen = Math.max(flowA.length, flowB.length)
+
+  for (let i = 0; i < maxLen; i++) {
+    const stepA = flowA[i]
+    const stepB = flowB[i]
+
+    if (stepA && !stepB) {
+      differences.push({ type: 'removed', stepA, index: i })
+    } else if (!stepA && stepB) {
+      differences.push({ type: 'added', stepB, index: i })
+    } else if (stepA && stepB) {
+      if (stepA.name !== stepB.name || stepA.station_type !== stepB.station_type || stepA.cycle_time !== stepB.cycle_time) {
+        differences.push({ type: 'modified', stepA, stepB, index: i })
+      }
+    }
+  }
+
+  return differences
+}
+
+// 检查某个步骤是否有差异
+const isStepDifferent = (step: ProcessStep, index: number, differences: ReturnType<typeof compareProcessFlows>) => {
+  return differences.some(d => d.index === index)
+}
+
+// 获取差异类型
+const getDifferenceType = (index: number, differences: ReturnType<typeof compareProcessFlows>, isFlowA: boolean) => {
+  const diff = differences.find(d => d.index === index)
+  if (!diff) return null
+  if (diff.type === 'added') return isFlowA ? null : 'added'
+  if (diff.type === 'removed') return isFlowA ? 'removed' : null
+  return 'modified'
 }
 
 export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
@@ -39,6 +85,9 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
   onOptimize,
 }) => {
   const navigate = useNavigate()
+  const [showCurrentFlow, setShowCurrentFlow] = useState(false)
+  const [showNextFlow, setShowNextFlow] = useState(false)
+
   const hasProductChange = productChangeWarning?.change_detected ?? false
 
   // 计算进度百分比
@@ -57,6 +106,27 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
       minute: '2-digit',
     })
   }
+
+  // 格式化时长
+  const formatDuration = (hours: number) => {
+    if (hours < 24) {
+      return `${hours}小时`
+    }
+    const days = Math.floor(hours / 24)
+    const remainHours = hours % 24
+    if (remainHours === 0) {
+      return `${days}天`
+    }
+    return `${days}天${remainHours}小时`
+  }
+
+  // 计算工艺流程差异
+  const flowDifferences = useMemo(() => {
+    const currentFlow = currentPlan?.process_flow || productChangeWarning?.current_flow || []
+    const nextFlow = nextPlan?.process_flow || productChangeWarning?.next_flow || []
+    if (currentFlow.length === 0 || nextFlow.length === 0) return []
+    return compareProcessFlows(currentFlow, nextFlow)
+  }, [currentPlan?.process_flow, nextPlan?.process_flow, productChangeWarning])
 
   // 处理优化按钮点击
   const handleOptimize = () => {
@@ -88,6 +158,66 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
     }
   }
 
+  // 渲染工艺流程步骤
+  const renderProcessFlow = (
+    flow: ProcessStep[],
+    isFlowA: boolean,
+    differences: ReturnType<typeof compareProcessFlows>
+  ) => {
+    if (!flow || flow.length === 0) {
+      return (
+        <div className="text-sm text-slate-400 py-2 text-center">
+          暂无工艺流程数据
+        </div>
+      )
+    }
+
+    return (
+      <div className="space-y-1.5">
+        {flow.map((step, index) => {
+          const diffType = getDifferenceType(index, differences, isFlowA)
+          const isDifferent = diffType !== null
+
+          let bgClass = 'bg-slate-50'
+          let textClass = 'text-slate-700'
+          let borderClass = 'border-transparent'
+
+          if (diffType === 'added') {
+            bgClass = 'bg-green-50'
+            textClass = 'text-green-700'
+            borderClass = 'border-l-2 border-green-500'
+          } else if (diffType === 'removed') {
+            bgClass = 'bg-red-50'
+            textClass = 'text-red-700 line-through opacity-60'
+            borderClass = 'border-l-2 border-red-500'
+          } else if (diffType === 'modified') {
+            bgClass = 'bg-amber-50'
+            textClass = 'text-amber-700'
+            borderClass = 'border-l-2 border-amber-500'
+          }
+
+          return (
+            <div
+              key={index}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg ${bgClass} ${borderClass}`}
+            >
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-medium text-slate-500">
+                {step.step}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-medium truncate ${textClass}`}>{step.name}</p>
+                <p className="text-xs text-slate-400">{step.station_type}</p>
+              </div>
+              <div className="flex-shrink-0 text-right">
+                <p className="text-xs text-slate-500">{step.cycle_time}s</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className={`bg-white rounded-xl border border-slate-100 shadow-sm p-6 ${className}`}>
@@ -116,6 +246,9 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
       </div>
     )
   }
+
+  const currentFlow = currentPlan.process_flow || productChangeWarning?.current_flow || []
+  const nextFlow = nextPlan?.process_flow || productChangeWarning?.next_flow || []
 
   return (
     <div className={`bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden ${className}`}>
@@ -192,6 +325,24 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
               />
             </div>
           </div>
+
+          {/* 当前工单工艺流程 - 可折叠 */}
+          {currentFlow.length > 0 && (
+            <div className="border border-slate-100 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setShowCurrentFlow(!showCurrentFlow)}
+                className="w-full px-4 py-3 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
+              >
+                <span className="text-sm font-medium text-slate-700">工艺流程 ({currentFlow.length}道工序)</span>
+                {showCurrentFlow ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </button>
+              {showCurrentFlow && (
+                <div className="p-3 border-t border-slate-100">
+                  {renderProcessFlow(currentFlow, true, flowDifferences)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 下一工单预览 */}
@@ -199,7 +350,7 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
           <div className="space-y-3">
             <div className="h-px bg-slate-100" />
 
-            <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+            <div className="bg-slate-50 rounded-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                   下一工单预览
@@ -222,20 +373,70 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
                 <ArrowRight size={20} className="text-slate-300" />
               </div>
 
-              {/* 工艺流程差异提示 */}
-              {hasProductChange && productChangeWarning?.flow_differences && (
-                <div className="mt-2 p-2 bg-amber-50 border border-amber-100 rounded text-xs text-amber-700">
-                  <p className="font-medium mb-1">工艺变化:</p>
-                  <ul className="list-disc list-inside space-y-0.5">
-                    {productChangeWarning.flow_differences.slice(0, 3).map((diff, idx) => (
-                      <li key={idx}>{diff}</li>
-                    ))}
-                    {productChangeWarning.flow_differences.length > 3 && (
-                      <li className="text-amber-500">
-                        ...还有 {productChangeWarning.flow_differences.length - 3} 项变化
-                      </li>
-                    )}
-                  </ul>
+              {/* 下一单产量和预计时长 */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white rounded-lg p-3 border border-slate-100">
+                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+                    <Package size={12} />
+                    计划产量
+                  </div>
+                  <p className="text-lg font-bold text-slate-800">
+                    {nextPlan.planned_quantity?.toLocaleString() || '--'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-slate-100">
+                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+                    <Timer size={12} />
+                    预计时长
+                  </div>
+                  <p className="text-lg font-bold text-slate-800">
+                    {nextPlan.estimated_duration_hours 
+                      ? formatDuration(nextPlan.estimated_duration_hours) 
+                      : '--'}
+                  </p>
+                </div>
+              </div>
+
+              {/* 下一单工艺流程 - 可折叠 */}
+              {nextFlow.length > 0 && (
+                <div className="border border-slate-100 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setShowNextFlow(!showNextFlow)}
+                    className="w-full px-4 py-3 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-slate-700">工艺流程 ({nextFlow.length}道工序)</span>
+                      {flowDifferences.length > 0 && (
+                        <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                          {flowDifferences.length}处差异
+                        </span>
+                      )}
+                    </div>
+                    {showNextFlow ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                  </button>
+                  {showNextFlow && (
+                    <div className="p-3 border-t border-slate-100">
+                      {renderProcessFlow(nextFlow, false, flowDifferences)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 图例说明 */}
+              {showNextFlow && flowDifferences.length > 0 && (
+                <div className="flex items-center gap-4 text-xs text-slate-500 pt-2">
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-green-100 border-l-2 border-green-500"></span>
+                    新增工序
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-amber-100 border-l-2 border-amber-500"></span>
+                    变更工序
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-red-100 border-l-2 border-red-500"></span>
+                    移除工序
+                  </span>
                 </div>
               )}
             </div>

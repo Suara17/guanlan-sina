@@ -83,6 +83,34 @@ const Dashboard: React.FC = () => {
     // }
     // fetchProductionPlan()
 
+    // Mock数据 - 当前产品工艺流程
+    const currentProcessFlow = [
+      { step: 1, name: '上料', station_type: '上料机', cycle_time: 15 },
+      { step: 2, name: '锡膏印刷', station_type: '印刷机', cycle_time: 25 },
+      { step: 3, name: 'SPI检测', station_type: '检测机', cycle_time: 20 },
+      { step: 4, name: '贴片', station_type: '贴片机', cycle_time: 45 },
+      { step: 5, name: '回流焊', station_type: '回流焊炉', cycle_time: 180 },
+      { step: 6, name: 'AOI检测', station_type: 'AOI', cycle_time: 30 },
+      { step: 7, name: '分板', station_type: '分板机', cycle_time: 20 },
+      { step: 8, name: '下料', station_type: '下料机', cycle_time: 15 },
+    ]
+
+    // Mock数据 - 下一产品工艺流程（有差异）
+    const nextProcessFlow = [
+      { step: 1, name: '上料', station_type: '上料机', cycle_time: 15 },
+      { step: 2, name: '锡膏印刷', station_type: '印刷机', cycle_time: 30 }, // 变更：时间增加
+      { step: 3, name: 'SPI检测', station_type: '检测机', cycle_time: 25 }, // 变更：时间增加
+      { step: 4, name: '贴片', station_type: '贴片机', cycle_time: 60 }, // 变更：双面贴片
+      { step: 5, name: '回流焊', station_type: '回流焊炉', cycle_time: 200 }, // 变更：温度曲线调整
+      { step: 6, name: '翻转', station_type: '翻转机', cycle_time: 10 }, // 新增工序
+      { step: 7, name: 'B面贴片', station_type: '贴片机', cycle_time: 45 }, // 新增工序
+      { step: 8, name: '回流焊', station_type: '回流焊炉', cycle_time: 200 }, // 新增工序
+      { step: 9, name: 'AOI检测', station_type: 'AOI', cycle_time: 35 },
+      { step: 10, name: 'ICT测试', station_type: 'ICT', cycle_time: 25 }, // 新增工序
+      { step: 11, name: '分板', station_type: '分板机', cycle_time: 20 },
+      { step: 12, name: '下料', station_type: '下料机', cycle_time: 15 },
+    ]
+
     // Mock数据
     setProductionPlan({
       currentPlan: {
@@ -96,6 +124,7 @@ const Dashboard: React.FC = () => {
         progress_percent: 65,
         estimated_completion_time: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
         status: 'running',
+        process_flow: currentProcessFlow,
       },
       nextPlan: {
         work_order_no: 'WO-20260224-002',
@@ -103,7 +132,9 @@ const Dashboard: React.FC = () => {
         product_code: 'PCB-B',
         product_name: 'PCB-B型',
         planned_quantity: 3000,
-        estimated_start_time: null,
+        estimated_start_time: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
+        estimated_duration_hours: 72, // 预计生产72小时（3天）
+        process_flow: nextProcessFlow,
       },
       productChangeWarning: {
         change_detected: true,
@@ -111,10 +142,16 @@ const Dashboard: React.FC = () => {
         next_product: 'PCB-B',
         requires_optimization: true,
         flow_differences: [
-          '新增回流焊工序',
-          '印刷参数变更',
-          '检测设备增加',
+          '新增翻转工序（双面贴片）',
+          '新增B面贴片工序',
+          '新增二次回流焊工序',
+          '新增ICT测试工序',
+          '印刷周期时间增加5s',
+          'AOI检测时间增加5s',
         ],
+        current_flow: currentProcessFlow,
+        next_flow: nextProcessFlow,
+        layout_switch_minutes: 3, // 布局切换需要3分钟
       },
     })
     // 显示预警弹窗
@@ -459,6 +496,7 @@ const Dashboard: React.FC = () => {
         currentProduct={productionPlan.productChangeWarning?.current_product || ''}
         nextProduct={productionPlan.productChangeWarning?.next_product || ''}
         differences={productionPlan.productChangeWarning?.flow_differences || []}
+        layoutSwitchMinutes={productionPlan.productChangeWarning?.layout_switch_minutes}
         onOptimize={() => {
           setShowProductAlert(false)
           handleOptimize({

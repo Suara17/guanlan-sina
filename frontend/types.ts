@@ -262,6 +262,15 @@ export interface ProductionPlan {
   status: 'running' | 'paused' | 'completed'
 }
 
+// 工艺流程步骤
+export interface ProcessStep {
+  step: number
+  name: string
+  station_type: string
+  cycle_time: number // 秒
+  description?: string
+}
+
 // 生产计划 - 下一工单预览
 export interface NextPlan {
   work_order_no: string
@@ -270,6 +279,8 @@ export interface NextPlan {
   product_name: string
   planned_quantity: number
   estimated_start_time: string | null
+  estimated_duration_hours?: number // 预计生产时长（小时）
+  process_flow?: ProcessStep[] // 工艺流程
 }
 
 // 产品切换预警
@@ -279,6 +290,10 @@ export interface ProductChangeWarning {
   next_product: string
   requires_optimization: boolean
   flow_differences: string[]
+  current_flow?: ProcessStep[] // 当前产品工艺流程
+  next_flow?: ProcessStep[] // 下一产品工艺流程
+  layout_switch_days?: number // 布局切换所需天数
+  layout_switch_minutes?: number // 布局切换所需分钟
 }
 
 // 产品信息
