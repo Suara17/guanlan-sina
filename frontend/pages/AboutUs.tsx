@@ -1,15 +1,14 @@
 import {
   Award,
   Building2,
+  ChevronDown,
+  ChevronUp,
   Cpu,
-  Factory,
   Flame,
   Gauge,
   Globe,
   Heart,
-  Hexagon,
   Layers,
-  Lightbulb,
   Mail,
   MapPin,
   Medal,
@@ -49,6 +48,7 @@ interface Honor {
 const AboutUs: React.FC = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'vision' | 'mission' | 'values'>('vision')
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const timeline: TimelineItem[] = [
     {
@@ -113,17 +113,10 @@ const AboutUs: React.FC = () => {
     { title: '生产数据分析平台', organization: '核心技术', year: '2025' },
   ]
 
-  const stats = [
-    { value: '4', label: '核心引擎', icon: Cpu, color: 'from-blue-500 to-cyan-500' },
-    { value: '10+', label: '技术团队', icon: Users, color: 'from-emerald-500 to-teal-500' },
-    { value: '3', label: '试点产线', icon: Factory, color: 'from-violet-500 to-purple-500' },
-    { value: '5+', label: '研发成果', icon: Lightbulb, color: 'from-amber-500 to-orange-500' },
-  ]
-
   const capabilities = [
     { icon: Cpu, title: '智能感知', desc: '毫秒级数据采集', color: 'blue' },
-    { icon: Network, title: '数字孪生', desc: '1:1高精度建模', color: 'cyan' },
-    { icon: Gauge, title: '智能决策', desc: 'AI驱动优化', color: 'emerald' },
+    { icon: Network, title: '知识图谱', desc: '沉淀专家经验', color: 'cyan' },
+    { icon: Gauge, title: '智能决策', desc: '算法驱动优化', color: 'emerald' },
     { icon: Shield, title: '仿真验证', desc: '超实时推演', color: 'violet' },
   ]
 
@@ -132,20 +125,22 @@ const AboutUs: React.FC = () => {
       id: 'vision',
       title: '企业愿景',
       icon: Target,
-      content: '打造国内领先的工业数字孪生操作系统，助力制造企业实现智能化转型升级。',
+      summary: '打造国内领先的工业数字孪生操作系统',
+      details: '以"视-空协同"技术为核心，构建覆盖感知、建模、决策、验证全生命周期的智能操作系统。我们致力于成为离散制造业数字化转型的首选合作伙伴，通过数字孪生技术打通设备层、边缘层、平台层与应用层的数据壁垒，实现生产过程的透明化、可控化与智能化。在工业4.0时代背景下，天工·弈控将持续深耕离散制造领域，帮助汽配、电子、机械等行业的制造企业突破传统生产模式的效率瓶颈，实现降本增效、提质增能的核心目标。我们期望通过技术创新与场景落地，推动中国制造向中国智造的跨越式发展，为建设制造强国贡献一份力量。未来，我们将继续拓展行业边界，让数字孪生技术惠及更多制造企业，共同开启智能制造的新篇章。',
     },
     {
       id: 'mission',
       title: '企业使命',
       icon: Rocket,
-      content:
-        '以"视-空协同"技术为核心，打破工业数据孤岛，为工厂提供从感知到决策的全栈式智能解决方案。',
+      summary: '打破工业数据孤岛，赋能智能制造',
+      details: '以"视-空协同"技术为核心，为离散制造企业提供从数据采集、知识沉淀、智能决策到仿真验证的全栈式解决方案。长期以来，制造企业面临着数据分散、系统割裂、决策滞后等痛点，生产线上的海量数据难以转化为有效的决策支撑。天工·弈控通过构建统一的数字孪生底座，打破工业数据孤岛，实现物理车间与数字世界的毫秒级虚实共生。我们的四大核心引擎——洞微感知引擎实现设备数据的实时采集与边缘处理，格物知识图谱引擎沉淀领域专家经验与工艺知识，天筹智能决策引擎提供排产调度的最优方案，浑天仿真验证引擎支持决策下发前的压力测试与推演预演。让每一次生产决策都有数据支撑，每一次工艺优化都有科学依据，真正实现从经验驱动到数据驱动的转型跨越。',
     },
     {
       id: 'values',
       title: '核心价值观',
       icon: Heart,
-      content: '技术为本 · 客户优先 · 持续创新 · 务实进取',
+      summary: '技术为本 · 客户优先 · 持续创新 · 务实进取',
+      details: '技术为本——我们坚信技术是推动行业进步的核心动力，持续投入研发资源，打造具有自主知识产权的核心技术体系。从感知算法到知识图谱，从优化引擎到仿真平台，每一项技术突破都凝聚着团队的智慧与汗水。客户优先——始终以客户需求为导向，深入理解制造企业的真实痛点，提供切实可行的解决方案。我们不仅交付产品，更注重客户价值的实现，陪伴客户走过数字化转型的每一步。持续创新——不断探索工业智能化的新边界，紧跟技术发展趋势，将人工智能、知识图谱、数字孪生等前沿技术与制造场景深度融合。务实进取——在追求技术创新的同时，我们保持务实的态度，脚踏实地解决客户实际问题，不追求华而不实的概念，而是用可靠的产品和专业的服务赢得市场信任，用实际效果说话。',
     },
   ]
 
@@ -239,19 +234,23 @@ const AboutUs: React.FC = () => {
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-8">赋能制造，智控未来</h2>
 
               {/* 企业简介 */}
-              <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto mb-12">
-                天工·弈控是一家专注于工业数字孪生操作系统研发的科技企业。 我们以
-                <span className="text-cyan-400 font-semibold">"视-空协同"</span>
-                技术为核心，致力于为离散制造业提供从数据采集、数字孪生建模、
-                智能决策到仿真验证的全栈式解决方案。
-              </p>
+              <div className="text-base md:text-lg lg:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto mb-12 space-y-2">
+                <p className="whitespace-nowrap">
+                  天工·弈控是一家专注于工业数字孪生操作系统研发的科技企业。 我们以
+                  <span className="text-cyan-400 font-semibold">"视-空协同"</span>
+                  技术为核心，
+                </p>
+                <p className="whitespace-nowrap">
+                  致力于为离散制造业提供从数据采集、数字孪生建模、智能决策到仿真验证的全栈式解决方案。
+                </p>
+              </div>
 
-              {/* 核心能力图标 */}
-              <div className="flex justify-center gap-6 mb-16">
+              {/* 核心能力展示 */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 mb-12 max-w-4xl mx-auto">
                 {capabilities.map((cap, idx) => (
-                  <div key={idx} className="group">
+                  <div key={idx} className="group flex flex-col items-center text-center">
                     <div
-                      className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${
+                      className={`w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br ${
                         cap.color === 'blue'
                           ? 'from-blue-500/20 to-blue-600/20 border-blue-500/30'
                           : cap.color === 'cyan'
@@ -259,10 +258,10 @@ const AboutUs: React.FC = () => {
                             : cap.color === 'emerald'
                               ? 'from-emerald-500/20 to-emerald-600/20 border-emerald-500/30'
                               : 'from-violet-500/20 to-violet-600/20 border-violet-500/30'
-                      } border backdrop-blur-sm flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300`}
+                      } border backdrop-blur-sm flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300`}
                     >
                       <cap.icon
-                        size={28}
+                        size={36}
                         className={`${
                           cap.color === 'blue'
                             ? 'text-blue-400'
@@ -274,28 +273,33 @@ const AboutUs: React.FC = () => {
                         }`}
                       />
                     </div>
-                    <div className="text-sm font-semibold text-white">{cap.title}</div>
-                    <div className="text-xs text-slate-400">{cap.desc}</div>
+                    <div className="text-base md:text-lg font-semibold text-white mb-1">{cap.title}</div>
+                    <div className="text-sm text-slate-400">{cap.desc}</div>
                   </div>
                 ))}
               </div>
 
-              {/* 数据统计卡片 */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-                {stats.map((stat, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group hover:-translate-y-1"
-                  >
-                    <div
-                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}
-                    >
-                      <stat.icon size={24} className="text-white" />
-                    </div>
-                    <div className="text-3xl font-black text-white mb-1">{stat.value}</div>
-                    <div className="text-sm text-slate-400">{stat.label}</div>
-                  </div>
-                ))}
+              {/* 分隔线 */}
+              <div className="w-full max-w-md mx-auto h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent mb-8"></div>
+
+              {/* 数据统计 - 极简风格 */}
+              <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-slate-400">
+                <div className="text-center">
+                  <span className="text-2xl md:text-3xl font-bold text-white mr-1">4</span>
+                  <span className="text-sm">核心引擎</span>
+                </div>
+                <div className="text-center">
+                  <span className="text-2xl md:text-3xl font-bold text-white mr-1">10+</span>
+                  <span className="text-sm">技术团队</span>
+                </div>
+                <div className="text-center">
+                  <span className="text-2xl md:text-3xl font-bold text-white mr-1">3</span>
+                  <span className="text-sm">试点产线</span>
+                </div>
+                <div className="text-center">
+                  <span className="text-2xl md:text-3xl font-bold text-white mr-1">5+</span>
+                  <span className="text-sm">研发成果</span>
+                </div>
               </div>
             </div>
           </div>
@@ -303,7 +307,7 @@ const AboutUs: React.FC = () => {
 
         {/* 愿景使命价值观 */}
         <section className="px-6 lg:px-20 mb-24">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden">
               {/* Tab导航 */}
               <div className="flex border-b border-white/10">
@@ -312,7 +316,10 @@ const AboutUs: React.FC = () => {
                   return (
                     <button
                       key={item.id}
-                      onClick={() => setActiveTab(item.id as typeof activeTab)}
+                      onClick={() => {
+                        setActiveTab(item.id as typeof activeTab)
+                        setIsExpanded(false)
+                      }}
                       className={`flex-1 flex items-center justify-center gap-2 px-6 py-5 text-sm font-semibold transition-all ${
                         activeTab === item.id
                           ? 'bg-blue-600/20 text-blue-400 border-b-2 border-blue-500'
@@ -341,7 +348,22 @@ const AboutUs: React.FC = () => {
                       </div>
                       <h3 className="text-2xl font-bold text-white">{item.title}</h3>
                     </div>
-                    <p className="text-lg text-slate-300 leading-relaxed">{item.content}</p>
+                    <div className="mb-4">
+                      <p className="text-xl text-white font-medium leading-relaxed inline">{item.summary}</p>
+                      <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="text-white hover:text-blue-400 transition-colors cursor-pointer inline-flex items-center ml-2 align-middle"
+                      >
+                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </button>
+                    </div>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ${
+                        isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                      }`}
+                    >
+                      <p className="text-base text-slate-400 leading-relaxed border-l-2 border-blue-500/30 pl-4">{item.details}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -480,74 +502,49 @@ const AboutUs: React.FC = () => {
           </div>
         </section>
 
-        {/* 联系我们 */}
-        <section className="px-6 lg:px-20 mb-12">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-gradient-to-r from-blue-600/20 via-cyan-600/20 to-blue-600/20 border border-blue-500/30 rounded-3xl p-10 relative overflow-hidden">
-              {/* 装饰元素 */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[80px] rounded-full"></div>
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 blur-[60px] rounded-full"></div>
-
-              <div className="text-center mb-8 relative z-10">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-4">
-                  <Hexagon size={16} className="text-cyan-400" />
-                  <span className="text-sm font-bold text-cyan-300 tracking-wider uppercase">
-                    CONTACT
-                  </span>
-                </div>
-                <h2 className="text-2xl font-black mb-2">联系我们</h2>
-                <p className="text-slate-400">期待与您携手，共创智能制造新未来</p>
+        {/* 底部联系信息栏 */}
+        <footer className="border-t border-white/10 bg-slate-900/50 backdrop-blur-sm mt-12">
+          <div className="max-w-6xl mx-auto px-6 py-6">
+            <div className="flex items-center justify-between gap-8">
+              <div className="flex items-center gap-3 whitespace-nowrap">
+                <span className="text-base font-bold text-white">天工·弈控</span>
+                <span className="text-slate-600">|</span>
+                <span className="text-sm text-slate-400">赋能制造，智控未来</span>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-blue-500/30 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/30">
-                    <Phone size={20} className="text-white" />
-                  </div>
-                  <div className="text-sm text-slate-400 mb-1">服务热线</div>
-                  <div className="font-semibold text-white">400-223608838</div>
+              <div className="flex items-center gap-8 text-sm">
+                <div className="flex items-center gap-2 text-slate-400 whitespace-nowrap">
+                  <Phone size={14} className="text-blue-400" />
+                  <span>400-223608838</span>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-emerald-500/30 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/30">
-                    <Mail size={20} className="text-white" />
-                  </div>
-                  <div className="text-sm text-slate-400 mb-1">商务合作</div>
-                  <div className="font-semibold text-white">admin@tiangongna.com</div>
+                <div className="flex items-center gap-2 text-slate-400 whitespace-nowrap">
+                  <Mail size={14} className="text-emerald-400" />
+                  <span>admin@tiangongna.com</span>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-violet-500/30 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-violet-500/30">
-                    <MapPin size={20} className="text-white" />
-                  </div>
-                  <div className="text-sm text-slate-400 mb-1">公司地址</div>
-                  <div className="font-semibold text-white">天津市西青区</div>
+                <div className="flex items-center gap-2 text-slate-400 whitespace-nowrap">
+                  <MapPin size={14} className="text-violet-400" />
+                  <span>天津市西青区</span>
                 </div>
               </div>
-
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
+              <div className="flex items-center gap-3 whitespace-nowrap">
                 <button
                   onClick={() => navigate('/monitoring-demo')}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-xl text-base font-bold transition-all shadow-lg shadow-blue-500/30 flex items-center gap-2 hover:scale-105"
+                  className="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-md text-sm font-medium transition-all"
                 >
-                  预约产品演示
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  预约演示
                 </button>
                 <button
                   onClick={() => navigate('/login')}
-                  className="px-8 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-base font-semibold transition-all hover:scale-105"
+                  className="px-4 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-md text-sm font-medium transition-all"
                 >
                   登录系统
                 </button>
               </div>
             </div>
+            <div className="mt-5 pt-4 border-t border-white/5 text-center text-xs text-slate-500">
+              © 2025 天工·弈控 Tiangong·Yikong. All rights reserved.
+            </div>
           </div>
-        </section>
+        </footer>
       </div>
     </div>
   )

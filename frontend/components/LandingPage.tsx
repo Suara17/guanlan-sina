@@ -10,7 +10,7 @@ import {
   Globe2,
   Layers,
   MessageCircle,
-  MonitorPlay,
+  MonitorDot,
   Network,
   Orbit,
   Play,
@@ -76,7 +76,7 @@ const LandingPage: React.FC = () => {
       id: 3,
       name: '浑天 (Huntian)',
       sub: '全局仿真引擎',
-      icon: MonitorPlay,
+      icon: MonitorDot,
       desc: '超实时演练推演，预测未来生产趋势。在决策下发前进行压力测试，确保物理世界"零试错"。',
     },
   ]
@@ -319,10 +319,14 @@ const LandingPage: React.FC = () => {
                 智控未来
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed">
-              打破数据孤岛，实现物理车间与数字世界的毫秒级虚实共生。
-              基于"1+N+X"架构，为现代工厂提供全栈式算法支撑。
-            </p>
+            <div className="text-xs md:text-sm lg:text-base text-slate-400 mb-10 leading-relaxed space-y-1 md:space-y-2">
+              <p className="whitespace-nowrap">
+                打破数据孤岛，实现物理车间与数字世界的毫秒级虚实共生。
+              </p>
+              <p className="whitespace-nowrap">
+                基于"1+N+X"架构，为现代工厂提供全栈式算法支撑。
+              </p>
+            </div>
             <div className="flex flex-col sm:flex-row items-start gap-5">
               <button
                 onClick={handleDashboardClick}
@@ -491,7 +495,7 @@ const LandingPage: React.FC = () => {
               <h2 className="text-4xl md:text-5xl font-black mb-3 tracking-tighter text-slate-900">
                 四大引擎系统
               </h2>
-              <p className="text-slate-600 max-w-lg text-base">
+              <p className="text-slate-600 max-w-lg text-sm md:text-base whitespace-nowrap">
                 天工操作系统核心能力矩阵，覆盖感知、建模、决策与仿真全生命周期。
               </p>
             </div>
@@ -594,7 +598,14 @@ const LandingPage: React.FC = () => {
             <h2 className="text-4xl md:text-5xl font-black mb-3 tracking-tighter text-slate-900">
               赋能头部行业
             </h2>
-            <p className="text-slate-600">深耕离散制造 12 个关键领域，点击查看行业详情与案例</p>
+            <p className="text-slate-600 mb-4">深耕离散制造 6 个关键领域，点击查看行业详情与案例</p>
+            <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-slate-500 text-sm md:text-base">
+              <span>产能提升 <strong className="text-slate-600">+18.5%</strong></span>
+              <span className="hidden md:inline text-slate-300">|</span>
+              <span>能耗降低 <strong className="text-slate-600">-12.0%</strong></span>
+              <span className="hidden md:inline text-slate-300">|</span>
+              <span>故障停机 <strong className="text-slate-600">-35.0%</strong></span>
+            </div>
           </div>
 
           {/* 行业标签卡片 */}
@@ -722,45 +733,6 @@ const LandingPage: React.FC = () => {
                 </div>
               )
             })()}
-          </div>
-
-          {/* 底部数据卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-12">
-            {[
-              {
-                label: '产能提升',
-                value: '+18.5%',
-                color: 'blue',
-                gradient: 'from-blue-500 to-blue-600',
-                icon: BarChart3,
-              },
-              {
-                label: '能耗降低',
-                value: '-12.0%',
-                color: 'emerald',
-                gradient: 'from-emerald-500 to-emerald-600',
-                icon: Zap,
-              },
-              {
-                label: '故障停机',
-                value: '-35.0%',
-                color: 'red',
-                gradient: 'from-red-500 to-red-600',
-                icon: Shield,
-              },
-            ].map((card) => (
-              <div
-                key={card.label}
-                className={`group relative p-8 bg-gradient-to-br ${card.gradient} rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-${card.color}-500/30`}
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                <card.icon className="mb-4 text-white/80" size={32} />
-                <h4 className="text-white/90 font-semibold text-xs uppercase tracking-wider mb-2">
-                  {card.label}
-                </h4>
-                <p className="text-4xl font-black text-white tracking-tight">{card.value}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
