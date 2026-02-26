@@ -403,7 +403,7 @@ const KnowledgeGraphPage: React.FC = () => {
       {/* 主要内容区域 - 相对定位容器 */}
       <div className="flex-1 relative overflow-hidden">
         {/* 图谱画布 - 占据整个区域 */}
-        <div className="absolute inset-0 bg-slate-50">
+        <div className="absolute inset-0 bg-slate-50" data-tour="gewu-canvas">
           <KnowledgeGraphCanvas
             graphData={graphData}
             onNodeClick={handleNodeClick}

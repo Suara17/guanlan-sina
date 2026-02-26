@@ -133,16 +133,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
         {/* 折叠时仅显示LOGO图标(居中) */}
         {collapsed ? (
-          <TiangongLogo size={32} className="mx-auto" />
+          <TiangongLogo size={32} className="mx-auto" data-tour="logo" />
         ) : (
           /* 展开时显示完整LOGO + 标题 + 工厂切换 */
           <div className="flex items-center flex-1 min-w-0">
-            <TiangongLogo size={32} className="mr-3 flex-shrink-0" />
+            <TiangongLogo size={32} className="mr-3 flex-shrink-0" data-tour="logo" />
             <div className="flex-1 min-w-0 relative">
               <button
                 type="button"
                 onClick={() => setFactoryDropdownOpen(!factoryDropdownOpen)}
                 className="w-full flex items-center justify-between gap-2 text-left group cursor-pointer"
+                data-tour="factory-switch"
               >
                 <div className="min-w-0 flex-1">
                   <div className="font-bold text-sm tracking-wide truncate">天工·弈控</div>
@@ -199,7 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
       {/* 导航菜单 */}
       <div className="flex-1 py-6 px-3 space-y-6 overflow-y-auto">
         {NAV_GROUPS.map((group) => (
-          <div key={group.id}>
+          <div key={group.id} data-tour={group.id === 'monitoring' ? 'monitoring-group' : group.id === 'subscription' ? 'subscription-group' : undefined}>
             {/* 分组标题 */}
             {!collapsed && (
               <div className="px-4 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -217,6 +218,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
                     key={item.id}
                     type="button"
                     onClick={() => onNavigate(item.path)}
+                    data-tour={item.id === 'dashboard' ? 'dashboard-menu' : undefined}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group relative cursor-pointer ${
                       isActive
                         ? 'bg-gradient-to-r from-blue-600/90 to-blue-500/80 text-white shadow-lg shadow-blue-900/50'

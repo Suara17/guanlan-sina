@@ -409,7 +409,11 @@ export default function TianchouPage() {
 
       <main className="max-w-7xl mx-auto space-y-6">
         {/* 配置阶段 */}
-        {view === 'config' && <TaskConfigForm onSubmit={handleCreateTask} />}
+        {view === 'config' && (
+          <div data-tour="tianchou-config">
+            <TaskConfigForm onSubmit={handleCreateTask} />
+          </div>
+        )}
 
         {/* 优化执行阶段 */}
         {view === 'optimizing' && task && (
@@ -454,14 +458,16 @@ export default function TianchouPage() {
             </div>
 
             {/* 帕累托前沿可视化 */}
-            <ParetoTriplot
-              solutions={solutions}
-              onSelect={handleSelectSolution}
-              selectedId={selectedSolution?.id}
-              industryType={task.industry_type}
-              taskName={task.name}
-              taskId={task.task_id}
-            />
+            <div data-tour="tianchou-results">
+              <ParetoTriplot
+                solutions={solutions}
+                onSelect={handleSelectSolution}
+                selectedId={selectedSolution?.id}
+                industryType={task.industry_type}
+                taskName={task.name}
+                taskId={task.task_id}
+              />
+            </div>
 
             {/* 顶部：蓝色统计卡片 */}
             <div className="grid grid-cols-12 gap-6">

@@ -68,7 +68,7 @@ const AnomalyList: React.FC<Props> = ({ lineType, className }) => {
   const warningCount = filteredAnomalies.filter((a) => a.level === 'warning').length
 
   return (
-    <div className={`bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex flex-col ${className || ''}`}>
+    <div className={`bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex flex-col ${className || ''}`} data-tour="dashboard-anomaly">
       {/* 头部标题和统计 */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">

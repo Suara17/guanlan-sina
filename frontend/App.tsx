@@ -1,13 +1,17 @@
 import type React from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import AiAssistant from './components/AiAssistant'
 import LandingPage from './components/LandingPage'
 import LoginPage from './components/LoginPage'
+import OnboardingTour from './components/OnboardingTour'
 import ProtectedRoute from './components/ProtectedRoute'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+
+// 新手教程存储键
+const TUTORIAL_COMPLETED_KEY = 'tiangong_tutorial_completed'
 import AboutUs from './pages/AboutUs'
 import CustomerCases from './pages/CustomerCases'
 import Dashboard from './pages/Dashboard'
@@ -29,6 +33,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+  const { isAuthenticated, isLoading, showTutorial, clearShowTutorial } = useAuth()
+
+  // 完成教程
+  const handleTutorialComplete = () => {
+    localStorage.setItem(TUTORIAL_COMPLETED_KEY, 'true')
+    clearShowTutorial()
+  }
 
   const getTitle = (path: string) => {
     switch (path) {
@@ -108,6 +119,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           aria-label="关闭侧边栏"
         ></button>
       )}
+
+      {/* 新手教程 */}
+      <OnboardingTour isActive={showTutorial} onComplete={handleTutorialComplete} />
     </div>
   )
 }

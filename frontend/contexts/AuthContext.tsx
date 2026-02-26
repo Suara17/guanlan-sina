@@ -23,6 +23,8 @@ interface AuthContextType extends AuthState {
   checkAuth: () => Promise<void>
   clearError: () => void
   getTokenExpiryTime: () => number | null // 返回过期时间戳（毫秒）
+  showTutorial: boolean // 是否需要显示新手教程
+  clearShowTutorial: () => void // 清除教程显示标记
 }
 
 // 创建认证上下文
@@ -43,6 +45,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading: true, // 初始时设置为true，表示正在检查认证状态
     error: null,
   })
+
+  // 新手教程显示状态
+  const [showTutorial, setShowTutorial] = useState(false)
 
   // 调试日志
   console.log('AuthProvider render:', {
@@ -193,6 +198,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error: null,
       })
 
+      // 登录成功时触发新手教程
+      setShowTutorial(true)
+
       return true
     } catch (error: unknown) {
       console.error('Login failed:', error)
@@ -225,7 +233,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('token_expires_at')
 
-    // 重置认证状态
+    // 重置认证状态和教程状态
     updateAuthState({
       user: null,
       token: null,
@@ -233,6 +241,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isLoading: false,
       error: null,
     })
+    setShowTutorial(false)
+  }
+
+  // 清除教程显示标记
+  const clearShowTutorial = () => {
+    setShowTutorial(false)
   }
 
   // 获取token过期时间
@@ -254,6 +268,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth,
     clearError,
     getTokenExpiryTime,
+    showTutorial,
+    clearShowTutorial,
   }
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
