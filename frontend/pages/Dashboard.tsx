@@ -21,7 +21,6 @@ import ProductionLineSelector from '../components/ProductionLineSelector'
 import ProductionPlanCard from '../components/ProductionPlanCard'
 import ProductChangeAlert from '../components/ProductChangeAlert'
 import SinanAvatar from '../components/SinanAvatar'
-import SimulationSelector from '../components/SimulationSelector'
 import { DASHBOARD_METRICS, getAnomaliesByLineType, PRODUCTION_LINES } from '../mockData'
 import type { DashboardMetrics, NextPlan, OptimizationParams, ProductionData, ProductionLine, ProductChangeWarning } from '../types'
 
@@ -69,7 +68,6 @@ const Dashboard: React.FC = () => {
   })
 
   const [showProductAlert, setShowProductAlert] = useState(false)
-  const [showSimulation, setShowSimulation] = useState(false)
 
   // 3.2 优化路线：加载生产计划数据（Mock数据）
   useEffect(() => {
@@ -315,7 +313,7 @@ const Dashboard: React.FC = () => {
           {/* 异常模拟按钮 - 与面板宽度相同 */}
           <button
             type="button"
-            onClick={() => setShowSimulation(true)}
+            onClick={() => navigate('/app/simulation')}
             className="w-full flex-shrink-0 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-medium hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
           >
             <Beaker size={18} />
@@ -509,16 +507,6 @@ const Dashboard: React.FC = () => {
           })
         }}
         onDismiss={() => setShowProductAlert(false)}
-      />
-
-      {/* 异常模拟弹窗 */}
-      <SimulationSelector
-        isOpen={showSimulation}
-        onClose={() => setShowSimulation(false)}
-        onSelect={(scenarioId) => {
-          setShowSimulation(false)
-          navigate(`/app/simulation?scenario_id=${scenarioId}`)
-        }}
       />
     </div>
   )
