@@ -65,9 +65,9 @@ const AboutUs: React.FC = () => {
     },
     {
       year: '2025 Q3',
-      title: '格物孪生引擎',
+      title: '格物图谱引擎',
       description:
-        '格物数字孪生引擎上线，支持工厂数字化建模与虚实映射可视化。',
+        '格物知识图谱引擎上线，支持工艺知识图谱构建与专家经验沉淀。',
     },
     {
       year: '2025 Q4',
@@ -234,13 +234,13 @@ const AboutUs: React.FC = () => {
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-8">赋能制造，智控未来</h2>
 
               {/* 企业简介 */}
-              <div className="text-base md:text-lg lg:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto mb-12 space-y-2">
-                <p className="whitespace-nowrap">
-                  天工·弈控是一家专注于工业数字孪生操作系统研发的科技企业。 我们以
+              <div className="text-base md:text-lg text-slate-300 leading-relaxed max-w-4xl mx-auto mb-12">
+                <p>
+                  天工·弈控是一家专注于工业数字孪生操作系统研发的科技企业。我们以
                   <span className="text-cyan-400 font-semibold">"视-空协同"</span>
                   技术为核心，
                 </p>
-                <p className="whitespace-nowrap">
+                <p className="mt-2">
                   致力于为离散制造业提供从数据采集、数字孪生建模、智能决策到仿真验证的全栈式解决方案。
                 </p>
               </div>
@@ -285,20 +285,20 @@ const AboutUs: React.FC = () => {
               {/* 数据统计 - 极简风格 */}
               <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-slate-400">
                 <div className="text-center">
-                  <span className="text-2xl md:text-3xl font-bold text-white mr-1">4</span>
-                  <span className="text-sm">核心引擎</span>
+                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">4</span>
+                  <span className="text-lg font-semibold text-white">核心引擎</span>
                 </div>
                 <div className="text-center">
-                  <span className="text-2xl md:text-3xl font-bold text-white mr-1">10+</span>
-                  <span className="text-sm">技术团队</span>
+                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">10+</span>
+                  <span className="text-lg font-semibold text-white">技术团队</span>
                 </div>
                 <div className="text-center">
-                  <span className="text-2xl md:text-3xl font-bold text-white mr-1">3</span>
-                  <span className="text-sm">试点产线</span>
+                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">3</span>
+                  <span className="text-lg font-semibold text-white">试点产线</span>
                 </div>
                 <div className="text-center">
-                  <span className="text-2xl md:text-3xl font-bold text-white mr-1">5+</span>
-                  <span className="text-sm">研发成果</span>
+                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">5+</span>
+                  <span className="text-lg font-semibold text-white">研发成果</span>
                 </div>
               </div>
             </div>
@@ -322,11 +322,11 @@ const AboutUs: React.FC = () => {
                       }}
                       className={`flex-1 flex items-center justify-center gap-2 px-6 py-5 text-sm font-semibold transition-all ${
                         activeTab === item.id
-                          ? 'bg-blue-600/20 text-blue-400 border-b-2 border-blue-500'
-                          : 'text-slate-400 hover:bg-white/5'
+                          ? 'bg-blue-600/20 text-white border-b-2 border-blue-500'
+                          : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'
                       }`}
                     >
-                      <Icon size={18} />
+                      <Icon size={18} className={activeTab === item.id ? '' : 'text-slate-500'} />
                       {item.title}
                     </button>
                   )
@@ -342,27 +342,25 @@ const AboutUs: React.FC = () => {
                       activeTab === item.id ? 'block' : 'hidden'
                     }`}
                   >
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                        <item.icon size={28} className="text-white" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-white">{item.title}</h3>
-                    </div>
-                    <div className="mb-4">
-                      <p className="text-xl text-white font-medium leading-relaxed inline">{item.summary}</p>
+                    <div className="mb-6">
+                      <p className="text-2xl md:text-3xl font-bold leading-relaxed inline bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-[length:200%_auto] animate-gradient">
+                        {item.summary}
+                      </p>
                       <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="text-white hover:text-blue-400 transition-colors cursor-pointer inline-flex items-center ml-2 align-middle"
+                        className="ml-2 mt-1 text-slate-400 hover:text-blue-400 transition-colors cursor-pointer inline-flex items-center"
                       >
-                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        {isExpanded ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                       </button>
                     </div>
                     <div
-                      className={`overflow-hidden transition-all duration-300 ${
-                        isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                      className={`overflow-hidden transition-all duration-500 ${
+                        isExpanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
                       }`}
                     >
-                      <p className="text-base text-slate-400 leading-relaxed border-l-2 border-blue-500/30 pl-4">{item.details}</p>
+                      <div className="pt-6 border-t border-white/10">
+                        <p className="text-base text-slate-300 leading-relaxed">{item.details}</p>
+                      </div>
                     </div>
                   </div>
                 ))}

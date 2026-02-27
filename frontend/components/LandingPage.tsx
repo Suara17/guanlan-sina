@@ -599,12 +599,21 @@ const LandingPage: React.FC = () => {
               赋能头部行业
             </h2>
             <p className="text-slate-600 mb-4">深耕离散制造 6 个关键领域，点击查看行业详情与案例</p>
-            <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-slate-500 text-sm md:text-base">
-              <span>产能提升 <strong className="text-slate-600">+18.5%</strong></span>
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm md:text-base">
+              <span className="flex items-center gap-2">
+                <span className="text-slate-500">产能提升</span>
+                <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xl font-bold rounded-lg shadow-sm">+18.5%</span>
+              </span>
               <span className="hidden md:inline text-slate-300">|</span>
-              <span>能耗降低 <strong className="text-slate-600">-12.0%</strong></span>
+              <span className="flex items-center gap-2">
+                <span className="text-slate-500">能耗降低</span>
+                <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xl font-bold rounded-lg shadow-sm">-12.0%</span>
+              </span>
               <span className="hidden md:inline text-slate-300">|</span>
-              <span>故障停机 <strong className="text-slate-600">-35.0%</strong></span>
+              <span className="flex items-center gap-2">
+                <span className="text-slate-500">故障停机</span>
+                <span className="px-3 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xl font-bold rounded-lg shadow-sm">-35.0%</span>
+              </span>
             </div>
           </div>
 
@@ -752,7 +761,7 @@ const LandingPage: React.FC = () => {
 
           <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-10 lg:justify-items-end">
             <div className="space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">产品矩阵</p>
+              <p className="text-base font-bold uppercase tracking-wider text-slate-300">产品矩阵</p>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <a href="#" className="hover:text-blue-400 transition-colors">
@@ -777,7 +786,7 @@ const LandingPage: React.FC = () => {
               </ul>
             </div>
             <div className="space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <p className="text-base font-bold uppercase tracking-wider text-slate-300">
                 支持与资源
               </p>
               <ul className="space-y-2 text-sm text-slate-400">
@@ -799,7 +808,7 @@ const LandingPage: React.FC = () => {
               </ul>
             </div>
             <div className="space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">联系我们</p>
+              <p className="text-base font-bold uppercase tracking-wider text-slate-300">联系我们</p>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>400-223608838</li>
                 <li>admin@tiangongna.com</li>
@@ -807,8 +816,8 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600 uppercase font-semibold tracking-wider">
-          <span>© 2024 TIANGONG YIKONG OS</span>
+          <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600 uppercase font-semibold tracking-wider">
+          <span>© 2025 天工·弈控 Tiangong·Yikong. All rights reserved.</span>
           <div className="flex gap-6">
             <a href="#" className="hover:text-slate-400 transition-colors">
               Privacy
