@@ -40,7 +40,7 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         id: 'sinan',
-        label: '司南智控',
+        label: '司南智控（异常诊断）',
         icon: Sparkles,
         path: '/app/sinan',
         group: 'monitoring',
@@ -48,56 +48,57 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    id: 'subscription',
-    label: '订阅模块',
+    id: 'business',
+    label: '业务分析',
     items: [
       {
         id: 'gewu',
-        label: '格物图谱',
+        label: '格物图谱（归因分析）',
         icon: Network,
         path: '/app/gewu',
-        group: 'subscription',
+        group: 'business',
       },
       {
         id: 'tianchou',
-        label: '天筹优化',
+        label: '天筹优化（方案决策）',
         icon: Cpu,
         path: '/app/tianchou',
-        group: 'subscription',
+        group: 'business',
+        isCoreFeature: true,
       },
       {
         id: 'huntian',
-        label: '浑天仿真',
+        label: '浑天仿真（仿真验证）',
         icon: MonitorPlay,
         path: '/app/huntian',
-        group: 'subscription',
+        group: 'business',
+      },
+      {
+        id: 'builder',
+        label: '场景编排（业务编排）',
+        icon: Cuboid,
+        path: '/app/builder',
+        group: 'business',
       },
     ],
   },
   {
-    id: 'components',
-    label: '组件管理',
+    id: 'platform',
+    label: '平台配置',
     items: [
       {
         id: 'marketplace',
         label: '能力商店',
         icon: Store,
         path: '/app/marketplace',
-        group: 'components',
-      },
-      {
-        id: 'builder',
-        label: '场景编排',
-        icon: Cuboid,
-        path: '/app/builder',
-        group: 'components',
+        group: 'platform',
       },
       {
         id: 'ecosystem',
         label: '开发者生态',
         icon: Activity,
         path: '/app/ecosystem',
-        group: 'components',
+        group: 'platform',
       },
     ],
   },
@@ -200,7 +201,18 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
       {/* 导航菜单 */}
       <div className="flex-1 py-6 px-3 space-y-6 overflow-y-auto">
         {NAV_GROUPS.map((group) => (
-          <div key={group.id} data-tour={group.id === 'monitoring' ? 'monitoring-group' : group.id === 'subscription' ? 'subscription-group' : group.id === 'components' ? 'components-group' : undefined}>
+          <div
+            key={group.id}
+            data-tour={
+              group.id === 'monitoring'
+                ? 'monitoring-group'
+                : group.id === 'subscription'
+                  ? 'subscription-group'
+                  : group.id === 'components'
+                    ? 'components-group'
+                    : undefined
+            }
+          >
             {/* 分组标题 */}
             {!collapsed && (
               <div className="px-4 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -242,7 +254,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
                     />
                     {!collapsed && (
                       <>
-                        <span className="font-medium text-sm flex-1 text-left">{item.label}</span>
+                        <span className="font-medium text-sm flex-1 text-left leading-tight">
+                          {item.label}
+                        </span>
+                        {item.isCoreFeature && !collapsed && (
+                          <span className="flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            核心
+                          </span>
+                        )}
                         {isActive && (
                           <div className="w-1.5 h-1.5 rounded-full bg-white shadow-lg shadow-white/50 flex-shrink-0" />
                         )}

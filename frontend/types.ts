@@ -4,6 +4,7 @@ export interface NavItem {
   icon: React.ComponentType<{ size?: number; className?: string }>
   path: string
   group?: string // 功能分组
+  isCoreFeature?: boolean // 是否为核心功能，显示「核心」角标
 }
 
 export interface NavGroup {
