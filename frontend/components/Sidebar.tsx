@@ -17,6 +17,7 @@ import {
 import type React from 'react'
 import { useState } from 'react'
 import type { NavGroup, NavItem } from '../types'
+import BusinessFlowBar from './BusinessFlowBar'
 import TiangongLogo from './TiangongLogo'
 
 interface SidebarProps {
@@ -199,7 +200,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
       </div>
 
       {/* 导航菜单 */}
-      <div className="flex-1 py-6 px-3 space-y-6 overflow-y-auto">
+      <div className="flex-1 py-4 px-3 space-y-4 overflow-y-auto">
+        {/* 业务闭环流程条 */}
+        <BusinessFlowBar currentPath={currentPath} onNavigate={onNavigate} collapsed={collapsed} />
         {NAV_GROUPS.map((group) => (
           <div
             key={group.id}
