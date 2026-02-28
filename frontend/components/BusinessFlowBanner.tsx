@@ -8,7 +8,7 @@ interface FlowCard {
   title: string
   subtitle: string
   navigateTo: string
-  color: string
+  color: ColorKey
 }
 
 const FLOW_CARDS: FlowCard[] = [
@@ -46,8 +46,8 @@ const FLOW_CARDS: FlowCard[] = [
   },
 ]
 
-// Tailwind 不支持动态类名，需要静态映射
-const COLOR_MAP: Record<string, { border: string; bg: string; text: string; dot: string }> = {
+// Tailwind 不支持动态类名，需要静态映射；使用 as const 推导精确类型，避免 Record<string, ...> 导致的越界风险
+const COLOR_MAP = {
   blue: {
     border: 'border-blue-500/40',
     bg: 'bg-blue-500/10 hover:bg-blue-500/20',
@@ -72,7 +72,10 @@ const COLOR_MAP: Record<string, { border: string; bg: string; text: string; dot:
     text: 'text-emerald-400',
     dot: 'bg-emerald-500',
   },
-}
+} as const
+
+// 从 COLOR_MAP 键推导联合类型，FlowCard.color 只能取合法值
+type ColorKey = keyof typeof COLOR_MAP
 
 interface BusinessFlowBannerProps {
   currentPath: string
@@ -101,7 +104,9 @@ const BusinessFlowBanner: React.FC<BusinessFlowBannerProps> = ({ currentPath, on
                       currentPath === card.navigateTo ? 'scale-150' : 'opacity-40'
                     }`}
                   />
-                  {index < FLOW_CARDS.length - 1 && <div className="w-4 h-px bg-slate-600" />}
+                  {index < FLOW_CARDS.length - 1 && (
+                    <div className="w-4 h-px bg-slate-600" aria-hidden="true" />
+                  )}
                 </div>
               ))}
             </div>
@@ -159,7 +164,11 @@ const BusinessFlowBanner: React.FC<BusinessFlowBannerProps> = ({ currentPath, on
                 </button>
                 {/* ArrowRight 连接相邻卡片 */}
                 {index < FLOW_CARDS.length - 1 && (
-                  <ArrowRight size={14} className="flex-shrink-0 text-slate-600" />
+                  <ArrowRight
+                    size={14}
+                    className="flex-shrink-0 text-slate-600"
+                    aria-hidden="true"
+                  />
                 )}
               </div>
             )
