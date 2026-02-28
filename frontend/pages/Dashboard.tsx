@@ -16,13 +16,21 @@ import {
   YAxis,
 } from 'recharts'
 import AnomalyList from '../components/AnomalyList'
+import BusinessFlowBanner from '../components/BusinessFlowBanner'
 import DataDashboard from '../components/DataDashboard'
+import ProductChangeAlert from '../components/ProductChangeAlert'
 import ProductionLineSelector from '../components/ProductionLineSelector'
 import ProductionPlanCard from '../components/ProductionPlanCard'
-import ProductChangeAlert from '../components/ProductChangeAlert'
 import SinanAvatar from '../components/SinanAvatar'
 import { DASHBOARD_METRICS, getAnomaliesByLineType, PRODUCTION_LINES } from '../mockData'
-import type { DashboardMetrics, NextPlan, OptimizationParams, ProductionData, ProductionLine, ProductChangeWarning } from '../types'
+import type {
+  DashboardMetrics,
+  NextPlan,
+  OptimizationParams,
+  ProductChangeWarning,
+  ProductionData,
+  ProductionLine,
+} from '../types'
 
 // Mock Data
 const PRODUCTION_DATA: ProductionData[] = [
@@ -44,7 +52,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const [sinanMode, setSinanMode] = useState<'idle' | 'alert'>('idle')
   const [selectedLine, setSelectedLine] = useState<ProductionLine | null>(PRODUCTION_LINES[0]) // 默认选中第一条产线
-  
+
   // 3.2 优化路线：生产计划状态
   const [productionPlan, setProductionPlan] = useState<{
     currentPlan: {
@@ -258,6 +266,9 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 min-h-full flex flex-col gap-6">
+      {/* 业务闭环横幅 */}
+      <BusinessFlowBanner currentPath="/app/" onNavigate={navigate} />
+
       {/* Header Info Bar */}
       <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm flex flex-wrap justify-between items-center gap-4">
         <div className="flex items-center gap-4 flex-1">
@@ -309,7 +320,7 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col gap-4 h-full">
           {/* 异常信息面板 - 自动填充剩余空间 */}
           {selectedLine && <AnomalyList lineType={selectedLine.type} className="flex-1 min-h-0" />}
-          
+
           {/* 异常模拟按钮 - 与面板宽度相同 */}
           <button
             type="button"
@@ -352,11 +363,7 @@ const Dashboard: React.FC = () => {
                 tick={{ fill: '#64748b', fontSize: 12 }}
                 dy={10}
               />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#64748b', fontSize: 12 }}
-              />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
               <Tooltip
                 cursor={{ fill: '#f1f5f9' }}
                 contentStyle={{
@@ -415,8 +422,7 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <span className="text-sm text-slate-500">设备综合效率 (OEE)</span>
             <span className="text-xl font-bold text-slate-800">
-              {((dashboardMetrics.completionRate + dashboardMetrics.efficiency) / 2).toFixed(1)}
-              %
+              {((dashboardMetrics.completionRate + dashboardMetrics.efficiency) / 2).toFixed(1)}%
             </span>
           </div>
           <div className="w-full bg-slate-100 rounded-full h-2">
@@ -481,11 +487,7 @@ const Dashboard: React.FC = () => {
 
       {/* 司南数字人 - 悬浮定位 */}
       <div className="fixed bottom-6 right-6 z-50">
-        <SinanAvatar
-          mode={sinanMode}
-          alertMessage={alertMessage}
-          className="h-48 w-48"
-        />
+        <SinanAvatar mode={sinanMode} alertMessage={alertMessage} className="h-48 w-48" />
       </div>
 
       {/* 3.2 优化路线：产品切换预警弹窗 */}
