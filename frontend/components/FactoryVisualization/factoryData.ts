@@ -4,6 +4,11 @@
 
 export type StatusType = 'running' | 'idle' | 'error'
 
+export interface GridPosition {
+  col: number
+  row: number
+}
+
 export interface Station {
   id: string
   name: string
@@ -21,7 +26,7 @@ export interface WorkshopLine {
   oee: number         // 0-100
   currentOrder: string
   stations: Station[]
-  gridPos: { col: number; row: number }  // 在车间网格中的位置
+  gridPos: GridPosition  // 在车间网格中的位置
 }
 
 export interface Workshop {
@@ -29,7 +34,7 @@ export interface Workshop {
   name: string
   status: StatusType
   lines: WorkshopLine[]
-  gridPos: { col: number; row: number }  // 在厂区网格中的位置
+  gridPos: GridPosition  // 在厂区网格中的位置
 }
 
 // SMT 车间工位模板
@@ -85,9 +90,9 @@ export const FACTORY_DATA: Workshop[] = [
       {
         id: 'smt-a03', name: 'SMT A03', type: 'SMT', status: 'error',
         oee: 52.1, currentOrder: 'WO-20260228-003',
-        stations: SMT_STATIONS.map((s, i) => ({
+        stations: SMT_STATIONS.map(s => ({
           ...s, id: `a03-${s.id}`,
-          status: i === 3 ? 'error' : s.status,  // 贴片机故障
+          status: s.id === 's4' ? 'error' : s.status,  // s4 = 贴片机
         })),
         gridPos: { col: 2, row: 0 },
       },
@@ -140,9 +145,9 @@ export const FACTORY_DATA: Workshop[] = [
       {
         id: '3c-c03', name: '3C C03', type: '3C', status: 'error',
         oee: 61.3, currentOrder: 'WO-20260228-008',
-        stations: C3_STATIONS.map((s, i) => ({
+        stations: C3_STATIONS.map(s => ({
           ...s, id: `c03-${s.id}`,
-          status: i === 3 ? 'error' : s.status,  // 功能测试故障
+          status: s.id === 'c4' ? 'error' : s.status,  // c4 = 功能测试
         })),
         gridPos: { col: 2, row: 0 },
       },
