@@ -31,7 +31,10 @@ const ProductionLineView: React.FC<ProductionLineViewProps> = ({ line }) => {
           OEE <span className="font-bold text-blue-600">{line.oee > 0 ? `${line.oee}%` : '—'}</span>
         </span>
         <span className="text-xs text-slate-500">
-          瓶颈工位 <span className="font-bold text-orange-500">{bottleneck.name}（{bottleneck.cycleTime}s）</span>
+          瓶颈工位{' '}
+          <span className="font-bold text-orange-500">
+            {bottleneck.name}（{bottleneck.cycleTime}s）
+          </span>
         </span>
       </div>
 
@@ -41,6 +44,8 @@ const ProductionLineView: React.FC<ProductionLineViewProps> = ({ line }) => {
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         className="overflow-visible"
         style={{ maxHeight: 220 }}
+        role="img"
+        aria-label="产线工位等轴测视图"
       >
         <g transform={`translate(${OFFSET_X}, ${OFFSET_Y})`}>
           <AnimatePresence>

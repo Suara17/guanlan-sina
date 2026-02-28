@@ -14,19 +14,19 @@ export interface Station {
   name: string
   type: string
   status: StatusType
-  cycleTime: number  // 节拍（秒）
-  position: number   // 在产线中的顺序
+  cycleTime: number // 节拍（秒）
+  position: number // 在产线中的顺序
 }
 
 export interface WorkshopLine {
-  id: string          // 与 PRODUCTION_LINES 中的 id 一致
+  id: string // 与 PRODUCTION_LINES 中的 id 一致
   name: string
   type: string
   status: StatusType
-  oee: number         // 0-100
+  oee: number // 0-100
   currentOrder: string
   stations: Station[]
-  gridPos: GridPosition  // 在车间网格中的位置
+  gridPos: GridPosition // 在车间网格中的位置
 }
 
 export interface Workshop {
@@ -34,7 +34,7 @@ export interface Workshop {
   name: string
   status: StatusType
   lines: WorkshopLine[]
-  gridPos: GridPosition  // 在厂区网格中的位置
+  gridPos: GridPosition // 在厂区网格中的位置
 }
 
 // SMT 车间工位模板
@@ -72,27 +72,40 @@ export const FACTORY_DATA: Workshop[] = [
   {
     id: 'workshop-smt',
     name: 'SMT 车间',
-    status: 'error',  // 因 A03 故障
+    status: 'error', // 因 A03 故障
     gridPos: { col: 0, row: 0 },
     lines: [
       {
-        id: 'smt-a01', name: 'SMT A01', type: 'SMT', status: 'running',
-        oee: 88.3, currentOrder: 'WO-20260228-001',
-        stations: SMT_STATIONS.map(s => ({ ...s, id: `a01-${s.id}` })),
+        id: 'smt-a01',
+        name: 'SMT A01',
+        type: 'SMT',
+        status: 'running',
+        oee: 88.3,
+        currentOrder: 'WO-20260228-001',
+        stations: SMT_STATIONS.map((s) => ({ ...s, id: `a01-${s.id}` })),
         gridPos: { col: 0, row: 0 },
       },
       {
-        id: 'smt-a02', name: 'SMT A02', type: 'SMT', status: 'running',
-        oee: 76.5, currentOrder: 'WO-20260228-002',
-        stations: SMT_STATIONS.map(s => ({ ...s, id: `a02-${s.id}` })),
+        id: 'smt-a02',
+        name: 'SMT A02',
+        type: 'SMT',
+        status: 'running',
+        oee: 76.5,
+        currentOrder: 'WO-20260228-002',
+        stations: SMT_STATIONS.map((s) => ({ ...s, id: `a02-${s.id}` })),
         gridPos: { col: 1, row: 0 },
       },
       {
-        id: 'smt-a03', name: 'SMT A03', type: 'SMT', status: 'error',
-        oee: 52.1, currentOrder: 'WO-20260228-003',
-        stations: SMT_STATIONS.map(s => ({
-          ...s, id: `a03-${s.id}`,
-          status: s.id === 's4' ? 'error' : s.status,  // s4 = 贴片机
+        id: 'smt-a03',
+        name: 'SMT A03',
+        type: 'SMT',
+        status: 'error',
+        oee: 52.1,
+        currentOrder: 'WO-20260228-003',
+        stations: SMT_STATIONS.map((s) => ({
+          ...s,
+          id: `a03-${s.id}`,
+          status: s.id === 's4' ? 'error' : s.status, // s4 = 贴片机
         })),
         gridPos: { col: 2, row: 0 },
       },
@@ -105,21 +118,37 @@ export const FACTORY_DATA: Workshop[] = [
     gridPos: { col: 1, row: 0 },
     lines: [
       {
-        id: 'pcb-b01', name: 'PCB B01', type: 'PCB', status: 'running',
-        oee: 94.2, currentOrder: 'WO-20260228-004',
-        stations: PCB_STATIONS.map(s => ({ ...s, id: `b01-${s.id}` })),
+        id: 'pcb-b01',
+        name: 'PCB B01',
+        type: 'PCB',
+        status: 'running',
+        oee: 94.2,
+        currentOrder: 'WO-20260228-004',
+        stations: PCB_STATIONS.map((s) => ({ ...s, id: `b01-${s.id}` })),
         gridPos: { col: 0, row: 0 },
       },
       {
-        id: 'pcb-b02', name: 'PCB B02', type: 'PCB', status: 'idle',
-        oee: 0, currentOrder: '—',
-        stations: PCB_STATIONS.map(s => ({ ...s, id: `b02-${s.id}`, status: 'idle' as StatusType })),
+        id: 'pcb-b02',
+        name: 'PCB B02',
+        type: 'PCB',
+        status: 'idle',
+        oee: 0,
+        currentOrder: '—',
+        stations: PCB_STATIONS.map((s) => ({
+          ...s,
+          id: `b02-${s.id}`,
+          status: 'idle' as StatusType,
+        })),
         gridPos: { col: 1, row: 0 },
       },
       {
-        id: 'pcb-b03', name: 'PCB B03', type: 'PCB', status: 'running',
-        oee: 91.0, currentOrder: 'WO-20260228-005',
-        stations: PCB_STATIONS.map(s => ({ ...s, id: `b03-${s.id}` })),
+        id: 'pcb-b03',
+        name: 'PCB B03',
+        type: 'PCB',
+        status: 'running',
+        oee: 91.0,
+        currentOrder: 'WO-20260228-005',
+        stations: PCB_STATIONS.map((s) => ({ ...s, id: `b03-${s.id}` })),
         gridPos: { col: 2, row: 0 },
       },
     ],
@@ -127,27 +156,40 @@ export const FACTORY_DATA: Workshop[] = [
   {
     id: 'workshop-3c',
     name: '3C 车间',
-    status: 'error',  // 因 C03 故障
+    status: 'error', // 因 C03 故障
     gridPos: { col: 2, row: 0 },
     lines: [
       {
-        id: '3c-c01', name: '3C C01', type: '3C', status: 'running',
-        oee: 85.7, currentOrder: 'WO-20260228-006',
-        stations: C3_STATIONS.map(s => ({ ...s, id: `c01-${s.id}` })),
+        id: '3c-c01',
+        name: '3C C01',
+        type: '3C',
+        status: 'running',
+        oee: 85.7,
+        currentOrder: 'WO-20260228-006',
+        stations: C3_STATIONS.map((s) => ({ ...s, id: `c01-${s.id}` })),
         gridPos: { col: 0, row: 0 },
       },
       {
-        id: '3c-c02', name: '3C C02', type: '3C', status: 'running',
-        oee: 83.2, currentOrder: 'WO-20260228-007',
-        stations: C3_STATIONS.map(s => ({ ...s, id: `c02-${s.id}` })),
+        id: '3c-c02',
+        name: '3C C02',
+        type: '3C',
+        status: 'running',
+        oee: 83.2,
+        currentOrder: 'WO-20260228-007',
+        stations: C3_STATIONS.map((s) => ({ ...s, id: `c02-${s.id}` })),
         gridPos: { col: 1, row: 0 },
       },
       {
-        id: '3c-c03', name: '3C C03', type: '3C', status: 'error',
-        oee: 61.3, currentOrder: 'WO-20260228-008',
-        stations: C3_STATIONS.map(s => ({
-          ...s, id: `c03-${s.id}`,
-          status: s.id === 'c4' ? 'error' : s.status,  // c4 = 功能测试
+        id: '3c-c03',
+        name: '3C C03',
+        type: '3C',
+        status: 'error',
+        oee: 61.3,
+        currentOrder: 'WO-20260228-008',
+        stations: C3_STATIONS.map((s) => ({
+          ...s,
+          id: `c03-${s.id}`,
+          status: s.id === 'c4' ? 'error' : s.status, // c4 = 功能测试
         })),
         gridPos: { col: 2, row: 0 },
       },
@@ -156,8 +198,11 @@ export const FACTORY_DATA: Workshop[] = [
 ]
 
 // 状态色映射
-export const STATUS_COLORS: Record<StatusType, { top: string; left: string; right: string; text: string; pulse: string }> = {
+export const STATUS_COLORS: Record<
+  StatusType,
+  { top: string; left: string; right: string; text: string; pulse: string }
+> = {
   running: { top: '#dcfce7', left: '#86efac', right: '#bbf7d0', text: '#15803d', pulse: '#22c55e' },
-  idle:    { top: '#fef9c3', left: '#fde047', right: '#fef08a', text: '#854d0e', pulse: '#eab308' },
-  error:   { top: '#fee2e2', left: '#fca5a5', right: '#fecaca', text: '#991b1b', pulse: '#ef4444' },
+  idle: { top: '#fef9c3', left: '#fde047', right: '#fef08a', text: '#854d0e', pulse: '#eab308' },
+  error: { top: '#fee2e2', left: '#fca5a5', right: '#fecaca', text: '#991b1b', pulse: '#ef4444' },
 }

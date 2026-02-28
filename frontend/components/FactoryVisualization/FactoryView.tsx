@@ -19,11 +19,11 @@ const FactoryView: React.FC<FactoryViewProps> = ({ workshops, onDrillDown }) => 
   const totalLines = workshops.reduce((n, w) => n + w.lines.length, 0)
   const errorLines = workshops.reduce(
     (n, w) => n + w.lines.filter((l) => l.status === 'error').length,
-    0,
+    0
   )
   const runningLines = workshops.reduce(
     (n, w) => n + w.lines.filter((l) => l.status === 'running').length,
-    0,
+    0
   )
 
   return (
@@ -48,6 +48,8 @@ const FactoryView: React.FC<FactoryViewProps> = ({ workshops, onDrillDown }) => 
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         className="overflow-visible"
         style={{ maxHeight: 280 }}
+        role="img"
+        aria-label="厂区等轴测全览图"
       >
         <g transform={`translate(${OFFSET_X}, ${OFFSET_Y})`}>
           <AnimatePresence>
@@ -62,7 +64,11 @@ const FactoryView: React.FC<FactoryViewProps> = ({ workshops, onDrillDown }) => 
                   row={row}
                   status={workshop.status}
                   label={workshop.name}
-                  subLabel={errorCount > 0 ? `⚠ ${errorCount} 条产线异常` : `${workshop.lines.length} 条产线`}
+                  subLabel={
+                    errorCount > 0
+                      ? `⚠ ${errorCount} 条产线异常`
+                      : `${workshop.lines.length} 条产线`
+                  }
                   onClick={() => onDrillDown(workshop)}
                   scale={1.8}
                   showPulse={workshop.status !== 'running'}

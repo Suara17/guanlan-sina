@@ -18,6 +18,7 @@ import {
 import AnomalyList from '../components/AnomalyList'
 import BusinessFlowBanner from '../components/BusinessFlowBanner'
 import DataDashboard from '../components/DataDashboard'
+import FactoryVisualization from '../components/FactoryVisualization'
 import ProductChangeAlert from '../components/ProductChangeAlert'
 import ProductionLineSelector from '../components/ProductionLineSelector'
 import ProductionPlanCard from '../components/ProductionPlanCard'
@@ -332,6 +333,9 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* 厂区动态图 - 全宽 */}
+      <FactoryVisualization />
 
       {/* 下半部分：全宽卡片 */}
       {/* Production Monitor - 全宽 */}

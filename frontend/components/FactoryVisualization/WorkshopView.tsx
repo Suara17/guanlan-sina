@@ -46,6 +46,8 @@ const WorkshopView: React.FC<WorkshopViewProps> = ({ lines, workshopName, onDril
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         className="overflow-visible"
         style={{ maxHeight: 260 }}
+        role="img"
+        aria-label="车间产线等轴测视图"
       >
         <g transform={`translate(${OFFSET_X}, ${OFFSET_Y})`}>
           <AnimatePresence>
@@ -60,7 +62,9 @@ const WorkshopView: React.FC<WorkshopViewProps> = ({ lines, workshopName, onDril
                   row={row}
                   status={line.status}
                   label={line.name}
-                  subLabel={line.currentOrder !== '—' ? `工单 ${line.currentOrder.slice(-3)}` : '待机'}
+                  subLabel={
+                    line.currentOrder !== '—' ? `工单 ${line.currentOrder.slice(-3)}` : '待机'
+                  }
                   onClick={() => onDrillDown(line)}
                   scale={1.4}
                   showPulse={line.status !== 'running'}

@@ -5,9 +5,9 @@ import type React from 'react'
 import type { StatusType } from './factoryData'
 import { STATUS_COLORS } from './factoryData'
 
-export const TILE_W = 120  // 等轴测砖块宽度（像素）
-export const TILE_H = 60   // 等轴测砖块高度（像素）
-export const BLOCK_DEPTH = 36  // 方块厚度
+export const TILE_W = 120 // 等轴测砖块宽度（像素）
+export const TILE_H = 60 // 等轴测砖块高度（像素）
+export const BLOCK_DEPTH = 36 // 方块厚度
 
 /** 将网格坐标转换为 SVG 屏幕坐标 */
 export function isoToScreen(col: number, row: number): { x: number; y: number } {
@@ -122,8 +122,18 @@ const IsometricBlock: React.FC<IsometricBlockProps> = ({
             fill={colors.pulse}
             opacity={0.3}
           >
-            <animate attributeName="r" values={`${4 * scale};${8 * scale};${4 * scale}`} dur="2s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
+            <animate
+              attributeName="r"
+              values={`${4 * scale};${8 * scale};${4 * scale}`}
+              dur="2s"
+              repeatCount="indefinite"
+            />
+            <animate
+              attributeName="opacity"
+              values="0.3;0.1;0.3"
+              dur="2s"
+              repeatCount="indefinite"
+            />
           </circle>
           <circle
             cx={x + w / 2 - 8 * scale}
