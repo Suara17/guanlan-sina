@@ -4,14 +4,15 @@ import type React from 'react'
 interface FlowStep {
   id: string
   label: string
-  paths: string[]
+  paths: string[] // 用于匹配激活状态
+  navigateTo: string // 明确的跳转目标
 }
 
 const FLOW_STEPS: FlowStep[] = [
-  { id: 'discover', label: '发现', paths: ['/app/', '/app/sinan'] },
-  { id: 'attribute', label: '归因', paths: ['/app/gewu'] },
-  { id: 'decide', label: '决策', paths: ['/app/tianchou'] },
-  { id: 'verify', label: '验证', paths: ['/app/huntian'] },
+  { id: 'discover', label: '发现', paths: ['/app/', '/app/sinan'], navigateTo: '/app/' },
+  { id: 'attribute', label: '归因', paths: ['/app/gewu'], navigateTo: '/app/gewu' },
+  { id: 'decide', label: '决策', paths: ['/app/tianchou'], navigateTo: '/app/tianchou' },
+  { id: 'verify', label: '验证', paths: ['/app/huntian'], navigateTo: '/app/huntian' },
 ]
 
 interface BusinessFlowBarProps {
@@ -34,8 +35,9 @@ const BusinessFlowBar: React.FC<BusinessFlowBarProps> = ({
           <button
             key={step.id}
             type="button"
-            onClick={() => onNavigate(step.paths[0])}
+            onClick={() => onNavigate(step.navigateTo)}
             title={step.label}
+            aria-label={`前往：${step.label}`}
             className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
               index === activeIndex
                 ? 'bg-blue-400 shadow-lg shadow-blue-400/50 scale-125'
@@ -57,7 +59,7 @@ const BusinessFlowBar: React.FC<BusinessFlowBarProps> = ({
           <div key={step.id} className="flex items-center gap-1">
             <button
               type="button"
-              onClick={() => onNavigate(step.paths[0])}
+              onClick={() => onNavigate(step.navigateTo)}
               className="flex flex-col items-center gap-1 cursor-pointer group transition-all"
               title={`前往：${step.label}`}
             >
@@ -84,6 +86,7 @@ const BusinessFlowBar: React.FC<BusinessFlowBarProps> = ({
                 {step.label}
               </span>
             </button>
+            {/* mb-3 用于与上方编号圆圈视觉垂直对齐 */}
             {index < FLOW_STEPS.length - 1 && (
               <ArrowRight
                 size={10}
