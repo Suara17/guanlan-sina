@@ -203,15 +203,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
         {NAV_GROUPS.map((group) => (
           <div
             key={group.id}
-            data-tour={
-              group.id === 'monitoring'
-                ? 'monitoring-group'
-                : group.id === 'subscription'
-                  ? 'subscription-group'
-                  : group.id === 'components'
-                    ? 'components-group'
-                    : undefined
-            }
+            data-tour={group.id === 'monitoring' ? 'monitoring-group' : undefined}
           >
             {/* 分组标题 */}
             {!collapsed && (
@@ -257,7 +249,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
                         <span className="font-medium text-sm flex-1 text-left leading-tight">
                           {item.label}
                         </span>
-                        {item.isCoreFeature && !collapsed && (
+                        {item.isCoreFeature && (
                           <span className="flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
                             核心
                           </span>
