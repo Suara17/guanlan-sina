@@ -823,11 +823,14 @@ async def get_original_layout_image(task_id: str, session: SessionDep) -> Any:
     }
 
     generator = LayoutImageGenerator(task.industry_type.value)
-    image_base64 = generator.generate_layout_image(
-        positions=original_positions,
-        device_sizes=device_sizes,
-        workshop_dims=workshop_dims,
-    )
+    try:
+        image_base64 = generator.generate_layout_image(
+            positions=original_positions,
+            device_sizes=device_sizes,
+            workshop_dims=workshop_dims,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"生成布局图失败: {str(e)}")
 
     return LayoutImageResponse(
         task_id=task_id,
@@ -858,6 +861,9 @@ async def get_optimized_layout_image(
     if not solution or str(solution.task_id) != task_id:
         raise HTTPException(status_code=404, detail="方案不存在")
 
+    if solution.solution_data is None:
+        raise HTTPException(status_code=400, detail="方案数据为空，无法生成布局图")
+
     input_params = task.input_params
 
     optimized_positions = solution.solution_data.get("individual", [])
@@ -871,13 +877,16 @@ async def get_optimized_layout_image(
     }
 
     generator = LayoutImageGenerator(task.industry_type.value)
-    image_base64 = generator.generate_layout_image(
-        positions=optimized_positions,
-        device_sizes=device_sizes,
-        workshop_dims=workshop_dims,
-        solution_data=solution.solution_data,
-        original_positions=original_positions if original_positions else None,
-    )
+    try:
+        image_base64 = generator.generate_layout_image(
+            positions=optimized_positions,
+            device_sizes=device_sizes,
+            workshop_dims=workshop_dims,
+            solution_data=solution.solution_data,
+            original_positions=original_positions if original_positions else None,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"生成布局图失败: {str(e)}")
 
     return LayoutImageResponse(
         task_id=task_id,
