@@ -50,7 +50,10 @@ const ProfileSection: React.FC = () => {
             {/* 表单 */}
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-slate-700 mb-1.5"
+                >
                   用户名
                 </label>
                 <input
@@ -98,7 +101,10 @@ const ProfileSection: React.FC = () => {
           {/* 组织信息 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="department" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label
+                htmlFor="department"
+                className="block text-sm font-medium text-slate-700 mb-1.5"
+              >
                 所属部门
               </label>
               <div className="relative">
@@ -111,7 +117,10 @@ const ProfileSection: React.FC = () => {
                   <option>设备维护部</option>
                   <option>工艺工程部</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown
+                  size={16}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
               </div>
             </div>
             <div>
@@ -241,7 +250,10 @@ const NotificationSection: React.FC = () => {
                 <p className="text-sm text-slate-500">zhanggong@tiangong.com</p>
               </div>
             </div>
-            <Toggle enabled={settings.emailNotification} onChange={() => toggle('emailNotification')} />
+            <Toggle
+              enabled={settings.emailNotification}
+              onChange={() => toggle('emailNotification')}
+            />
           </div>
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -309,7 +321,10 @@ const AppearanceSection: React.FC = () => {
                     theme === t.id ? 'bg-blue-100' : 'bg-slate-100'
                   }`}
                 >
-                  <t.icon size={20} className={theme === t.id ? 'text-blue-600' : 'text-slate-500'} />
+                  <t.icon
+                    size={20}
+                    className={theme === t.id ? 'text-blue-600' : 'text-slate-500'}
+                  />
                 </div>
                 <p className={`font-medium ${theme === t.id ? 'text-blue-600' : 'text-slate-800'}`}>
                   {t.label}
@@ -348,7 +363,10 @@ const AppearanceSection: React.FC = () => {
                 <option value="en-US">English</option>
                 <option value="ja-JP">日本語</option>
               </select>
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <ChevronDown
+                size={16}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              />
             </div>
           </div>
         </div>

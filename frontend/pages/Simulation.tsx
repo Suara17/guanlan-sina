@@ -107,10 +107,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: '锡焊不到位', description: '连续10个焊接不良', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '焊锡未完全熔化', description: '焊点润湿不良', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '温度不足', description: '峰值温度偏低', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '回流焊温度曲线偏移', description: '工艺参数漂移', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: '锡焊不到位',
+        description: '连续10个焊接不良',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '焊锡未完全熔化',
+        description: '焊点润湿不良',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '温度不足',
+        description: '峰值温度偏低',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '回流焊温度曲线偏移',
+        description: '工艺参数漂移',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -162,10 +190,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: '抛料率超8%', description: '异常升高的抛料率', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '真空吸力不足', description: '吸嘴吸附力下降', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '供料位置偏移', description: 'Feeder精度问题', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '吸嘴磨损+Feeder偏移', description: '设备老化与校准问题', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: '抛料率超8%',
+        description: '异常升高的抛料率',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '真空吸力不足',
+        description: '吸嘴吸附力下降',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '供料位置偏移',
+        description: 'Feeder精度问题',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '吸嘴磨损+Feeder偏移',
+        description: '设备老化与校准问题',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -217,10 +273,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: '温度波动异常', description: '温区温度不稳定', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '加热效率下降', description: '加热能力不足', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '控制精度下降', description: 'PID响应迟缓', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '加热管老化+PID需整定', description: '设备老化和参数漂移', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: '温度波动异常',
+        description: '温区温度不稳定',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '加热效率下降',
+        description: '加热能力不足',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '控制精度下降',
+        description: 'PID响应迟缓',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '加热管老化+PID需整定',
+        description: '设备老化和参数漂移',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -272,10 +356,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: '误检率过高', description: '假不良品增多', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '成像质量下降', description: '光源亮度不足', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '阈值设置不当', description: '检测参数漂移', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '光源衰减+阈值需校准', description: '设备老化和参数问题', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: '误检率过高',
+        description: '假不良品增多',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '成像质量下降',
+        description: '光源亮度不足',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '阈值设置不当',
+        description: '检测参数漂移',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '光源衰减+阈值需校准',
+        description: '设备老化和参数问题',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -327,10 +439,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: '刮刀磨损严重', description: '印刷质量下降', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '印刷压力不均', description: '刮刀边缘磨损', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '锡膏厚度异常', description: '脱模效果变差', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '刮刀使用超寿命', description: '未按时更换易损件', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: '刮刀磨损严重',
+        description: '印刷质量下降',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '印刷压力不均',
+        description: '刮刀边缘磨损',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '锡膏厚度异常',
+        description: '脱模效果变差',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '刮刀使用超寿命',
+        description: '未按时更换易损件',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -382,10 +522,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: 'AGV路径冲突', description: '多车在路口拥堵', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '调度指令冲突', description: '多车同时获准通过', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '路径规划重叠', description: '最优路径经过同一路口', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '调度优先级设置不当', description: '算法逻辑缺陷', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: 'AGV路径冲突',
+        description: '多车在路口拥堵',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '调度指令冲突',
+        description: '多车同时获准通过',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '路径规划重叠',
+        description: '最优路径经过同一路口',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '调度优先级设置不当',
+        description: '算法逻辑缺陷',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -437,10 +605,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: '锡炉液位低', description: '低于安全线', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '锡液消耗过快', description: '正常消耗未补充', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '自动加锡失效', description: '加锡系统故障', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '自动加锡系统故障', description: '设备故障未及时发现', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: '锡炉液位低',
+        description: '低于安全线',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '锡液消耗过快',
+        description: '正常消耗未补充',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '自动加锡失效',
+        description: '加锡系统故障',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '自动加锡系统故障',
+        description: '设备故障未及时发现',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -492,10 +688,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: '吸取失败率上升', description: '吸嘴堵塞', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '真空通道堵塞', description: '吸嘴内部堵塞', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '吸取力下降', description: '真空度不足', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '清洁维护未执行', description: '定期清洁计划未落实', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: '吸取失败率上升',
+        description: '吸嘴堵塞',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '真空通道堵塞',
+        description: '吸嘴内部堵塞',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '吸取力下降',
+        description: '真空度不足',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '清洁维护未执行',
+        description: '定期清洁计划未落实',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -547,10 +771,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: '钢网张力不足', description: '印刷精度下降', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '钢网变形', description: '网孔位置偏移', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '脱模不良', description: '锡膏图形模糊', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '钢网使用时间过长', description: '超过使用寿命未更换', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: '钢网张力不足',
+        description: '印刷精度下降',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '钢网变形',
+        description: '网孔位置偏移',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '脱模不良',
+        description: '锡膏图形模糊',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '钢网使用时间过长',
+        description: '超过使用寿命未更换',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -602,10 +854,38 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
       },
     ],
     knowledge_graph_nodes: [
-      { id: 'node-1', type: 'phenomenon', label: '供料器卡料', description: '贴装中断', x: 400, y: 50 },
-      { id: 'node-2', type: 'direct_cause', label: '料带传送不畅', description: '料带卡住', x: 300, y: 150 },
-      { id: 'node-3', type: 'direct_cause', label: '步进动作异常', description: '电机运转不正常', x: 500, y: 150 },
-      { id: 'node-4', type: 'root_cause', label: '步进电机故障', description: '电机驱动器或电机本身故障', x: 400, y: 250 },
+      {
+        id: 'node-1',
+        type: 'phenomenon',
+        label: '供料器卡料',
+        description: '贴装中断',
+        x: 400,
+        y: 50,
+      },
+      {
+        id: 'node-2',
+        type: 'direct_cause',
+        label: '料带传送不畅',
+        description: '料带卡住',
+        x: 300,
+        y: 150,
+      },
+      {
+        id: 'node-3',
+        type: 'direct_cause',
+        label: '步进动作异常',
+        description: '电机运转不正常',
+        x: 500,
+        y: 150,
+      },
+      {
+        id: 'node-4',
+        type: 'root_cause',
+        label: '步进电机故障',
+        description: '电机驱动器或电机本身故障',
+        x: 400,
+        y: 250,
+      },
     ],
     knowledge_graph_edges: [
       { id: 'edge-1', source: 'node-1', target: 'node-2', type: 'caused_by' },
@@ -617,9 +897,27 @@ const DEFAULT_SIMULATION_DATA: Record<string, SimulationScenario> = {
 }
 
 const severityConfig = {
-  critical: { label: '严重', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700' },
-  error: { label: '高', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', badge: 'bg-orange-100 text-orange-700' },
-  warning: { label: '中等', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-100 text-amber-700' },
+  critical: {
+    label: '严重',
+    color: 'text-red-600',
+    bg: 'bg-red-50',
+    border: 'border-red-200',
+    badge: 'bg-red-100 text-red-700',
+  },
+  error: {
+    label: '高',
+    color: 'text-orange-600',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    badge: 'bg-orange-100 text-orange-700',
+  },
+  warning: {
+    label: '中等',
+    color: 'text-amber-600',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    badge: 'bg-amber-100 text-amber-700',
+  },
 }
 
 const Simulation: React.FC = () => {
@@ -631,7 +929,9 @@ const Simulation: React.FC = () => {
   const [scenario, setScenario] = useState<SimulationScenario | null>(null)
   const [selectedSolution, setSelectedSolution] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'cost' | 'time' | 'risk'>('cost')
-  const [executionPhase, setExecutionPhase] = useState<'select' | 'executing' | 'completed'>('select')
+  const [executionPhase, setExecutionPhase] = useState<'select' | 'executing' | 'completed'>(
+    'select'
+  )
   const [executionProgress, setExecutionProgress] = useState(0)
   const [executionLogs, setExecutionLogs] = useState<string[]>([])
 
@@ -659,7 +959,9 @@ const Simulation: React.FC = () => {
           // 如果 ID 不匹配，尝试从 ID 中提取 scenario_code（如 sim-001 -> SIM-001）
           if (!defaultData && scenarioId) {
             const codeFromId = scenarioId.replace(/^sim-?/i, 'SIM-').replace(/^sim/i, 'SIM')
-            const normalizedCode = codeFromId.startsWith('SIM-') ? codeFromId : `SIM-${codeFromId.padStart(3, '0')}`
+            const normalizedCode = codeFromId.startsWith('SIM-')
+              ? codeFromId
+              : `SIM-${codeFromId.padStart(3, '0')}`
 
             // 遍历默认数据查找匹配的 scenario_code
             for (const key of Object.keys(DEFAULT_SIMULATION_DATA)) {
@@ -729,9 +1031,10 @@ const Simulation: React.FC = () => {
         return sorted.sort((a, b) => a.total_expected_loss - b.total_expected_loss)
       case 'time':
         return sorted.sort((a, b) => a.implementation_time_hours - b.implementation_time_hours)
-      case 'risk':
+      case 'risk': {
         const riskOrder = { low: 0, medium: 1, high: 2 }
         return sorted.sort((a, b) => riskOrder[a.risk_level] - riskOrder[b.risk_level])
+      }
       default:
         return sorted
     }
@@ -749,19 +1052,27 @@ const Simulation: React.FC = () => {
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
-      case 'low': return 'text-green-600 bg-green-50 border-green-200'
-      case 'medium': return 'text-amber-600 bg-amber-50 border-amber-200'
-      case 'high': return 'text-red-600 bg-red-50 border-red-200'
-      default: return 'text-slate-600 bg-slate-50 border-slate-200'
+      case 'low':
+        return 'text-green-600 bg-green-50 border-green-200'
+      case 'medium':
+        return 'text-amber-600 bg-amber-50 border-amber-200'
+      case 'high':
+        return 'text-red-600 bg-red-50 border-red-200'
+      default:
+        return 'text-slate-600 bg-slate-50 border-slate-200'
     }
   }
 
   const getRiskLabel = (risk: string) => {
     switch (risk) {
-      case 'low': return '低风险'
-      case 'medium': return '中风险'
-      case 'high': return '高风险'
-      default: return '未知'
+      case 'low':
+        return '低风险'
+      case 'medium':
+        return '中风险'
+      case 'high':
+        return '高风险'
+      default:
+        return '未知'
     }
   }
 
@@ -795,7 +1106,7 @@ const Simulation: React.FC = () => {
         const newSearchParams = new URLSearchParams()
         newSearchParams.set('scenario_id', selectedId)
         navigate(`/app/simulation?${newSearchParams.toString()}`, { replace: true })
-        
+
         // 直接设置状态
         setScenario(selectedData)
         if (selectedData.solutions.length > 0) {
@@ -838,7 +1149,9 @@ const Simulation: React.FC = () => {
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {scenarioList.map((s) => {
-                const config = severityConfig[s.severity as keyof typeof severityConfig] || severityConfig.warning
+                const config =
+                  severityConfig[s.severity as keyof typeof severityConfig] ||
+                  severityConfig.warning
                 return (
                   <button
                     key={s.id}
@@ -849,9 +1162,7 @@ const Simulation: React.FC = () => {
                   >
                     {/* 严重程度标签 */}
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-mono text-slate-400">
-                        {s.scenario_code}
-                      </span>
+                      <span className="text-xs font-mono text-slate-400">{s.scenario_code}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${config.badge}`}>
                         {config.label}影响
                       </span>
@@ -864,9 +1175,7 @@ const Simulation: React.FC = () => {
 
                     {/* 描述 */}
                     {s.description && (
-                      <p className="text-xs text-slate-500 line-clamp-2">
-                        {s.description}
-                      </p>
+                      <p className="text-xs text-slate-500 line-clamp-2">{s.description}</p>
                     )}
 
                     {/* 图标 */}
@@ -898,7 +1207,8 @@ const Simulation: React.FC = () => {
     )
   }
 
-  const sevConfig = severityConfig[scenario.severity as keyof typeof severityConfig] || severityConfig.warning
+  const sevConfig =
+    severityConfig[scenario.severity as keyof typeof severityConfig] || severityConfig.warning
 
   return (
     <div className="h-full flex flex-col bg-slate-50 overflow-hidden">
@@ -999,9 +1309,11 @@ const Simulation: React.FC = () => {
                         <p className="text-xs text-slate-500 mt-1">{node.description}</p>
                       )}
                     </div>
-                    {index < scenario.knowledge_graph_nodes.filter((n) => ['phenomenon', 'direct_cause', 'root_cause'].includes(n.type)).length - 1 && (
-                      <ChevronRight size={16} className="text-slate-300 mt-1" />
-                    )}
+                    {index <
+                      scenario.knowledge_graph_nodes.filter((n) =>
+                        ['phenomenon', 'direct_cause', 'root_cause'].includes(n.type)
+                      ).length -
+                        1 && <ChevronRight size={16} className="text-slate-300 mt-1" />}
                   </div>
                 ))}
             </div>
@@ -1054,7 +1366,8 @@ const Simulation: React.FC = () => {
                     direct_cause: { fill: '#fde68a', stroke: '#f59e0b', text: '#b45309' },
                     root_cause: { fill: '#fecaca', stroke: '#ef4444', text: '#b91c1c' },
                   }
-                  const colors = nodeColors[node.type as keyof typeof nodeColors] || nodeColors.phenomenon
+                  const colors =
+                    nodeColors[node.type as keyof typeof nodeColors] || nodeColors.phenomenon
                   return (
                     <g key={node.id}>
                       <rect
@@ -1139,7 +1452,9 @@ const Simulation: React.FC = () => {
 
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-bold text-slate-800">{sol.title}</h3>
-                  <span className={`text-xs px-2 py-0.5 rounded-full border ${getRiskColor(sol.risk_level)}`}>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full border ${getRiskColor(sol.risk_level)}`}
+                  >
                     {getRiskLabel(sol.risk_level)}
                   </span>
                 </div>
@@ -1155,7 +1470,9 @@ const Simulation: React.FC = () => {
                   </div>
                   <div className="bg-slate-50 rounded-lg p-2 text-center">
                     <p className="text-slate-500 mb-0.5">交期影响</p>
-                    <p className="font-bold text-slate-800">{formatCost(sol.delivery_impact_cost)}</p>
+                    <p className="font-bold text-slate-800">
+                      {formatCost(sol.delivery_impact_cost)}
+                    </p>
                   </div>
                   <div className="bg-slate-50 rounded-lg p-2 text-center">
                     <p className="text-slate-500 mb-0.5">品质风险</p>
@@ -1195,7 +1512,8 @@ const Simulation: React.FC = () => {
             {executionPhase === 'select' && (
               <div className="flex items-center justify-between">
                 <div className="text-sm text-slate-600">
-                  已选择：<span className="font-medium text-slate-800">
+                  已选择：
+                  <span className="font-medium text-slate-800">
                     {scenario.solutions.find((s) => s.id === selectedSolution)?.title || '未选择'}
                   </span>
                 </div>
@@ -1225,7 +1543,9 @@ const Simulation: React.FC = () => {
                 </div>
                 <div className="bg-slate-50 rounded-lg p-3 max-h-24 overflow-y-auto">
                   {executionLogs.map((log, index) => (
-                    <p key={index} className="text-xs text-slate-600 font-mono">{log}</p>
+                    <p key={index} className="text-xs text-slate-600 font-mono">
+                      {log}
+                    </p>
                   ))}
                 </div>
               </div>
@@ -1239,7 +1559,9 @@ const Simulation: React.FC = () => {
                 </div>
                 <div className="bg-green-50 rounded-lg p-3 mb-3">
                   {executionLogs.slice(-3).map((log, index) => (
-                    <p key={index} className="text-xs text-green-700 font-mono">{log}</p>
+                    <p key={index} className="text-xs text-green-700 font-mono">
+                      {log}
+                    </p>
                   ))}
                 </div>
                 <div className="flex gap-3">

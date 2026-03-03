@@ -275,6 +275,7 @@ class Anomaly(AnomalyBase, table=True):
 
 class AnomalyDetail(SQLModel):
     """异常详情响应模型"""
+
     id: uuid.UUID
     line_id: uuid.UUID
     station_id: uuid.UUID
@@ -293,6 +294,7 @@ class AnomalyDetail(SQLModel):
 
 class AnomalyWithRootCause(SQLModel):
     """带根因分析的异常模型"""
+
     id: uuid.UUID
     line_id: uuid.UUID
     station_id: uuid.UUID
@@ -360,6 +362,7 @@ class SolutionPublic(SolutionBase):
 
 class SolutionWithCost(SolutionBase):
     """带成本分析的解决方案模型"""
+
     id: uuid.UUID
     diagnosis_id: uuid.UUID | None
     repair_cost: float = 0.0
@@ -561,6 +564,7 @@ class ParetoSolution(SQLModel, table=True):
     total_cost: float = Field(default=0)
     implementation_days: float = Field(default=0)
     expected_benefit: float = Field(default=0)
+    expected_loss: float | None = Field(default=None)
 
     # 方案详情 (JSON)
     solution_data: dict = Field(default={}, sa_column=Column(JSONB))
@@ -660,7 +664,9 @@ class ProcessFlow(ProcessFlowBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    product: Product = Relationship(sa_relationship_kwargs={"foreign_keys": "[ProcessFlow.product_id]"})
+    product: Product = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[ProcessFlow.product_id]"}
+    )
 
 
 # ==================== 模拟情境相关模型 ====================
@@ -668,6 +674,7 @@ class ProcessFlow(ProcessFlowBase, table=True):
 
 class SimulationScenario(SQLModel, table=True):
     """模拟情境表"""
+
     __tablename__ = "simulation_scenarios"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -688,6 +695,7 @@ class SimulationScenario(SQLModel, table=True):
 
 class SimulationScenarioSummary(SQLModel):
     """模拟情境摘要"""
+
     id: uuid.UUID
     scenario_code: str
     scenario_name: str
@@ -697,6 +705,7 @@ class SimulationScenarioSummary(SQLModel):
 
 class SimulationScenarioPublic(SQLModel):
     """模拟情境公开信息"""
+
     id: uuid.UUID
     scenario_code: str
     scenario_name: str
@@ -713,6 +722,7 @@ class SimulationScenarioPublic(SQLModel):
 
 class SimulationExecuteRequest(SQLModel):
     """模拟执行请求"""
+
     scenario_id: uuid.UUID | None = None
     scenario_code: str | None = None
     parameters: dict | None = None
@@ -720,6 +730,7 @@ class SimulationExecuteRequest(SQLModel):
 
 class SimulationExecuteResponse(SQLModel):
     """模拟执行响应"""
+
     success: bool
     message: str
     scenario_id: uuid.UUID | None = None

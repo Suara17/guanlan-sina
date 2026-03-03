@@ -6,6 +6,7 @@ import type {
   AHPResult,
   AHPWeights,
   EvolutionData,
+  LatestCompletedTaskResponse,
   OptimizationRequestParams,
   OptimizationTask,
   ParetoSolution,
@@ -152,6 +153,50 @@ export const tianchouService = {
 
     if (!response.ok) {
       throw new Error(`Failed to get all solutions: ${response.statusText}`)
+    }
+
+    return response.json()
+  },
+
+  /**
+   * 获取最近一次已完成任务及默认展示方案
+   */
+  async getLatestCompletedTask(): Promise<LatestCompletedTaskResponse> {
+    const response = await fetch(`${API_BASE}/tasks/latest/completed`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to get latest completed task: ${response.statusText}`)
+    }
+
+    return response.json()
+  },
+
+  /**
+   * 获取最近一次轻工业已完成任务（用于设备布局）
+   */
+  async getLatestLightTask(): Promise<LatestCompletedTaskResponse> {
+    const response = await fetch(`${API_BASE}/tasks/latest/completed?industry_type=light`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to get latest light task: ${response.statusText}`)
+    }
+
+    return response.json()
+  },
+
+  /**
+   * 获取布局图片
+   */
+  async getLayoutImages(
+    taskId: string,
+    solutionId: string
+  ): Promise<{ original_image?: string; optimized_image?: string; error?: string }> {
+    const response = await fetch(
+      `${API_BASE}/tasks/${taskId}/solutions/${solutionId}/layout-images`
+    )
+
+    if (!response.ok) {
+      throw new Error(`Failed to get layout images: ${response.statusText}`)
     }
 
     return response.json()

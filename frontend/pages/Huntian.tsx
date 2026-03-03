@@ -6,6 +6,7 @@ import {
   Clock,
   Info,
   Maximize2,
+  Minimize2,
   Package,
   Pause,
   Play,
@@ -17,13 +18,14 @@ import {
 } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Bar, BarChart, ResponsiveContainer } from 'recharts'
 import { AGVLayoutVisualizer } from '../components/AGVLayoutVisualizer'
 import AGVPathVisualizer from '../components/AGVPathVisualizer'
 // 新版可视化组件（D3.js 增强版）
 import { DeviceLayoutVisualizer } from '../components/DeviceLayoutVisualizer'
 import LayoutVisualizer from '../components/LayoutVisualizer'
+import { tianchouService } from './Tianchou/services/tianchouService'
 
 // 模拟布局数据（轻工业场景）
 const mockLayoutData = {
@@ -251,76 +253,189 @@ const mockAGVData = {
   ],
 }
 
+type HuntianDecisionContext = {
+  taskId?: string
+  taskName?: string
+  solutionId?: string
+  solutionRank?: number
+  totalCost?: number
+  implementationDays?: number
+  expectedBenefit?: number
+  expectedLoss?: number
+  topsisScore?: number
+}
+
+type HuntianRouteState = {
+  optimizationResult?: {
+    type?: string
+    taskId?: string
+    agvData?: Record<string, unknown>
+    layoutData?: Record<string, unknown>
+    solution?: {
+      id?: string
+      rank?: number
+      total_cost?: number
+      implementation_days?: number
+      expected_benefit?: number
+      topsis_score?: number
+    }
+  }
+  decisionContext?: HuntianDecisionContext
+}
+
+type SimulationMode = 'device_rearrangement' | 'route_optimization'
+
+type ModeSimulationState = {
+  progress: number
+  conflicts: string[]
+  showReport: boolean
+  isOptimized: boolean
+}
+
+const formatCurrency = (value?: number) =>
+  typeof value === 'number' ? `¥${value.toLocaleString()}` : '--'
+
 const Huntian: React.FC = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const [speed, setSpeed] = useState<1 | 10 | 100>(1)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [conflicts, setConflicts] = useState<string[]>([])
-  const [showReport, setShowReport] = useState(false)
   const [isDeploying, setIsDeploying] = useState(false)
-  const [simulationMode, setSimulationMode] = useState<
-    'device_rearrangement' | 'route_optimization'
-  >('device_rearrangement')
-  // 新增：优化状态切换（用于新组件）
-  const [isOptimized, setIsOptimized] = useState(false)
+  const [simulationMode, setSimulationMode] = useState<SimulationMode>('device_rearrangement')
+  const [modeSimulationState, setModeSimulationState] = useState<
+    Record<SimulationMode, ModeSimulationState>
+  >({
+    device_rearrangement: {
+      progress: 0,
+      conflicts: [],
+      showReport: false,
+      isOptimized: false,
+    },
+    route_optimization: {
+      progress: 0,
+      conflicts: [],
+      showReport: false,
+      isOptimized: false,
+    },
+  })
+  const [isViewportFullscreen, setIsViewportFullscreen] = useState(false)
   // 新增：可视化模式切换（'new' = 新版 D3.js 组件, 'legacy' = 旧版组件）
   const [visualMode, setVisualMode] = useState<'new' | 'legacy'>('new')
   const timerRef = useRef<number | null>(null)
   const [agvData, setAgvData] = useState<Record<string, unknown> | null>(null)
   const [layoutData, setLayoutData] = useState<Record<string, unknown> | null>(null)
+  const [decisionContext, setDecisionContext] = useState<HuntianDecisionContext | null>(null)
 
-  // 从路由 state 接收数据
+  const currentModeState = modeSimulationState[simulationMode]
+  const progress = currentModeState.progress
+  const conflicts = currentModeState.conflicts
+  const showReport = currentModeState.showReport
+  const isOptimized = currentModeState.isOptimized
+
+  // 从路由 state 接收数据，无数据时兜底读取最近已完成任务
   useEffect(() => {
-    if (location.state) {
-      const state = location.state as {
-        optimizationResult?: {
-          type?: string
-          agvData?: Record<string, unknown>
-          layoutData?: Record<string, unknown>
-        }
-      }
-      const { optimizationResult } = state
-      if (optimizationResult) {
-        console.log('接收到优化结果:', optimizationResult)
-        // 根据优化结果设置仿真模式
-        if (optimizationResult.type === 'heavy') {
-          setSimulationMode('route_optimization')
-          // 设置 AGV 数据
-          if (optimizationResult.agvData) {
-            setAgvData(optimizationResult.agvData)
-          }
-        } else if (optimizationResult.type === 'light') {
-          setSimulationMode('device_rearrangement')
-          // 设置布局数据
-          if (optimizationResult.layoutData) {
-            setLayoutData(optimizationResult.layoutData)
-          }
-        }
+    const state = location.state as HuntianRouteState | null
+
+    // 优先级1：直接传入 decisionContext
+    if (state?.decisionContext) {
+      setDecisionContext(state.decisionContext)
+    }
+
+    // 优先级2：从 optimizationResult.solution 组装
+    if (state?.optimizationResult?.solution) {
+      const sol = state.optimizationResult.solution
+      setDecisionContext((prev) => ({
+        ...prev,
+        taskId: state.optimizationResult?.taskId,
+        solutionId: sol.id,
+        solutionRank: sol.rank,
+        totalCost: sol.total_cost,
+        implementationDays: sol.implementation_days,
+        expectedBenefit: sol.expected_benefit,
+        topsisScore: sol.topsis_score,
+      }))
+    }
+
+    // 优先级3：处理仿真模式与可视化数据
+    const { optimizationResult } = state ?? {}
+    if (optimizationResult) {
+      if (optimizationResult.type === 'heavy') {
+        setSimulationMode('route_optimization')
+        if (optimizationResult.agvData) setAgvData(optimizationResult.agvData)
+      } else if (optimizationResult.type === 'light') {
+        setSimulationMode('device_rearrangement')
+        if (optimizationResult.layoutData) setLayoutData(optimizationResult.layoutData)
       }
     }
-  }, [location.state])
+
+    // 优先级4（兜底）：无任何路由数据时，从数据库读取最近已完成任务
+    if (!state?.decisionContext && !state?.optimizationResult?.solution) {
+      // 优先尝试获取轻工业任务（用于设备布局）
+      const fetchTask =
+        simulationMode === 'device_rearrangement'
+          ? tianchouService.getLatestLightTask()
+          : tianchouService.getLatestCompletedTask()
+
+      fetchTask
+        .then((data) => {
+          const sol = data.solution
+          setDecisionContext({
+            taskId: data.task.task_id,
+            taskName: data.task.name,
+            solutionId: sol ? String(sol.id) : undefined,
+            solutionRank: sol?.rank,
+            totalCost: sol?.total_cost,
+            implementationDays: sol?.implementation_days,
+            expectedBenefit: sol?.expected_benefit,
+            expectedLoss: sol?.expected_loss,
+            topsisScore: sol?.topsis_score,
+          })
+        })
+        .catch(() => {
+          // 无历史任务，保持 decisionContext 为 null
+        })
+    }
+  }, [location.state, simulationMode])
 
   // Simulation Logic
   useEffect(() => {
-    if (isPlaying && progress < 100) {
+    if (isPlaying && currentModeState.progress < 100) {
       timerRef.current = window.setInterval(() => {
-        setProgress((prev) => {
-          const next = prev + speed * 0.15
+        setModeSimulationState((prev) => {
+          const modeState = prev[simulationMode]
+          const next = modeState.progress + speed * 0.15
+
           if (next >= 100) {
             setIsPlaying(false)
-            setShowReport(true)
-            setIsOptimized(true)
-            return 100
+            return {
+              ...prev,
+              [simulationMode]: {
+                ...modeState,
+                progress: 100,
+                showReport: true,
+                isOptimized: true,
+              },
+            }
           }
-          // Conflict trigger storyline
-          if (next > 45 && next < 46 && conflicts.length === 0) {
-            setConflicts((prevConflicts) => [
-              ...prevConflicts,
-              `T+2h 预测发生 AGV 路径死锁，已自动规避`,
-            ])
+
+          if (next > 45 && next < 46 && modeState.conflicts.length === 0) {
+            return {
+              ...prev,
+              [simulationMode]: {
+                ...modeState,
+                progress: next,
+                conflicts: [...modeState.conflicts, 'T+2h 预测发生 AGV 路径死锁，已自动规避'],
+              },
+            }
           }
-          return next
+
+          return {
+            ...prev,
+            [simulationMode]: {
+              ...modeState,
+              progress: next,
+            },
+          }
         })
       }, 50)
     } else {
@@ -329,15 +444,50 @@ const Huntian: React.FC = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isPlaying, speed, conflicts, progress])
+  }, [isPlaying, speed, simulationMode, currentModeState.progress])
+
+  useEffect(() => {
+    if (!isViewportFullscreen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsViewportFullscreen(false)
+      }
+    }
+
+    const originalBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isViewportFullscreen])
 
   const resetSimulation = () => {
-    setProgress(0)
     setIsPlaying(false)
-    setConflicts([])
-    setShowReport(false)
     setIsDeploying(false)
-    setIsOptimized(false)
+    setModeSimulationState((prev) => ({
+      ...prev,
+      [simulationMode]: {
+        progress: 0,
+        conflicts: [],
+        showReport: false,
+        isOptimized: false,
+      },
+    }))
+  }
+
+  const handleBackToTianchou = (focus: 'solution' | 'pareto') => {
+    navigate('/app/tianchou', {
+      state: {
+        fromHuntian: true,
+        taskId: decisionContext?.taskId,
+        solutionId: decisionContext?.solutionId,
+        focus,
+      },
+    })
   }
 
   const handlePushToExecution = () => {
@@ -346,6 +496,72 @@ const Huntian: React.FC = () => {
       alert('指令已下发至物理层控制内核！物理车间已同步重构指令。')
       setIsDeploying(false)
     }, 1500)
+  }
+
+  const renderCurrentSimulationView = () => {
+    if (simulationMode === 'device_rearrangement') {
+      if (visualMode === 'new') {
+        return (
+          <div className="absolute inset-0 bg-white rounded-xl overflow-hidden">
+            <DeviceLayoutVisualizer
+              isOptimized={isOptimized}
+              layoutData={layoutData}
+              decisionContext={decisionContext ?? undefined}
+            />
+          </div>
+        )
+      }
+
+      if (layoutData) {
+        return <LayoutVisualizer layoutData={layoutData} isPlaying={isPlaying} />
+      }
+
+      return <LayoutVisualizer layoutData={mockLayoutData} isPlaying={isPlaying} />
+    }
+
+    if (visualMode === 'new') {
+      return (
+        <div className="absolute inset-0 bg-white rounded-xl overflow-hidden">
+          <AGVLayoutVisualizer isOptimized={isOptimized} agvData={agvData} />
+        </div>
+      )
+    }
+
+    if (agvData) {
+      return (
+        <AGVPathVisualizer
+          stations={(agvData.stations as typeof mockAGVData.stations) || mockAGVData.stations}
+          routes={(agvData.agvRoutes as typeof mockAGVData.agvRoutes) || mockAGVData.agvRoutes}
+          isPlaying={isPlaying}
+          speed={speed}
+          canvasWidth={1200}
+          canvasHeight={800}
+          conflictPoints={
+            (agvData.conflictPoints as typeof mockAGVData.conflictPoints) ||
+            mockAGVData.conflictPoints
+          }
+          timelineMarkers={
+            (agvData.timelineMarkers as typeof mockAGVData.timelineMarkers) ||
+            mockAGVData.timelineMarkers
+          }
+          showPerformancePanel={true}
+        />
+      )
+    }
+
+    return (
+      <AGVPathVisualizer
+        stations={mockAGVData.stations}
+        routes={mockAGVData.agvRoutes}
+        isPlaying={isPlaying}
+        speed={speed}
+        canvasWidth={1200}
+        canvasHeight={800}
+        conflictPoints={mockAGVData.conflictPoints}
+        timelineMarkers={mockAGVData.timelineMarkers}
+        showPerformancePanel={true}
+      />
+    )
   }
 
   return (
@@ -383,14 +599,20 @@ const Huntian: React.FC = () => {
             <div className="flex bg-white/5 border border-white/10 rounded-xl p-1">
               <button
                 type="button"
-                onClick={() => setSimulationMode('device_rearrangement')}
+                onClick={() => {
+                  setIsPlaying(false)
+                  setSimulationMode('device_rearrangement')
+                }}
                 className={`relative px-3 py-1 text-xs font-bold rounded-lg transition-all ${simulationMode === 'device_rearrangement' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-slate-400 hover:text-slate-200'}`}
               >
                 设备重排
               </button>
               <button
                 type="button"
-                onClick={() => setSimulationMode('route_optimization')}
+                onClick={() => {
+                  setIsPlaying(false)
+                  setSimulationMode('route_optimization')
+                }}
                 className={`relative px-3 py-1 text-xs font-bold rounded-lg transition-all ${simulationMode === 'route_optimization' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-slate-400 hover:text-slate-200'}`}
               >
                 线路优化
@@ -498,67 +720,7 @@ const Huntian: React.FC = () => {
             ))}
           </div>
 
-          {/* Device Rearrangement Animation */}
-          {simulationMode === 'device_rearrangement' &&
-            (visualMode === 'new' ? (
-              // 新版 D3.js 可视化组件
-              <div className="absolute inset-0 bg-white rounded-xl overflow-hidden">
-                <DeviceLayoutVisualizer
-                  isOptimized={isOptimized}
-                  onToggle={setIsOptimized}
-                  layoutData={layoutData}
-                />
-              </div>
-            ) : layoutData ? (
-              <LayoutVisualizer layoutData={layoutData} isPlaying={isPlaying} />
-            ) : (
-              <LayoutVisualizer layoutData={mockLayoutData} isPlaying={isPlaying} />
-            ))}
-
-          {/* Route Optimization Animation */}
-          {simulationMode === 'route_optimization' &&
-            (visualMode === 'new' ? (
-              // 新版 D3.js 可视化组件
-              <div className="absolute inset-0 bg-white rounded-xl overflow-hidden">
-                <AGVLayoutVisualizer
-                  isOptimized={isOptimized}
-                  onToggle={setIsOptimized}
-                  agvData={agvData}
-                />
-              </div>
-            ) : agvData ? (
-              <AGVPathVisualizer
-                stations={(agvData.stations as typeof mockAGVData.stations) || mockAGVData.stations}
-                routes={
-                  (agvData.agvRoutes as typeof mockAGVData.agvRoutes) || mockAGVData.agvRoutes
-                }
-                isPlaying={isPlaying}
-                speed={speed}
-                canvasWidth={1200}
-                canvasHeight={800}
-                conflictPoints={
-                  (agvData.conflictPoints as typeof mockAGVData.conflictPoints) ||
-                  mockAGVData.conflictPoints
-                }
-                timelineMarkers={
-                  (agvData.timelineMarkers as typeof mockAGVData.timelineMarkers) ||
-                  mockAGVData.timelineMarkers
-                }
-                showPerformancePanel={true}
-              />
-            ) : (
-              <AGVPathVisualizer
-                stations={mockAGVData.stations}
-                routes={mockAGVData.agvRoutes}
-                isPlaying={isPlaying}
-                speed={speed}
-                canvasWidth={1200}
-                canvasHeight={800}
-                conflictPoints={mockAGVData.conflictPoints}
-                timelineMarkers={mockAGVData.timelineMarkers}
-                showPerformancePanel={true}
-              />
-            ))}
+          {renderCurrentSimulationView()}
 
           {/* AGV Collision Highlight Layer */}
           {conflicts.map((conflict, i) => (
@@ -611,20 +773,18 @@ const Huntian: React.FC = () => {
 
         {/* ROI Report Panel (Glassmorphism Floating Panel) */}
         <div
-          className={`absolute right-16 top-1/2 -translate-y-1/2 w-96 bg-slate-900/60 backdrop-blur-[40px] border border-white/10 rounded-[2.5rem] p-8 shadow-[0_40px_100px_rgba(0,0,0,0.6)] transition-all duration-1000 transform ${
+          className={`absolute right-8 top-1/2 -translate-y-1/2 w-80 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-[0_40px_100px_rgba(0,0,0,0.6)] transition-all duration-1000 transform ${
             showReport
               ? 'opacity-100 translate-x-0'
               : 'opacity-0 translate-x-20 pointer-events-none'
           }`}
         >
-          <div className="flex items-center gap-4 mb-10">
-            <div className="w-14 h-14 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30">
-              <ShieldCheck size={28} className="text-emerald-400" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center border border-emerald-500/30">
+              <ShieldCheck size={20} className="text-emerald-400" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white tracking-tight italic">
-                浑天 · ROI 预演报告
-              </h3>
+              <h3 className="text-base font-bold text-white tracking-tight">浑天 · ROI 预演报告</h3>
               <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 Verification Passed
@@ -632,21 +792,21 @@ const Huntian: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-5">
-            <div className="group relative p-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-[1.5rem] transition-all">
+          <div className="space-y-3">
+            <div className="group relative p-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-xl transition-all">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                  <TrendingUp size={12} /> UPH Increase (产能提升)
+                <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                  <TrendingUp size={10} /> UPH Increase (产能提升)
                 </span>
                 <div className="flex items-center text-emerald-400 text-xs font-black">
-                  <ArrowUpRight size={14} /> 18%
+                  <ArrowUpRight size={12} /> 18%
                 </div>
               </div>
               <div className="flex items-end justify-between">
-                <p className="text-3xl font-mono font-bold text-white">
+                <p className="text-2xl font-mono font-bold text-white">
                   378.0 <span className="text-xs font-normal text-slate-500">/hr</span>
                 </p>
-                <div className="w-24 h-6">
+                <div className="w-16 h-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={[{ v: 20 }, { v: 25 }, { v: 35 }, { v: 45 }, { v: 60 }, { v: 100 }]}
@@ -658,45 +818,45 @@ const Huntian: React.FC = () => {
               </div>
             </div>
 
-            <div className="group relative p-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-[1.5rem] transition-all">
+            <div className="group relative p-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-xl transition-all">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                  <Truck size={12} /> Logistical Distance (搬运缩减)
+                <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                  <Truck size={10} /> Logistical Distance (搬运缩减)
                 </span>
                 <div className="flex items-center text-emerald-400 text-xs font-black">
-                  <ArrowDownRight size={14} /> 240m
+                  <ArrowDownRight size={12} /> 240m
                 </div>
               </div>
-              <p className="text-3xl font-mono font-bold text-white">
+              <p className="text-2xl font-mono font-bold text-white">
                 - 24%{' '}
-                <span className="text-[10px] font-normal text-slate-500 ml-2 uppercase">
+                <span className="text-[10px] font-normal text-slate-500 ml-1 uppercase">
                   Per Shift
                 </span>
               </p>
             </div>
 
-            <div className="group relative p-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-[1.5rem] transition-all">
+            <div className="group relative p-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-xl transition-all">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                  <Package size={12} /> WIP Decrease (在制品库存)
+                <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                  <Package size={10} /> WIP Decrease (在制品库存)
                 </span>
                 <div className="flex items-center text-emerald-400 text-xs font-black">
-                  <ArrowDownRight size={14} /> 12%
+                  <ArrowDownRight size={12} /> 12%
                 </div>
               </div>
-              <p className="text-3xl font-mono font-bold text-white">
+              <p className="text-2xl font-mono font-bold text-white">
                 ¥ 21.1w{' '}
-                <span className="text-[10px] font-normal text-slate-500 ml-2 uppercase">
+                <span className="text-[10px] font-normal text-slate-500 ml-1 uppercase">
                   Capital Released
                 </span>
               </p>
             </div>
           </div>
 
-          <div className="mt-10 space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
-              <Info size={16} className="text-emerald-500 shrink-0" />
-              <p className="text-[10px] text-emerald-400/80 leading-snug">
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center gap-2 p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+              <Info size={14} className="text-emerald-400 shrink-0" />
+              <p className="text-[9px] text-emerald-300/80 leading-snug">
                 仿真结论：当前重构方案满足系统预设的安全阈值（99.8%）与预期的经济回报率（ROI &gt;
                 140%）。
               </p>
@@ -705,12 +865,12 @@ const Huntian: React.FC = () => {
               type="button"
               onClick={handlePushToExecution}
               disabled={isDeploying}
-              className="w-full relative group overflow-hidden py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] font-bold text-sm shadow-[0_20px_40px_rgba(59,130,246,0.4)] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full relative group overflow-hidden py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs shadow-[0_20px_40px_rgba(59,130,246,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isDeploying ? (
-                <Loader2 size={20} className="animate-spin" />
+                <Loader2 size={16} className="animate-spin" />
               ) : (
-                <CheckCircle2 size={20} />
+                <CheckCircle2 size={16} />
               )}
               <span className="tracking-widest uppercase">验证通过 - 推送物理层执行</span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
@@ -719,21 +879,11 @@ const Huntian: React.FC = () => {
         </div>
 
         {/* Viewport Actions */}
-        <div className="absolute bottom-10 right-10 flex flex-col gap-3">
-          {/* 可视化模式切换 */}
+        <div className="absolute z-30 flex flex-col gap-3 bottom-10 right-10">
           <button
             type="button"
-            onClick={() => setVisualMode(visualMode === 'new' ? 'legacy' : 'new')}
-            className={`px-3 py-2 backdrop-blur-md rounded-xl text-xs font-bold border transition-all shadow-xl ${
-              visualMode === 'new'
-                ? 'bg-emerald-600/80 text-white border-emerald-400/30'
-                : 'bg-slate-900/60 text-slate-400 border-white/10 hover:text-white'
-            }`}
-          >
-            {visualMode === 'new' ? '新版视图' : '经典视图'}
-          </button>
-          <button
-            type="button"
+            onClick={() => setIsViewportFullscreen(true)}
+            aria-label="全屏显示仿真视图"
             className="p-3 bg-slate-900/60 backdrop-blur-md rounded-2xl text-slate-400 border border-white/10 hover:text-white transition-all shadow-xl"
           >
             <Maximize2 size={20} />
@@ -746,6 +896,28 @@ const Huntian: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {isViewportFullscreen && (
+        <div className="fixed inset-0 z-[120] bg-[#050810] p-3 sm:p-4">
+          <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/15 shadow-[0_30px_120px_rgba(0,0,0,0.8)]">
+            {renderCurrentSimulationView()}
+
+            <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
+              <span className="hidden sm:block text-xs text-slate-300 bg-slate-900/70 border border-white/10 px-2 py-1 rounded-lg">
+                Esc 退出全屏
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsViewportFullscreen(false)}
+                aria-label="退出全屏视图"
+                className="p-3 bg-slate-900/70 backdrop-blur-md rounded-2xl text-slate-200 border border-white/10 hover:text-white transition-all shadow-xl"
+              >
+                <Minimize2 size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes marquee {

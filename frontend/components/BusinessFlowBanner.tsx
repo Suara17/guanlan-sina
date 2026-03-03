@@ -49,27 +49,27 @@ const FLOW_CARDS: FlowCard[] = [
 // Tailwind 不支持动态类名，需要静态映射；使用 as const 推导精确类型，避免 Record<string, ...> 导致的越界风险
 const COLOR_MAP = {
   blue: {
-    border: 'border-blue-500/40',
-    bg: 'bg-blue-500/10 hover:bg-blue-500/20',
-    text: 'text-blue-400',
+    border: 'border-blue-200',
+    bg: 'bg-blue-50 hover:bg-blue-100',
+    text: 'text-blue-600',
     dot: 'bg-blue-500',
   },
   violet: {
-    border: 'border-violet-500/40',
-    bg: 'bg-violet-500/10 hover:bg-violet-500/20',
-    text: 'text-violet-400',
+    border: 'border-violet-200',
+    bg: 'bg-violet-50 hover:bg-violet-100',
+    text: 'text-violet-600',
     dot: 'bg-violet-500',
   },
   amber: {
-    border: 'border-amber-500/40',
-    bg: 'bg-amber-500/10 hover:bg-amber-500/20',
-    text: 'text-amber-400',
+    border: 'border-amber-200',
+    bg: 'bg-amber-50 hover:bg-amber-100',
+    text: 'text-amber-600',
     dot: 'bg-amber-500',
   },
   emerald: {
-    border: 'border-emerald-500/40',
-    bg: 'bg-emerald-500/10 hover:bg-emerald-500/20',
-    text: 'text-emerald-400',
+    border: 'border-emerald-200',
+    bg: 'bg-emerald-50 hover:bg-emerald-100',
+    text: 'text-emerald-600',
     dot: 'bg-emerald-500',
   },
 } as const
@@ -87,15 +87,17 @@ const BusinessFlowBanner: React.FC<BusinessFlowBannerProps> = ({ currentPath, on
 
   if (collapsed) {
     return (
-      <div className="mx-6 mt-4 mb-2">
+      <div className="mb-2">
         <button
           type="button"
           onClick={() => setCollapsed(false)}
-          className="w-full flex items-center justify-between px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-all cursor-pointer"
+          className="w-full flex items-center justify-between px-4 py-2 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all cursor-pointer shadow-sm"
           aria-label="展开业务闭环导航"
         >
           <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wider">业务闭环</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              业务闭环
+            </span>
             <div className="flex items-center gap-1.5">
               {FLOW_CARDS.map((card, index) => (
                 <div key={card.id} className="flex items-center gap-1.5">
@@ -105,7 +107,7 @@ const BusinessFlowBanner: React.FC<BusinessFlowBannerProps> = ({ currentPath, on
                     }`}
                   />
                   {index < FLOW_CARDS.length - 1 && (
-                    <div className="w-4 h-px bg-slate-600" aria-hidden="true" />
+                    <div className="w-4 h-px bg-slate-300" aria-hidden="true" />
                   )}
                 </div>
               ))}
@@ -118,17 +120,17 @@ const BusinessFlowBanner: React.FC<BusinessFlowBannerProps> = ({ currentPath, on
   }
 
   return (
-    <div className="mx-6 mt-4 mb-2">
-      <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+    <div className="mb-2">
+      <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
         {/* 标题行 */}
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             业务闭环导航
           </span>
           <button
             type="button"
             onClick={() => setCollapsed(true)}
-            className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
             title="折叠"
             aria-label="折叠业务闭环导航"
           >
@@ -148,7 +150,7 @@ const BusinessFlowBanner: React.FC<BusinessFlowBannerProps> = ({ currentPath, on
                   onClick={() => onNavigate(card.navigateTo)}
                   aria-label={`前往 ${card.step}：${card.title}`}
                   className={`flex-1 flex flex-col gap-1.5 p-3 rounded-lg border transition-all cursor-pointer text-left ${colors.border} ${colors.bg} ${
-                    isActive ? 'ring-1 ring-inset ring-white/20' : ''
+                    isActive ? 'ring-2 ring-inset ring-current/30' : ''
                   }`}
                 >
                   {/* 步骤名 */}
@@ -156,17 +158,17 @@ const BusinessFlowBanner: React.FC<BusinessFlowBannerProps> = ({ currentPath, on
                     {card.step}
                   </div>
                   {/* 菜单名 */}
-                  <div className="text-xs font-semibold text-slate-200 leading-tight">
+                  <div className="text-xs font-semibold text-slate-700 leading-tight">
                     {card.title}
                   </div>
                   {/* 业务说明 */}
-                  <div className="text-[11px] text-slate-400 leading-tight">{card.subtitle}</div>
+                  <div className="text-[11px] text-slate-500 leading-tight">{card.subtitle}</div>
                 </button>
                 {/* ArrowRight 连接相邻卡片 */}
                 {index < FLOW_CARDS.length - 1 && (
                   <ArrowRight
                     size={14}
-                    className="flex-shrink-0 text-slate-600"
+                    className="flex-shrink-0 text-slate-300"
                     aria-hidden="true"
                   />
                 )}

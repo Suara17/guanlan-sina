@@ -91,7 +91,11 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
   })()
 
   // 使用计算的进度，运行中最大90%，只有完成才显示100%
-  const displayProgress = isCompleted ? 100 : isFailed ? calculatedProgress : Math.min(calculatedProgress, 90)
+  const displayProgress = isCompleted
+    ? 100
+    : isFailed
+      ? calculatedProgress
+      : Math.min(calculatedProgress, 90)
 
   // 更新最后时间
   useEffect(() => {
@@ -362,7 +366,7 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/80 w-80 overflow-hidden">
             {/* 顶部装饰条 */}
             <div className="h-1.5 bg-gradient-to-r from-blue-500 via-violet-500 to-indigo-500" />
-            
+
             <div className="p-4 relative">
               {/* 关闭按钮 */}
               <button
@@ -371,7 +375,7 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
               >
                 <X className="w-4 h-4" />
               </button>
-              
+
               {/* 图标和标题 */}
               <div className="flex items-center gap-3 mb-3 pr-8">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-200 flex-shrink-0">
@@ -382,20 +386,22 @@ export function TaskProgress({ task, onCancel, onComplete }: Props) {
                   <p className="text-xs text-slate-500">多目标遗传算法正在运行</p>
                 </div>
               </div>
-              
+
               {/* 提示内容 */}
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 mb-3 border border-blue-100">
                 <div className="flex items-start gap-2.5">
                   <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-slate-600 leading-relaxed">
-                    <p className="font-medium text-slate-700 mb-0.5">优化算法耗时较长，请耐心等待</p>
+                    <p className="font-medium text-slate-700 mb-0.5">
+                      优化算法耗时较长，请耐心等待
+                    </p>
                     <p className="text-slate-500 text-xs">
                       完成后将展示帕累托前沿分析和优化方案对比。
                     </p>
                   </div>
                 </div>
               </div>
-              
+
               {/* 底部信息栏 */}
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs text-slate-500">

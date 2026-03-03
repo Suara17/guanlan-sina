@@ -5,7 +5,7 @@
  */
 
 import { AlertTriangle, ChevronDown, ChevronUp, Settings2, X } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 interface ProductChangeAlertProps {
   visible: boolean
@@ -74,9 +74,7 @@ export const ProductChangeAlert: React.FC<ProductChangeAlertProps> = ({
                 <p className="text-xs text-slate-500 mb-0.5">当前</p>
                 <p className="font-semibold text-sm text-slate-800">{currentProduct}</p>
               </div>
-              <div className="px-3 text-slate-300">
-                →
-              </div>
+              <div className="px-3 text-slate-300">→</div>
               <div className="text-center flex-1">
                 <p className="text-xs text-slate-500 mb-0.5">下一单</p>
                 <p className="font-semibold text-sm text-blue-600">{nextProduct}</p>
@@ -89,10 +87,10 @@ export const ProductChangeAlert: React.FC<ProductChangeAlertProps> = ({
                 <p className="text-xs text-blue-600">
                   预计布局切换时间：
                   <span className="font-semibold">
-                    {layoutSwitchMinutes 
-                      ? `${layoutSwitchMinutes}分钟` 
-                      : layoutSwitchDays 
-                        ? `${layoutSwitchDays}天` 
+                    {layoutSwitchMinutes
+                      ? `${layoutSwitchMinutes}分钟`
+                      : layoutSwitchDays
+                        ? `${layoutSwitchDays}天`
                         : ''}
                   </span>
                 </p>

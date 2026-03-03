@@ -49,23 +49,79 @@ const severityConfig = {
 
 // 默认模拟数据（API不可用时使用）
 const DEFAULT_SCENARIOS: SimulationScenario[] = [
-  { id: 'sim-001', scenario_code: 'SIM-001', scenario_name: '锡焊不到位连续10个不良', severity: 'critical', description: 'SMT产线锡焊工位连续出现焊接不良' },
-  { id: 'sim-002', scenario_code: 'SIM-002', scenario_name: '贴片机抛料率超8%', severity: 'error', description: '贴片机抛料率异常升高' },
-  { id: 'sim-003', scenario_code: 'SIM-003', scenario_name: '回流焊温度异常', severity: 'error', description: '回流焊炉温区温度波动异常' },
-  { id: 'sim-004', scenario_code: 'SIM-004', scenario_name: 'AOI误检率过高', severity: 'warning', description: 'AOI检测设备误检率升高' },
-  { id: 'sim-005', scenario_code: 'SIM-005', scenario_name: '印刷机刮刀磨损', severity: 'critical', description: '锡膏印刷机刮刀磨损严重' },
-  { id: 'sim-006', scenario_code: 'SIM-006', scenario_name: 'AGV路径冲突', severity: 'warning', description: '多台AGV在交叉路口发生路径冲突' },
-  { id: 'sim-007', scenario_code: 'SIM-007', scenario_name: '波峰焊锡炉液位低', severity: 'critical', description: '波峰焊锡炉液位低于安全线' },
-  { id: 'sim-008', scenario_code: 'SIM-008', scenario_name: '贴片吸嘴堵塞', severity: 'warning', description: '贴片机吸嘴堵塞导致吸取失败率上升' },
-  { id: 'sim-009', scenario_code: 'SIM-009', scenario_name: '钢网张力不足', severity: 'error', description: '锡膏印刷钢网张力不足' },
-  { id: 'sim-010', scenario_code: 'SIM-010', scenario_name: '元件供料器卡料', severity: 'warning', description: '贴片机供料器卡料导致贴装中断' },
+  {
+    id: 'sim-001',
+    scenario_code: 'SIM-001',
+    scenario_name: '锡焊不到位连续10个不良',
+    severity: 'critical',
+    description: 'SMT产线锡焊工位连续出现焊接不良',
+  },
+  {
+    id: 'sim-002',
+    scenario_code: 'SIM-002',
+    scenario_name: '贴片机抛料率超8%',
+    severity: 'error',
+    description: '贴片机抛料率异常升高',
+  },
+  {
+    id: 'sim-003',
+    scenario_code: 'SIM-003',
+    scenario_name: '回流焊温度异常',
+    severity: 'error',
+    description: '回流焊炉温区温度波动异常',
+  },
+  {
+    id: 'sim-004',
+    scenario_code: 'SIM-004',
+    scenario_name: 'AOI误检率过高',
+    severity: 'warning',
+    description: 'AOI检测设备误检率升高',
+  },
+  {
+    id: 'sim-005',
+    scenario_code: 'SIM-005',
+    scenario_name: '印刷机刮刀磨损',
+    severity: 'critical',
+    description: '锡膏印刷机刮刀磨损严重',
+  },
+  {
+    id: 'sim-006',
+    scenario_code: 'SIM-006',
+    scenario_name: 'AGV路径冲突',
+    severity: 'warning',
+    description: '多台AGV在交叉路口发生路径冲突',
+  },
+  {
+    id: 'sim-007',
+    scenario_code: 'SIM-007',
+    scenario_name: '波峰焊锡炉液位低',
+    severity: 'critical',
+    description: '波峰焊锡炉液位低于安全线',
+  },
+  {
+    id: 'sim-008',
+    scenario_code: 'SIM-008',
+    scenario_name: '贴片吸嘴堵塞',
+    severity: 'warning',
+    description: '贴片机吸嘴堵塞导致吸取失败率上升',
+  },
+  {
+    id: 'sim-009',
+    scenario_code: 'SIM-009',
+    scenario_name: '钢网张力不足',
+    severity: 'error',
+    description: '锡膏印刷钢网张力不足',
+  },
+  {
+    id: 'sim-010',
+    scenario_code: 'SIM-010',
+    scenario_name: '元件供料器卡料',
+    severity: 'warning',
+    description: '贴片机供料器卡料导致贴装中断',
+  },
 ]
 
-const SimulationSelector: React.FC<SimulationSelectorProps> = ({
-  isOpen,
-  onClose,
-  onSelect,
-}) => {
+const SimulationSelector: React.FC<SimulationSelectorProps> = ({ isOpen, onClose, onSelect }) => {
   const [scenarios, setScenarios] = useState<SimulationScenario[]>(DEFAULT_SCENARIOS)
   const [loading, setLoading] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -106,10 +162,7 @@ const SimulationSelector: React.FC<SimulationSelectorProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* 背景遮罩 */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* 弹窗内容 */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
@@ -177,9 +230,7 @@ const SimulationSelector: React.FC<SimulationSelectorProps> = ({
 
                     {/* 描述 */}
                     {scenario.description && (
-                      <p className="text-xs text-slate-500 line-clamp-2">
-                        {scenario.description}
-                      </p>
+                      <p className="text-xs text-slate-500 line-clamp-2">{scenario.description}</p>
                     )}
 
                     {/* 图标 */}

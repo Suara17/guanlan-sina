@@ -4,9 +4,15 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/
 
-# 使用阿里云镜像源（国内服务器网络优化）
-RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
-    sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+# 使用阿里云镜像源（国内服务器网络优化，兼容新旧 Debian 格式）
+RUN if [ -f /etc/apt/sources.list ]; then \
+        sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+        sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; \
+    fi && \
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+        sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
+        sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
+    fi
 
 # 安装中文字体支持（用于 matplotlib 生成中文图片）
 RUN apt-get update && apt-get install -y --no-install-recommends \

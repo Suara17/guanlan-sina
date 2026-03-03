@@ -56,6 +56,7 @@ export interface ParetoSolution {
   total_cost: number
   implementation_days: number
   expected_benefit: number
+  expected_loss?: number
   topsis_score?: number
 }
 
@@ -104,6 +105,11 @@ export interface TOPSISScore {
 export interface TOPSISResult {
   best_solution_id: string
   scores: TOPSISScore[]
+}
+
+export interface LatestCompletedTaskResponse {
+  task: OptimizationTask
+  solution: ParetoSolution | null
 }
 
 export interface RepresentativeSolutions {

@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 // 新手教程存储键
 const TUTORIAL_COMPLETED_KEY = 'tiangong_tutorial_completed'
+
 import AboutUs from './pages/AboutUs'
 import CustomerCases from './pages/CustomerCases'
 import Dashboard from './pages/Dashboard'

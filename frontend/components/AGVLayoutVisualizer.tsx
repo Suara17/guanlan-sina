@@ -4,7 +4,6 @@
  * 基于新设计迁移，支持坐标系、区域划分、AGV 动画
  */
 
-import clsx from 'clsx'
 import * as d3 from 'd3'
 import { BarChart3, Clock, Truck, Zap } from 'lucide-react'
 import { useEffect, useRef } from 'react'
@@ -18,7 +17,6 @@ import {
 
 interface AGVLayoutVisualizerProps {
   isOptimized: boolean
-  onToggle: (val: boolean) => void
   agvData?: {
     zones?: typeof AUTO_ZONES
     routes?: typeof AUTO_ROUTES
@@ -35,7 +33,6 @@ const MARGIN = { top: 30, right: 30, bottom: 40, left: 40 }
 
 export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
   isOptimized,
-  onToggle,
   agvData,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null)
@@ -282,39 +279,25 @@ export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
   }, [isOptimized, zones, routes, nodes])
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full p-6">
-      <div className="flex-1 bg-white rounded-xl shadow-lg border border-slate-200 p-4 flex flex-col">
-        <div className="flex justify-between items-center mb-4">
+    <div className="relative flex flex-col lg:flex-row gap-6 h-full min-h-0 p-4 lg:p-6 overflow-y-auto">
+      <div className="flex-1 min-h-0 bg-white rounded-xl shadow-lg border border-slate-200 p-4 flex flex-col">
+        <div className="mb-4">
           <h2 className="text-xl font-bold text-slate-800">
-            {isOptimized ? 'AGV 路径优化图 (解 2)' : '原始路径布局'}
+            {isOptimized ? 'AGV 路径优化图' : '原始路径布局'}
           </h2>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => onToggle(!isOptimized)}
-              className={clsx(
-                'relative inline-flex h-7 w-36 items-center justify-center rounded-lg transition-colors focus:outline-none border font-medium text-sm',
-                isOptimized
-                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-600'
-              )}
-            >
-              {isOptimized ? '显示原始路径' : '显示优化路径'}
-            </button>
-          </div>
         </div>
 
-        <div className="relative overflow-x-auto flex-1 flex items-center justify-center bg-slate-50 border border-slate-200 rounded-lg shadow-inner">
+        <div className="relative flex-1 min-h-[360px] lg:min-h-[420px] flex items-center justify-center bg-slate-50 border border-slate-200 rounded-lg shadow-inner overflow-hidden">
           <svg
             ref={svgRef}
             viewBox={`0 0 ${WIDTH + MARGIN.left + MARGIN.right} ${HEIGHT + MARGIN.top + MARGIN.bottom}`}
-            className="w-full h-auto max-h-[600px]"
+            className="w-full h-full"
             preserveAspectRatio="xMidYMid meet"
           />
         </div>
       </div>
 
-      <div className="w-full lg:w-80 flex flex-col gap-4">
+      <div className="w-full lg:w-80 min-h-0 flex flex-col gap-4 lg:overflow-y-auto pr-1">
         {/* 指标面板 */}
         <div className="bg-white rounded-xl shadow p-5 border border-slate-100">
           <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">

@@ -5,10 +5,19 @@
  * 支持工艺流程折叠展开和差异对比
  */
 
-import { AlertTriangle, ArrowRight, ChevronDown, ChevronRight, Clock, Package, Settings2, Timer } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowRight,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Package,
+  Settings2,
+  Timer,
+} from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useState, useMemo } from 'react'
-import type { NextPlan, OptimizationParams, ProductChangeWarning, ProcessStep } from '../types'
+import type { NextPlan, OptimizationParams, ProcessStep, ProductChangeWarning } from '../types'
 
 interface ProductionPlanCardProps {
   className?: string
@@ -52,7 +61,11 @@ const compareProcessFlows = (flowA: ProcessStep[], flowB: ProcessStep[]) => {
     } else if (!stepA && stepB) {
       differences.push({ type: 'added', stepB, index: i })
     } else if (stepA && stepB) {
-      if (stepA.name !== stepB.name || stepA.station_type !== stepB.station_type || stepA.cycle_time !== stepB.cycle_time) {
+      if (
+        stepA.name !== stepB.name ||
+        stepA.station_type !== stepB.station_type ||
+        stepA.cycle_time !== stepB.cycle_time
+      ) {
         differences.push({ type: 'modified', stepA, stepB, index: i })
       }
     }
@@ -62,13 +75,21 @@ const compareProcessFlows = (flowA: ProcessStep[], flowB: ProcessStep[]) => {
 }
 
 // 检查某个步骤是否有差异
-const isStepDifferent = (step: ProcessStep, index: number, differences: ReturnType<typeof compareProcessFlows>) => {
-  return differences.some(d => d.index === index)
+const isStepDifferent = (
+  step: ProcessStep,
+  index: number,
+  differences: ReturnType<typeof compareProcessFlows>
+) => {
+  return differences.some((d) => d.index === index)
 }
 
 // 获取差异类型
-const getDifferenceType = (index: number, differences: ReturnType<typeof compareProcessFlows>, isFlowA: boolean) => {
-  const diff = differences.find(d => d.index === index)
+const getDifferenceType = (
+  index: number,
+  differences: ReturnType<typeof compareProcessFlows>,
+  isFlowA: boolean
+) => {
+  const diff = differences.find((d) => d.index === index)
   if (!diff) return null
   if (diff.type === 'added') return isFlowA ? null : 'added'
   if (diff.type === 'removed') return isFlowA ? 'removed' : null
@@ -165,11 +186,7 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
     differences: ReturnType<typeof compareProcessFlows>
   ) => {
     if (!flow || flow.length === 0) {
-      return (
-        <div className="text-sm text-slate-400 py-2 text-center">
-          暂无工艺流程数据
-        </div>
-      )
+      return <div className="text-sm text-slate-400 py-2 text-center">暂无工艺流程数据</div>
     }
 
     return (
@@ -251,7 +268,9 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
   const nextFlow = nextPlan?.process_flow || productChangeWarning?.next_flow || []
 
   return (
-    <div className={`bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden ${className}`}>
+    <div
+      className={`bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden ${className}`}
+    >
       {/* Header */}
       <div className="px-6 py-4 border-b border-slate-100 flex items-center">
         <div className="flex items-center gap-3">
@@ -333,7 +352,9 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
                 onClick={() => setShowCurrentFlow(!showCurrentFlow)}
                 className="w-full px-4 py-3 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
               >
-                <span className="text-sm font-medium text-slate-700">工艺流程 ({currentFlow.length}道工序)</span>
+                <span className="text-sm font-medium text-slate-700">
+                  工艺流程 ({currentFlow.length}道工序)
+                </span>
                 {showCurrentFlow ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
               {showCurrentFlow && (
@@ -390,8 +411,8 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
                     预计时长
                   </div>
                   <p className="text-lg font-bold text-slate-800">
-                    {nextPlan.estimated_duration_hours 
-                      ? formatDuration(nextPlan.estimated_duration_hours) 
+                    {nextPlan.estimated_duration_hours
+                      ? formatDuration(nextPlan.estimated_duration_hours)
                       : '--'}
                   </p>
                 </div>
@@ -405,7 +426,9 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
                     className="w-full px-4 py-3 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-slate-700">工艺流程 ({nextFlow.length}道工序)</span>
+                      <span className="text-sm font-medium text-slate-700">
+                        工艺流程 ({nextFlow.length}道工序)
+                      </span>
                       {flowDifferences.length > 0 && (
                         <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
                           {flowDifferences.length}处差异

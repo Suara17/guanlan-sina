@@ -89,15 +89,22 @@ const LandingPage: React.FC = () => {
       icon: Factory,
       color: 'blue',
       gradient: 'from-blue-500 to-blue-600',
-      description: '汽配行业智能化解决方案，专注高混流产线的动态瓶颈治理与工艺参数自适应优化。成都某汽配厂试点将瓶颈响应从30分钟缩短至45秒。',
+      description:
+        '汽配行业智能化解决方案，专注高混流产线的动态瓶颈治理与工艺参数自适应优化。成都某汽配厂试点将瓶颈响应从30分钟缩短至45秒。',
       highlights: [
         '视-空协同：实时感知瓶颈漂移，自动调整AGV路径',
         '缺陷趋势反向优化工艺参数',
         '分钟级自适应调度响应',
       ],
       companies: [
-        { name: '西门子', desc: '18.5%市场份额，Opcenter系列，实施周期12-18个月，首年TCO 300-500万元，面向大型车企汽配厂' },
-        { name: '成都某汽配厂', desc: '天工·弈控试点项目，瓶颈响应从30分钟缩短至45秒，ROI周期5.8个月' },
+        {
+          name: '西门子',
+          desc: '18.5%市场份额，Opcenter系列，实施周期12-18个月，首年TCO 300-500万元，面向大型车企汽配厂',
+        },
+        {
+          name: '成都某汽配厂',
+          desc: '天工·弈控试点项目，瓶颈响应从30分钟缩短至45秒，ROI周期5.8个月',
+        },
       ],
     },
     {
@@ -106,15 +113,18 @@ const LandingPage: React.FC = () => {
       icon: Cpu,
       color: 'violet',
       gradient: 'from-violet-500 to-violet-600',
-      description: '电子组装行业轻量级智能协同方案，实现生产数据在线化与透明化，专注长三角地区中小型离散制造企业。',
-      highlights: [
-        '云原生SaaS架构，即开即用',
-        '移动端无缝连接一线工人',
-        '实时进度追踪与异常预警',
-      ],
+      description:
+        '电子组装行业轻量级智能协同方案，实现生产数据在线化与透明化，专注长三角地区中小型离散制造企业。',
+      highlights: ['云原生SaaS架构，即开即用', '移动端无缝连接一线工人', '实时进度追踪与异常预警'],
       companies: [
-        { name: '黑湖科技', desc: '超3万家付费工厂用户，国产轻量级MES榜首，部署周期2-4周，首年投入5-15万元，中小微企业渗透率60%+' },
-        { name: '长三角电子组装厂', desc: '云原生SaaS模式，按年订阅约7万元/年，快速部署解决管理协同问题' },
+        {
+          name: '黑湖科技',
+          desc: '超3万家付费工厂用户，国产轻量级MES榜首，部署周期2-4周，首年投入5-15万元，中小微企业渗透率60%+',
+        },
+        {
+          name: '长三角电子组装厂',
+          desc: '云原生SaaS模式，按年订阅约7万元/年，快速部署解决管理协同问题',
+        },
       ],
     },
     {
@@ -123,14 +133,18 @@ const LandingPage: React.FC = () => {
       icon: Orbit,
       color: 'indigo',
       gradient: 'from-indigo-500 to-indigo-600',
-      description: '航空航天高端制造业数字化双胞胎方案，提供高保真静态仿真与虚拟验证能力，确保物理世界"零试错"。',
+      description:
+        '航空航天高端制造业数字化双胞胎方案，提供高保真静态仿真与虚拟验证能力，确保物理世界"零试错"。',
       highlights: [
         '全栈数字化双胞胎方案',
         'Teamcenter统一数据底座，PLM打通设计到制造',
         '虚拟环境下的压力测试验证',
       ],
       companies: [
-        { name: '西门子', desc: '目标客户为大型国企、跨国车企、航空航天企业，基于Teamcenter实现高保真静态仿真' },
+        {
+          name: '西门子',
+          desc: '目标客户为大型国企、跨国车企、航空航天企业，基于Teamcenter实现高保真静态仿真',
+        },
         { name: '达索', desc: '国际全能型厂商，提供全栈式数字化双胞胎方案，面向高端制造业' },
       ],
     },
@@ -140,14 +154,14 @@ const LandingPage: React.FC = () => {
       icon: Globe,
       color: 'cyan',
       gradient: 'from-cyan-500 to-cyan-600',
-      description: '汽车整车制造智能排产与调度方案，应对多车型混线生产的复杂场景，支持EV产线适应性改造。',
-      highlights: [
-        '多车型混线智能排产',
-        'EV产线输送设备适应性改造',
-        '涂装车间智能调度',
-      ],
+      description:
+        '汽车整车制造智能排产与调度方案，应对多车型混线生产的复杂场景，支持EV产线适应性改造。',
+      highlights: ['多车型混线智能排产', 'EV产线输送设备适应性改造', '涂装车间智能调度'],
       companies: [
-        { name: '广汽传祺', desc: '一线涂装车间EV车型输送设备适应性改造项目，首年投入约550万元人民币' },
+        {
+          name: '广汽传祺',
+          desc: '一线涂装车间EV车型输送设备适应性改造项目，首年投入约550万元人民币',
+        },
         { name: '西门子', desc: '汽配厂中标公告显示单项目金额超300万元，工艺变更重配置需14-21天' },
       ],
     },
@@ -157,14 +171,14 @@ const LandingPage: React.FC = () => {
       icon: Target,
       color: 'emerald',
       gradient: 'from-emerald-500 to-emerald-600',
-      description: '精密加工行业机器视觉质检方案，基于深度学习实现高精度缺陷识别，单点检测精度可达99.9%。',
-      highlights: [
-        'VM算法平台，深度学习缺陷识别',
-        'OK/NG信号实时输出',
-        '硬件销售+点位授权模式',
-      ],
+      description:
+        '精密加工行业机器视觉质检方案，基于深度学习实现高精度缺陷识别，单点检测精度可达99.9%。',
+      highlights: ['VM算法平台，深度学习缺陷识别', 'OK/NG信号实时输出', '硬件销售+点位授权模式'],
       companies: [
-        { name: '海康机器人', desc: '25%+市场份额，机器视觉领域第一，单条产线投入20-80万元，检测精度99.9%' },
+        {
+          name: '海康机器人',
+          desc: '25%+市场份额，机器视觉领域第一，单条产线投入20-80万元，检测精度99.9%',
+        },
         { name: '成都电子厂', desc: 'AOI检测设备采购，单套设备3-15万元，但76%设备未与MES系统打通' },
       ],
     },
@@ -174,12 +188,9 @@ const LandingPage: React.FC = () => {
       icon: Server,
       color: 'amber',
       gradient: 'from-amber-500 to-amber-600',
-      description: '智能装备制造业视-空协同解决方案，RK3588边缘计算盒子成本控制在3000元以内，系统部署门槛降低90%。',
-      highlights: [
-        '视-空协同智能决策',
-        '边缘计算毫秒级响应',
-        '若无法提升OEE达8%以上，退还服务费',
-      ],
+      description:
+        '智能装备制造业视-空协同解决方案，RK3588边缘计算盒子成本控制在3000元以内，系统部署门槛降低90%。',
+      highlights: ['视-空协同智能决策', '边缘计算毫秒级响应', '若无法提升OEE达8%以上，退还服务费'],
       companies: [
         { name: '宝信软件', desc: '国产协同型厂商代表，侧重流程在线化与轻量化协同' },
         { name: '凌云光', desc: '单点技术型厂商，专注图像处理与缺陷识别，输出OK/NG信号' },
@@ -323,9 +334,7 @@ const LandingPage: React.FC = () => {
               <p className="whitespace-nowrap">
                 打破数据孤岛，实现物理车间与数字世界的毫秒级虚实共生。
               </p>
-              <p className="whitespace-nowrap">
-                基于"1+N+X"架构，为现代工厂提供全栈式算法支撑。
-              </p>
+              <p className="whitespace-nowrap">基于"1+N+X"架构，为现代工厂提供全栈式算法支撑。</p>
             </div>
             <div className="flex flex-col sm:flex-row items-start gap-5">
               <button
@@ -377,9 +386,15 @@ const LandingPage: React.FC = () => {
               {/* 主球体 - 核心 */}
               <div className="relative">
                 {/* 外层光圈 */}
-                <div className="absolute -inset-10 rounded-full border border-blue-400/20 animate-spin" style={{ animationDuration: '20s' }}></div>
-                <div className="absolute -inset-16 rounded-full border border-cyan-400/10 animate-spin" style={{ animationDuration: '30s', animationDirection: 'reverse' }}></div>
-                
+                <div
+                  className="absolute -inset-10 rounded-full border border-blue-400/20 animate-spin"
+                  style={{ animationDuration: '20s' }}
+                ></div>
+                <div
+                  className="absolute -inset-16 rounded-full border border-cyan-400/10 animate-spin"
+                  style={{ animationDuration: '30s', animationDirection: 'reverse' }}
+                ></div>
+
                 {/* 主球体 */}
                 <div className="relative w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-400 shadow-2xl shadow-blue-500/50">
                   {/* 内部高光 */}
@@ -395,7 +410,10 @@ const LandingPage: React.FC = () => {
 
               {/* 卫星球体 - 左上 (洞微-感知) */}
               <div className="absolute top-16 left-16">
-                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 shadow-xl shadow-violet-500/40 animate-bounce" style={{ animationDuration: '3s' }}>
+                <div
+                  className="relative w-16 h-16 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 shadow-xl shadow-violet-500/40 animate-bounce"
+                  style={{ animationDuration: '3s' }}
+                >
                   <div className="absolute top-1.5 left-2.5 w-5 h-3 bg-white/30 rounded-full blur-md"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Radar size={24} className="text-white/90" strokeWidth={1.5} />
@@ -411,7 +429,10 @@ const LandingPage: React.FC = () => {
 
               {/* 卫星球体 - 右上 (天筹-决策) */}
               <div className="absolute top-16 right-16">
-                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 shadow-xl shadow-cyan-500/40 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
+                <div
+                  className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 shadow-xl shadow-cyan-500/40 animate-bounce"
+                  style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}
+                >
                   <div className="absolute top-1.5 left-2 w-5 h-3 bg-white/30 rounded-full blur-sm"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Target size={24} className="text-white/90" strokeWidth={1.5} />
@@ -427,7 +448,10 @@ const LandingPage: React.FC = () => {
 
               {/* 卫星球体 - 左下 (格物-图谱) */}
               <div className="absolute bottom-24 left-20">
-                <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-xl shadow-blue-500/40 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
+                <div
+                  className="relative w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-xl shadow-blue-500/40 animate-bounce"
+                  style={{ animationDuration: '4s', animationDelay: '1s' }}
+                >
                   <div className="absolute top-1 left-1.5 w-4 h-2.5 bg-white/30 rounded-full blur-sm"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Network size={20} className="text-white/90" strokeWidth={1.5} />
@@ -441,7 +465,10 @@ const LandingPage: React.FC = () => {
 
               {/* 卫星球体 - 右下 (浑天-仿真) */}
               <div className="absolute bottom-24 right-20">
-                <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-xl shadow-emerald-500/40 animate-bounce" style={{ animationDuration: '3.8s', animationDelay: '0.8s' }}>
+                <div
+                  className="relative w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-xl shadow-emerald-500/40 animate-bounce"
+                  style={{ animationDuration: '3.8s', animationDelay: '0.8s' }}
+                >
                   <div className="absolute top-1 left-1.5 w-4 h-2.5 bg-white/30 rounded-full blur-sm"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Orbit size={20} className="text-white/90" strokeWidth={1.5} />
@@ -455,9 +482,18 @@ const LandingPage: React.FC = () => {
 
               {/* 装饰性粒子 */}
               <div className="absolute top-1/3 left-1/4 w-2.5 h-2.5 bg-blue-400 rounded-full animate-ping opacity-60"></div>
-              <div className="absolute top-2/3 right-1/3 w-2 h-2 bg-cyan-400 rounded-full animate-ping opacity-50" style={{ animationDelay: '1s' }}></div>
-              <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-violet-400 rounded-full animate-ping opacity-40" style={{ animationDelay: '2s' }}></div>
-              <div className="absolute top-1/4 right-1/4 w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-50" style={{ animationDelay: '1.5s' }}></div>
+              <div
+                className="absolute top-2/3 right-1/3 w-2 h-2 bg-cyan-400 rounded-full animate-ping opacity-50"
+                style={{ animationDelay: '1s' }}
+              ></div>
+              <div
+                className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-violet-400 rounded-full animate-ping opacity-40"
+                style={{ animationDelay: '2s' }}
+              ></div>
+              <div
+                className="absolute top-1/4 right-1/4 w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-50"
+                style={{ animationDelay: '1.5s' }}
+              ></div>
             </div>
 
             {/* 底部数据指标条 */}
@@ -602,17 +638,23 @@ const LandingPage: React.FC = () => {
             <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm md:text-base">
               <span className="flex items-center gap-2">
                 <span className="text-slate-500">产能提升</span>
-                <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xl font-bold rounded-lg shadow-sm">+18.5%</span>
+                <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xl font-bold rounded-lg shadow-sm">
+                  +18.5%
+                </span>
               </span>
               <span className="hidden md:inline text-slate-300">|</span>
               <span className="flex items-center gap-2">
                 <span className="text-slate-500">能耗降低</span>
-                <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xl font-bold rounded-lg shadow-sm">-12.0%</span>
+                <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xl font-bold rounded-lg shadow-sm">
+                  -12.0%
+                </span>
               </span>
               <span className="hidden md:inline text-slate-300">|</span>
               <span className="flex items-center gap-2">
                 <span className="text-slate-500">故障停机</span>
-                <span className="px-3 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xl font-bold rounded-lg shadow-sm">-35.0%</span>
+                <span className="px-3 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xl font-bold rounded-lg shadow-sm">
+                  -35.0%
+                </span>
               </span>
             </div>
           </div>
@@ -636,7 +678,7 @@ const LandingPage: React.FC = () => {
                   {isActive && (
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
                   )}
-                  
+
                   {/* 图标 */}
                   <div
                     className={`mb-3 p-2 rounded-xl w-fit transition-all ${
@@ -677,71 +719,80 @@ const LandingPage: React.FC = () => {
               activeIndustry ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
             }`}
           >
-            {activeIndustry && (() => {
-              const industry = INDUSTRIES.find((i) => i.id === activeIndustry)
-              if (!industry) return null
-              const Icon = industry.icon
-              
-              return (
-                <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-8 lg:p-10 animate-in fade-in slide-in-from-top-4 duration-500">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* 左侧：行业描述 */}
-                    <div className="lg:col-span-2">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className={`p-3 rounded-xl bg-gradient-to-br ${industry.gradient}`}>
-                          <Icon size={24} className="text-white" />
-                        </div>
-                        <h3 className="text-2xl font-black text-slate-900">{industry.name}</h3>
-                      </div>
-                      
-                      <p className="text-slate-600 mb-6 leading-relaxed">{industry.description}</p>
+            {activeIndustry &&
+              (() => {
+                const industry = INDUSTRIES.find((i) => i.id === activeIndustry)
+                if (!industry) return null
+                const Icon = industry.icon
 
-                      {/* 核心亮点 */}
-                      <div className="mb-6">
-                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">
-                          核心能力
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {industry.highlights.map((h, idx) => (
-                            <span
-                              key={idx}
-                              className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium"
-                            >
-                              {h}
-                            </span>
-                          ))}
+                return (
+                  <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-8 lg:p-10 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      {/* 左侧：行业描述 */}
+                      <div className="lg:col-span-2">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className={`p-3 rounded-xl bg-gradient-to-br ${industry.gradient}`}>
+                            <Icon size={24} className="text-white" />
+                          </div>
+                          <h3 className="text-2xl font-black text-slate-900">{industry.name}</h3>
                         </div>
-                      </div>
 
-                      {/* 代表企业 */}
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">
-                          代表企业
-                        </h4>
-                        <div className="space-y-3">
-                          {industry.companies.map((company, idx) => (
-                            <div
-                              key={idx}
-                              className="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors"
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className={`p-2 rounded-lg bg-gradient-to-br ${industry.gradient} flex-shrink-0`}>
-                                  <Users size={16} className="text-white" />
-                                </div>
-                                <div>
-                                  <h5 className="font-bold text-slate-900 mb-1">{company.name}</h5>
-                                  <p className="text-sm text-slate-600 leading-relaxed">{company.desc}</p>
+                        <p className="text-slate-600 mb-6 leading-relaxed">
+                          {industry.description}
+                        </p>
+
+                        {/* 核心亮点 */}
+                        <div className="mb-6">
+                          <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">
+                            核心能力
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {industry.highlights.map((h, idx) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium"
+                              >
+                                {h}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 代表企业 */}
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">
+                            代表企业
+                          </h4>
+                          <div className="space-y-3">
+                            {industry.companies.map((company, idx) => (
+                              <div
+                                key={idx}
+                                className="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors"
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div
+                                    className={`p-2 rounded-lg bg-gradient-to-br ${industry.gradient} flex-shrink-0`}
+                                  >
+                                    <Users size={16} className="text-white" />
+                                  </div>
+                                  <div>
+                                    <h5 className="font-bold text-slate-900 mb-1">
+                                      {company.name}
+                                    </h5>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                      {company.desc}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )
-            })()}
+                )
+              })()}
           </div>
         </div>
       </section>
@@ -761,7 +812,9 @@ const LandingPage: React.FC = () => {
 
           <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-10 lg:justify-items-end">
             <div className="space-y-3">
-              <p className="text-base font-bold uppercase tracking-wider text-slate-300">产品矩阵</p>
+              <p className="text-base font-bold uppercase tracking-wider text-slate-300">
+                产品矩阵
+              </p>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <a href="#" className="hover:text-blue-400 transition-colors">
@@ -808,7 +861,9 @@ const LandingPage: React.FC = () => {
               </ul>
             </div>
             <div className="space-y-3">
-              <p className="text-base font-bold uppercase tracking-wider text-slate-300">联系我们</p>
+              <p className="text-base font-bold uppercase tracking-wider text-slate-300">
+                联系我们
+              </p>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>400-223608838</li>
                 <li>admin@tiangongna.com</li>
@@ -816,7 +871,7 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
         </div>
-          <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600 uppercase font-semibold tracking-wider">
+        <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600 uppercase font-semibold tracking-wider">
           <span>© 2025 天工·弈控 Tiangong·Yikong. All rights reserved.</span>
           <div className="flex gap-6">
             <a href="#" className="hover:text-slate-400 transition-colors">

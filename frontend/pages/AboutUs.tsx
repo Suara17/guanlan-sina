@@ -54,26 +54,22 @@ const AboutUs: React.FC = () => {
     {
       year: '2025 Q1',
       title: '项目启动',
-      description:
-        '天工·弈控项目正式启动，完成核心架构设计，确定"1+N+X"技术路线。',
+      description: '天工·弈控项目正式启动，完成核心架构设计，确定"1+N+X"技术路线。',
     },
     {
       year: '2025 Q2',
       title: '洞微感知引擎',
-      description:
-        '完成洞微感知引擎基础版开发，实现设备数据采集与边缘计算功能。',
+      description: '完成洞微感知引擎基础版开发，实现设备数据采集与边缘计算功能。',
     },
     {
       year: '2025 Q3',
       title: '格物图谱引擎',
-      description:
-        '格物知识图谱引擎上线，支持工艺知识图谱构建与专家经验沉淀。',
+      description: '格物知识图谱引擎上线，支持工艺知识图谱构建与专家经验沉淀。',
     },
     {
       year: '2025 Q4',
       title: '天筹决策引擎',
-      description:
-        '天筹智能决策引擎投入开发，基于多目标优化算法实现排产调度优化。',
+      description: '天筹智能决策引擎投入开发，基于多目标优化算法实现排产调度优化。',
     },
   ]
 
@@ -126,21 +122,24 @@ const AboutUs: React.FC = () => {
       title: '企业愿景',
       icon: Target,
       summary: '打造国内领先的工业数字孪生操作系统',
-      details: '以"视-空协同"技术为核心，构建覆盖感知、建模、决策、验证全生命周期的智能操作系统。我们致力于成为离散制造业数字化转型的首选合作伙伴，通过数字孪生技术打通设备层、边缘层、平台层与应用层的数据壁垒，实现生产过程的透明化、可控化与智能化。在工业4.0时代背景下，天工·弈控将持续深耕离散制造领域，帮助汽配、电子、机械等行业的制造企业突破传统生产模式的效率瓶颈，实现降本增效、提质增能的核心目标。我们期望通过技术创新与场景落地，推动中国制造向中国智造的跨越式发展，为建设制造强国贡献一份力量。未来，我们将继续拓展行业边界，让数字孪生技术惠及更多制造企业，共同开启智能制造的新篇章。',
+      details:
+        '以"视-空协同"技术为核心，构建覆盖感知、建模、决策、验证全生命周期的智能操作系统。我们致力于成为离散制造业数字化转型的首选合作伙伴，通过数字孪生技术打通设备层、边缘层、平台层与应用层的数据壁垒，实现生产过程的透明化、可控化与智能化。在工业4.0时代背景下，天工·弈控将持续深耕离散制造领域，帮助汽配、电子、机械等行业的制造企业突破传统生产模式的效率瓶颈，实现降本增效、提质增能的核心目标。我们期望通过技术创新与场景落地，推动中国制造向中国智造的跨越式发展，为建设制造强国贡献一份力量。未来，我们将继续拓展行业边界，让数字孪生技术惠及更多制造企业，共同开启智能制造的新篇章。',
     },
     {
       id: 'mission',
       title: '企业使命',
       icon: Rocket,
       summary: '打破工业数据孤岛，赋能智能制造',
-      details: '以"视-空协同"技术为核心，为离散制造企业提供从数据采集、知识沉淀、智能决策到仿真验证的全栈式解决方案。长期以来，制造企业面临着数据分散、系统割裂、决策滞后等痛点，生产线上的海量数据难以转化为有效的决策支撑。天工·弈控通过构建统一的数字孪生底座，打破工业数据孤岛，实现物理车间与数字世界的毫秒级虚实共生。我们的四大核心引擎——洞微感知引擎实现设备数据的实时采集与边缘处理，格物知识图谱引擎沉淀领域专家经验与工艺知识，天筹智能决策引擎提供排产调度的最优方案，浑天仿真验证引擎支持决策下发前的压力测试与推演预演。让每一次生产决策都有数据支撑，每一次工艺优化都有科学依据，真正实现从经验驱动到数据驱动的转型跨越。',
+      details:
+        '以"视-空协同"技术为核心，为离散制造企业提供从数据采集、知识沉淀、智能决策到仿真验证的全栈式解决方案。长期以来，制造企业面临着数据分散、系统割裂、决策滞后等痛点，生产线上的海量数据难以转化为有效的决策支撑。天工·弈控通过构建统一的数字孪生底座，打破工业数据孤岛，实现物理车间与数字世界的毫秒级虚实共生。我们的四大核心引擎——洞微感知引擎实现设备数据的实时采集与边缘处理，格物知识图谱引擎沉淀领域专家经验与工艺知识，天筹智能决策引擎提供排产调度的最优方案，浑天仿真验证引擎支持决策下发前的压力测试与推演预演。让每一次生产决策都有数据支撑，每一次工艺优化都有科学依据，真正实现从经验驱动到数据驱动的转型跨越。',
     },
     {
       id: 'values',
       title: '核心价值观',
       icon: Heart,
       summary: '技术为本 · 客户优先 · 持续创新 · 务实进取',
-      details: '技术为本——我们坚信技术是推动行业进步的核心动力，持续投入研发资源，打造具有自主知识产权的核心技术体系。从感知算法到知识图谱，从优化引擎到仿真平台，每一项技术突破都凝聚着团队的智慧与汗水。客户优先——始终以客户需求为导向，深入理解制造企业的真实痛点，提供切实可行的解决方案。我们不仅交付产品，更注重客户价值的实现，陪伴客户走过数字化转型的每一步。持续创新——不断探索工业智能化的新边界，紧跟技术发展趋势，将人工智能、知识图谱、数字孪生等前沿技术与制造场景深度融合。务实进取——在追求技术创新的同时，我们保持务实的态度，脚踏实地解决客户实际问题，不追求华而不实的概念，而是用可靠的产品和专业的服务赢得市场信任，用实际效果说话。',
+      details:
+        '技术为本——我们坚信技术是推动行业进步的核心动力，持续投入研发资源，打造具有自主知识产权的核心技术体系。从感知算法到知识图谱，从优化引擎到仿真平台，每一项技术突破都凝聚着团队的智慧与汗水。客户优先——始终以客户需求为导向，深入理解制造企业的真实痛点，提供切实可行的解决方案。我们不仅交付产品，更注重客户价值的实现，陪伴客户走过数字化转型的每一步。持续创新——不断探索工业智能化的新边界，紧跟技术发展趋势，将人工智能、知识图谱、数字孪生等前沿技术与制造场景深度融合。务实进取——在追求技术创新的同时，我们保持务实的态度，脚踏实地解决客户实际问题，不追求华而不实的概念，而是用可靠的产品和专业的服务赢得市场信任，用实际效果说话。',
     },
   ]
 
@@ -273,7 +272,9 @@ const AboutUs: React.FC = () => {
                         }`}
                       />
                     </div>
-                    <div className="text-base md:text-lg font-semibold text-white mb-1">{cap.title}</div>
+                    <div className="text-base md:text-lg font-semibold text-white mb-1">
+                      {cap.title}
+                    </div>
                     <div className="text-sm text-slate-400">{cap.desc}</div>
                   </div>
                 ))}
@@ -285,19 +286,27 @@ const AboutUs: React.FC = () => {
               {/* 数据统计 - 极简风格 */}
               <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-slate-400">
                 <div className="text-center">
-                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">4</span>
+                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">
+                    4
+                  </span>
                   <span className="text-lg font-semibold text-white">核心引擎</span>
                 </div>
                 <div className="text-center">
-                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">10+</span>
+                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">
+                    10+
+                  </span>
                   <span className="text-lg font-semibold text-white">技术团队</span>
                 </div>
                 <div className="text-center">
-                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">3</span>
+                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">
+                    3
+                  </span>
                   <span className="text-lg font-semibold text-white">试点产线</span>
                 </div>
                 <div className="text-center">
-                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">5+</span>
+                  <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mr-2">
+                    5+
+                  </span>
                   <span className="text-lg font-semibold text-white">研发成果</span>
                 </div>
               </div>

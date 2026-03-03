@@ -15,7 +15,7 @@ import {
   Settings2,
   TrendingUp,
 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AHPWizard } from './components/AHPWizard'
 import { ParetoTriplot } from './components/ParetoTriplot'
@@ -32,6 +32,13 @@ import {
 } from './types/tianchou'
 
 type ViewType = 'config' | 'optimizing' | 'results'
+type FocusTarget = 'solution' | 'pareto'
+type HuntianRedirectState = {
+  fromHuntian?: boolean
+  taskId?: string
+  solutionId?: string
+  focus?: FocusTarget
+}
 
 /**
  * 简单的 Card 组件
@@ -91,6 +98,10 @@ export default function TianchouPage() {
   const [view, setView] = useState<ViewType>('config')
   const [showAHPWizard, setShowAHPWizard] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [pendingFocus, setPendingFocus] = useState<FocusTarget | null>(null)
+  const paretoSectionRef = useRef<HTMLDivElement | null>(null)
+  const solutionSectionRef = useRef<HTMLDivElement | null>(null)
+  const hasHandledHuntianRedirectRef = useRef(false)
 
   // 任务配置参数（用于显示任务信息）
   const [taskConfig, setTaskConfig] = useState<{
@@ -118,7 +129,7 @@ export default function TianchouPage() {
     const optimizationMode = location.state?.optimizationMode
     if (optimizationMode === 'product_switch') {
       const params = location.state
-      
+
       // 设置任务配置
       setTaskConfig({
         industryType: 'light',
@@ -231,7 +242,8 @@ export default function TianchouPage() {
 
           // 使用字符串比较确保兼容性
           const isRunning = status.status === TaskStatus.RUNNING || status.status === 'running'
-          const isCompleted = status.status === TaskStatus.COMPLETED || status.status === 'completed'
+          const isCompleted =
+            status.status === TaskStatus.COMPLETED || status.status === 'completed'
           const isFailed = status.status === TaskStatus.FAILED || status.status === 'failed'
 
           if (isRunning) {
@@ -255,6 +267,91 @@ export default function TianchouPage() {
   )
 
   // 选择方案查看详情
+  useEffect(() => {
+    const redirectState = location.state as HuntianRedirectState | null
+    if (!redirectState?.fromHuntian || hasHandledHuntianRedirectRef.current) {
+      return
+    }
+
+    hasHandledHuntianRedirectRef.current = true
+
+    const restoreTaskContext = async () => {
+      try {
+        setLoading(true)
+
+        // 若无 taskId，兜底读最近已完成任务
+        let targetTaskId = redirectState.taskId
+        let targetSolutionId = redirectState.solutionId
+
+        if (!targetTaskId) {
+          const latest = await tianchouService.getLatestCompletedTask()
+          targetTaskId = latest.task.task_id
+          if (!targetSolutionId && latest.solution) {
+            targetSolutionId = String(latest.solution.id)
+          }
+        }
+
+        const status = await tianchouService.getTaskStatus(targetTaskId)
+        setTask(status)
+
+        const isRunning = status.status === TaskStatus.RUNNING || status.status === 'running'
+        const isCompleted = status.status === TaskStatus.COMPLETED || status.status === 'completed'
+
+        if (isRunning) {
+          setView('optimizing')
+          pollTaskStatus(targetTaskId)
+          return
+        }
+
+        if (!isCompleted) {
+          setView('config')
+          return
+        }
+
+        const sols = await tianchouService.getSolutions(targetTaskId)
+        setSolutions(sols)
+        setView('results')
+
+        if (targetSolutionId) {
+          const matched = sols.find((item) => item.id === targetSolutionId)
+          if (matched) {
+            setSelectedSolution(matched)
+            try {
+              const detail = await tianchouService.getSolutionDetail(targetTaskId, matched.id)
+              setSelectedSolution(detail)
+            } catch (error) {
+              console.error('恢复方案详情失败:', error)
+            }
+          }
+        } else if (sols.length > 0) {
+          setSelectedSolution(sols[0])
+        }
+
+        if (redirectState.focus) {
+          setPendingFocus(redirectState.focus)
+        }
+      } catch (error) {
+        console.error('恢复天筹任务上下文失败:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    restoreTaskContext()
+  }, [location.state, pollTaskStatus, setSelectedSolution, setSolutions, setTask])
+
+  useEffect(() => {
+    if (view !== 'results' || !pendingFocus) return
+
+    const target = pendingFocus === 'pareto' ? paretoSectionRef.current : solutionSectionRef.current
+    if (!target) return
+
+    window.requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    setPendingFocus(null)
+  }, [view, pendingFocus, solutions.length])
+
   const handleSelectSolution = useCallback(
     async (solution: any) => {
       if (!task) return
@@ -296,7 +393,7 @@ export default function TianchouPage() {
       if (!task) return
 
       // 根据任务类型生成不同的数据
-      const isHeavyIndustry = true // TODO: 从 task 中获取实际的行业类型
+      const isHeavyIndustry = task.industry_type === 'heavy'
 
       const optimizationResult: OptimizationResult = isHeavyIndustry
         ? {
@@ -402,7 +499,19 @@ export default function TianchouPage() {
             },
           }
 
-      navigate('/app/huntian', { state: { optimizationResult } })
+      const decisionContext = {
+        taskId: task.task_id,
+        taskName: task.name,
+        solutionId: solution.id,
+        solutionRank: solution.rank,
+        totalCost: solution.total_cost,
+        implementationDays: solution.implementation_days,
+        expectedBenefit: solution.expected_benefit,
+        expectedLoss: solution.expected_benefit,
+        topsisScore: solution.topsis_score || 0,
+      }
+
+      navigate('/app/huntian', { state: { optimizationResult, decisionContext } })
     },
     [task, navigate]
   )
@@ -465,7 +574,7 @@ export default function TianchouPage() {
             </div>
 
             {/* 帕累托前沿可视化 */}
-            <div data-tour="tianchou-results">
+            <div ref={paretoSectionRef} id="pareto-section" data-tour="tianchou-results">
               <ParetoTriplot
                 solutions={solutions}
                 onSelect={handleSelectSolution}
@@ -477,7 +586,7 @@ export default function TianchouPage() {
             </div>
 
             {/* 顶部：蓝色统计卡片 */}
-            <div className="grid grid-cols-12 gap-6">
+            <div ref={solutionSectionRef} id="solution-section" className="grid grid-cols-12 gap-6">
               <div className="col-span-12 lg:col-span-9">
                 <Card title="优化方案详情">
                   <div className="overflow-x-auto">
@@ -568,7 +677,9 @@ export default function TianchouPage() {
                     <div className="flex items-center gap-3">
                       <Hash size={20} className="text-blue-100" />
                       <span className="text-blue-100 text-sm">设备总数</span>
-                      <span className="ml-auto font-semibold">{taskConfig?.deviceCount || 25} 台</span>
+                      <span className="ml-auto font-semibold">
+                        {taskConfig?.deviceCount || 25} 台
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Move size={20} className="text-blue-100" />
@@ -619,7 +730,9 @@ export default function TianchouPage() {
                     <div className="flex items-center gap-3">
                       <Factory size={20} className="text-blue-100" />
                       <span className="text-blue-100 text-sm">工位数量</span>
-                      <span className="ml-auto font-semibold">{taskConfig?.stationCount || 8} 个</span>
+                      <span className="ml-auto font-semibold">
+                        {taskConfig?.stationCount || 8} 个
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Hash size={20} className="text-blue-100" />

@@ -409,7 +409,11 @@ const TooltipPopover: React.FC<{
             <div
               key={i}
               className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                i === currentStep ? 'bg-indigo-500' : i < currentStep ? 'bg-indigo-300' : 'bg-slate-300'
+                i === currentStep
+                  ? 'bg-indigo-500'
+                  : i < currentStep
+                    ? 'bg-indigo-300'
+                    : 'bg-slate-300'
               }`}
             />
           ))}
@@ -457,9 +461,7 @@ const SpotlightOverlay: React.FC<{
   const borderRadius = 8
 
   if (!targetRect) {
-    return (
-      <div className="fixed inset-0 z-[10000] bg-slate-900/70" />
-    )
+    return <div className="fixed inset-0 z-[10000] bg-slate-900/70" />
   }
 
   // 计算镂空区域

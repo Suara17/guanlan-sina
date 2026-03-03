@@ -16,7 +16,14 @@ import {
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { getAnomalyAnalysis, getAnomaliesByLineType, getSolutionsByAnomalyId, SMT_ANOMALIES, PCB_ANOMALIES, THREE_C_ANOMALIES } from '../mockData'
+import {
+  getAnomaliesByLineType,
+  getAnomalyAnalysis,
+  getSolutionsByAnomalyId,
+  PCB_ANOMALIES,
+  SMT_ANOMALIES,
+  THREE_C_ANOMALIES,
+} from '../mockData'
 import type { AnomalyAnalysis, AnomalyDetail, SolutionWithCost } from '../types'
 
 const SinanAnalysis: React.FC = () => {
@@ -120,11 +127,7 @@ const SinanAnalysis: React.FC = () => {
 
   // 获取所有异常数据用于默认页面
   const allAnomalies = useMemo(() => {
-    return [
-      ...SMT_ANOMALIES,
-      ...PCB_ANOMALIES,
-      ...THREE_C_ANOMALIES,
-    ].sort((a, b) => {
+    return [...SMT_ANOMALIES, ...PCB_ANOMALIES, ...THREE_C_ANOMALIES].sort((a, b) => {
       const levelOrder = { critical: 0, error: 1, warning: 2 }
       return (levelOrder[a.level] || 2) - (levelOrder[b.level] || 2)
     })
@@ -132,9 +135,9 @@ const SinanAnalysis: React.FC = () => {
 
   // 统计数据
   const stats = useMemo(() => {
-    const critical = allAnomalies.filter(a => a.level === 'critical').length
-    const error = allAnomalies.filter(a => a.level === 'error').length
-    const warning = allAnomalies.filter(a => a.level === 'warning').length
+    const critical = allAnomalies.filter((a) => a.level === 'critical').length
+    const error = allAnomalies.filter((a) => a.level === 'error').length
+    const warning = allAnomalies.filter((a) => a.level === 'warning').length
     return { critical, error, warning, total: allAnomalies.length }
   }, [allAnomalies])
 
@@ -147,11 +150,26 @@ const SinanAnalysis: React.FC = () => {
   const getLevelStyle = (level: AnomalyDetail['level']) => {
     switch (level) {
       case 'critical':
-        return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' }
+        return {
+          bg: 'bg-red-50',
+          border: 'border-red-200',
+          text: 'text-red-700',
+          badge: 'bg-red-100 text-red-700',
+        }
       case 'error':
-        return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' }
+        return {
+          bg: 'bg-orange-50',
+          border: 'border-orange-200',
+          text: 'text-orange-700',
+          badge: 'bg-orange-100 text-orange-700',
+        }
       case 'warning':
-        return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-700' }
+        return {
+          bg: 'bg-amber-50',
+          border: 'border-amber-200',
+          text: 'text-amber-700',
+          badge: 'bg-amber-100 text-amber-700',
+        }
     }
   }
 
@@ -168,9 +186,7 @@ const SinanAnalysis: React.FC = () => {
             <ArrowLeft size={24} />
           </button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-slate-800">
-              司南 · 智能诊断中心
-            </h1>
+            <h1 className="text-2xl font-bold text-slate-800">司南 · 智能诊断中心</h1>
             <p className="text-slate-500 text-sm mt-1">实时监控 · 智能分析 · 快速决策</p>
           </div>
         </div>
@@ -185,7 +201,7 @@ const SinanAnalysis: React.FC = () => {
                 <BarChart3 size={18} className="text-blue-500" />
                 诊断状态概览
               </h2>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-red-50 rounded-lg p-3 border border-red-100">
                   <p className="text-2xl font-bold text-red-600">{stats.critical}</p>
@@ -309,18 +325,34 @@ const SinanAnalysis: React.FC = () => {
                         type="button"
                         onClick={() => handleAnomalyClick(anomaly.id)}
                         className="w-full text-left p-4 rounded-xl border transition-all hover:shadow-md group"
-                        style={{ backgroundColor: style.bg.includes('red') ? '#fef2f2' : style.bg.includes('orange') ? '#fff7ed' : '#fffbeb' }}
+                        style={{
+                          backgroundColor: style.bg.includes('red')
+                            ? '#fef2f2'
+                            : style.bg.includes('orange')
+                              ? '#fff7ed'
+                              : '#fffbeb',
+                        }}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1.5">
-                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${style.badge}`}>
-                                {anomaly.level === 'critical' ? '严重' : anomaly.level === 'error' ? '高优' : '告警'}
+                              <span
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium ${style.badge}`}
+                              >
+                                {anomaly.level === 'critical'
+                                  ? '严重'
+                                  : anomaly.level === 'error'
+                                    ? '高优'
+                                    : '告警'}
                               </span>
-                              <span className="text-xs text-slate-400 font-mono">{anomaly.time}</span>
+                              <span className="text-xs text-slate-400 font-mono">
+                                {anomaly.time}
+                              </span>
                               <span className="text-xs text-slate-500">{anomaly.lineType}</span>
                             </div>
-                            <p className="font-semibold text-slate-800 text-sm mb-1">{anomaly.location}</p>
+                            <p className="font-semibold text-slate-800 text-sm mb-1">
+                              {anomaly.location}
+                            </p>
                             <p className="text-xs text-slate-600 line-clamp-2">{anomaly.message}</p>
                           </div>
                           <div className="flex items-center gap-2 text-slate-400 group-hover:text-blue-500 transition-colors flex-shrink-0">
@@ -358,9 +390,7 @@ const SinanAnalysis: React.FC = () => {
           <ArrowLeft size={24} />
         </button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-slate-800">
-            司南 · 智能诊断中心
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-800">司南 · 智能诊断中心</h1>
           <p className="text-slate-500 text-sm mt-1">
             异常：{anomaly.defectType} | 置信度：
             {((anomaly.rootCauseConfidence || 0) * 100).toFixed(0)}%

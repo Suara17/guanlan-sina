@@ -22,6 +22,7 @@ from app.models import (
     ParetoSolution,
     TaskStatus,
 )
+from app.services.layout_image_generator import LayoutImageGenerator
 
 router = APIRouter(tags=["天筹优化"])
 
@@ -80,6 +81,7 @@ class SolutionResponse(BaseModel):
     total_cost: float
     implementation_days: float
     expected_benefit: float
+    expected_loss: float | None
     topsis_score: float | None
 
 
@@ -110,6 +112,19 @@ class TOPSISResponse(BaseModel):
 
     best_solution_id: str
     scores: list[dict[str, Any]]
+
+
+class LayoutImageResponse(BaseModel):
+    """布局图片响应"""
+
+    task_id: str
+    image_type: str
+    image_base64: str
+
+
+class LatestCompletedTaskResponse(BaseModel):
+    task: TaskStatusResponse
+    solution: SolutionResponse | None
 
 
 # ============ 后台任务函数 ============
@@ -167,7 +182,8 @@ def run_optimization_task(task_id: str) -> None:
                     ),  # 设备尺寸
                     "original_positions": np.array(
                         api_params.get(
-                            "original_positions", [[i * 3, 10] for i in range(device_count)]
+                            "original_positions",
+                            [[i * 3, 10] for i in range(device_count)],
                         ),
                         dtype=np.float64,
                     ),  # 原始位置
@@ -210,7 +226,9 @@ def run_optimization_task(task_id: str) -> None:
                             4: list(range(15, min(20, device_count)))
                             if device_count > 15
                             else [],
-                            5: list(range(20, device_count)) if device_count > 20 else [],
+                            5: list(range(20, device_count))
+                            if device_count > 20
+                            else [],
                         },
                     ),  # 产品线信息
                 }
@@ -225,7 +243,10 @@ def run_optimization_task(task_id: str) -> None:
                 agv_count = api_params.get("agv_count", 3)
 
                 # 生成默认的设备位置（如果未提供）
-                if "station_coords" not in api_params or not api_params["station_coords"]:
+                if (
+                    "station_coords" not in api_params
+                    or not api_params["station_coords"]
+                ):
                     # 生成网格布局的设备位置
                     cols = int(np.ceil(np.sqrt(station_count)))
                     rows = int(np.ceil(station_count / cols))
@@ -263,7 +284,8 @@ def run_optimization_task(task_id: str) -> None:
                             operations.append(
                                 {
                                     "device_id": device_id,
-                                    "process_time": 2.0 + (op_idx % 5) * 0.5,  # 2.0-4.5小时
+                                    "process_time": 2.0
+                                    + (op_idx % 5) * 0.5,  # 2.0-4.5小时
                                     "quantity": 10 + (j % 5) * 5,  # 10-30件
                                 }
                             )
@@ -291,7 +313,9 @@ def run_optimization_task(task_id: str) -> None:
                     "tasks": tasks,  # 任务列表
                     "AGV_speed": api_params.get("agv_speed", 3000),  # AGV速度
                     "AGV_capacity": api_params.get("agv_capacity", 500),  # AGV容量
-                    "AGV_energy_rate": api_params.get("agv_energy_rate", 5),  # AGV能耗率
+                    "AGV_energy_rate": api_params.get(
+                        "agv_energy_rate", 5
+                    ),  # AGV能耗率
                     "beta1": api_params.get("beta1", 0.35),  # 最大完工时间权重
                     "beta2": api_params.get("beta2", 0.35),  # 瓶颈设备利用率权重
                     "beta3": api_params.get("beta3", 0.30),  # 负载不均衡度权重
@@ -306,13 +330,28 @@ def run_optimization_task(task_id: str) -> None:
             pareto_solutions = results["pareto_solutions"]
             evolution_history = results.get("evolution_history", [])
 
+            # 保存原始位置到 task.input_params（用于前端布局图片生成）
+            if task.industry_type == IndustryType.LIGHT and hasattr(
+                optimizer, "original_positions"
+            ):
+                task.input_params["original_positions"] = (
+                    optimizer.original_positions.tolist()
+                    if hasattr(optimizer.original_positions, "tolist")
+                    else list(optimizer.original_positions)
+                )
+                task.input_params["workshop_length"] = optimizer.L
+                task.input_params["workshop_width"] = optimizer.W
+                db.commit()
+
             task.evolution_history = {"history": evolution_history}
 
             # 保存所有解数据（用于前端帕累托前沿可视化）
             all_solutions = results.get("all_solutions", [])
             print(f"[DEBUG] all_solutions count: {len(all_solutions)}")
             if all_solutions:
-                print(f"[DEBUG] all_solutions sample: {all_solutions[0] if all_solutions else 'empty'}")
+                print(
+                    f"[DEBUG] all_solutions sample: {all_solutions[0] if all_solutions else 'empty'}"
+                )
             all_solutions_data = [
                 {
                     "f1": float(sol["f1"]),
@@ -328,7 +367,9 @@ def run_optimization_task(task_id: str) -> None:
             pareto_plot_base64 = results.get("pareto_plot_base64")
             if pareto_plot_base64:
                 task.pareto_plot_image = pareto_plot_base64
-                print(f"[DEBUG] Pareto plot image saved, size: {len(pareto_plot_base64)} chars")
+                print(
+                    f"[DEBUG] Pareto plot image saved, size: {len(pareto_plot_base64)} chars"
+                )
 
             db.commit()
 
@@ -440,6 +481,75 @@ async def create_optimization_task(
     )
 
 
+@router.get("/tasks/latest/completed", response_model=LatestCompletedTaskResponse)
+async def get_latest_completed_task(
+    session: SessionDep, industry_type: str | None = None
+) -> Any:
+    if industry_type:
+        latest_task_statement = (
+            select(OptimizationTask)
+            .where(OptimizationTask.status == TaskStatus.COMPLETED)
+            .where(OptimizationTask.industry_type == IndustryType(industry_type))
+            .order_by(
+                OptimizationTask.completed_at.desc(), OptimizationTask.created_at.desc()
+            )
+            .limit(1)
+        )
+    else:
+        latest_task_statement = (
+            select(OptimizationTask)
+            .where(OptimizationTask.status == TaskStatus.COMPLETED)
+            .order_by(
+                OptimizationTask.completed_at.desc(), OptimizationTask.created_at.desc()
+            )
+            .limit(1)
+        )
+    task = session.exec(latest_task_statement).first()
+    if not task:
+        raise HTTPException(
+            status_code=404, detail="No completed optimization task found"
+        )
+
+    default_solution_statement = (
+        select(ParetoSolution)
+        .where(ParetoSolution.task_id == task.id)
+        .order_by(ParetoSolution.rank.asc(), ParetoSolution.id.asc())
+        .limit(1)
+    )
+    solution = session.exec(default_solution_statement).first()
+
+    return LatestCompletedTaskResponse(
+        task=TaskStatusResponse(
+            task_id=str(task.id),
+            name=task.name,
+            industry_type=task.industry_type,
+            status=task.status,
+            progress=task.progress,
+            solution_count=task.pareto_solution_count,
+            recommended_solution_id=str(task.recommended_solution_id)
+            if task.recommended_solution_id
+            else None,
+            created_at=task.created_at,
+            started_at=task.started_at,
+            completed_at=task.completed_at,
+        ),
+        solution=SolutionResponse(
+            id=str(solution.id),
+            rank=solution.rank,
+            f1=solution.f1,
+            f2=solution.f2,
+            f3=solution.f3,
+            total_cost=solution.total_cost,
+            implementation_days=solution.implementation_days,
+            expected_benefit=solution.expected_benefit,
+            expected_loss=solution.expected_loss,
+            topsis_score=solution.topsis_score,
+        )
+        if solution
+        else None,
+    )
+
+
 @router.get("/tasks/{task_id}", response_model=TaskStatusResponse)
 async def get_task_status(task_id: str, session: SessionDep) -> Any:
     """
@@ -527,6 +637,7 @@ async def get_pareto_solutions(
     statement = (
         select(ParetoSolution)
         .where(ParetoSolution.task_id == uuid.UUID(task_id))
+        .order_by(ParetoSolution.rank.asc(), ParetoSolution.id.asc())
         .limit(limit)
     )
     solutions = session.exec(statement).all()
@@ -541,6 +652,7 @@ async def get_pareto_solutions(
             total_cost=s.total_cost,
             implementation_days=s.implementation_days,
             expected_benefit=s.expected_benefit,
+            expected_loss=s.expected_loss,
             topsis_score=s.topsis_score,
         )
         for s in solutions
@@ -561,6 +673,11 @@ async def get_solution_detail(
     if not solution or str(solution.task_id) != task_id:
         raise HTTPException(status_code=404, detail="方案不存在")
 
+    task = session.get(OptimizationTask, uuid.UUID(task_id))
+    original_positions = None
+    if task and task.input_params:
+        original_positions = task.input_params.get("original_positions")
+
     return {
         "id": str(solution.id),
         "rank": solution.rank,
@@ -573,6 +690,7 @@ async def get_solution_detail(
         "topsis_score": solution.topsis_score,
         "solution_data": solution.solution_data,
         "technical_details": solution.technical_details,
+        "original_positions": original_positions,
     }
 
 
@@ -770,3 +888,184 @@ async def get_task_summary(task_id: str, session: SessionDep) -> Any:
             },
         },
     }
+
+
+def _resolve_original_positions(input_params: dict[str, Any]) -> list[list[float]]:
+    """解析原始设备坐标，缺失时给出默认布局。"""
+    original_positions = input_params.get("original_positions", [])
+    if not original_positions:
+        device_count = input_params.get("device_count") or 25
+        return [[i * 3, 10] for i in range(device_count)]
+
+    if isinstance(original_positions, np.ndarray):
+        return original_positions.tolist()
+    if hasattr(original_positions, "tolist"):
+        return original_positions.tolist()
+    return original_positions
+
+
+def _resolve_device_sizes(
+    input_params: dict[str, Any], fallback_count: int
+) -> list[list[float]]:
+    """解析设备尺寸，缺失时按默认尺寸补齐。"""
+    device_sizes = input_params.get("device_sizes")
+    if device_sizes is None:
+        return [[3.0, 2.0]] * fallback_count
+    if isinstance(device_sizes, np.ndarray):
+        return device_sizes.tolist()
+    if hasattr(device_sizes, "tolist"):
+        return device_sizes.tolist()
+    return device_sizes
+
+
+@router.get(
+    "/tasks/{task_id}/original-layout-image", response_model=LayoutImageResponse
+)
+async def get_original_layout_image(task_id: str, session: SessionDep) -> Any:
+    """
+    获取原始布局图
+
+    - **task_id**: 任务ID
+    - 返回 base64 编码的 PNG 图片
+    """
+    task = session.get(OptimizationTask, uuid.UUID(task_id))
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    if task.status != TaskStatus.COMPLETED:
+        raise HTTPException(status_code=400, detail="任务未完成，无法生成布局图")
+
+    input_params = task.input_params
+    original_positions = _resolve_original_positions(input_params)
+    device_sizes = _resolve_device_sizes(input_params, len(original_positions))
+    workshop_dims = {
+        "L": input_params.get("workshop_length", 80.0),
+        "W": input_params.get("workshop_width", 60.0),
+    }
+
+    generator = LayoutImageGenerator(task.industry_type.value)
+    try:
+        image_base64 = generator.generate_layout_image(
+            positions=original_positions,
+            device_sizes=device_sizes,
+            workshop_dims=workshop_dims,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"生成布局图失败: {str(e)}")
+
+    return LayoutImageResponse(
+        task_id=task_id,
+        image_type="original",
+        image_base64=image_base64,
+    )
+
+
+@router.get(
+    "/tasks/{task_id}/solutions/{solution_id}/layout-image",
+    response_model=LayoutImageResponse,
+)
+async def get_optimized_layout_image(
+    task_id: str, solution_id: str, session: SessionDep
+) -> Any:
+    """
+    获取优化方案布局图
+
+    - **task_id**: 任务ID
+    - **solution_id**: 方案ID
+    - 返回 base64 编码的 PNG 图片
+    """
+    task = session.get(OptimizationTask, uuid.UUID(task_id))
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    solution = session.get(ParetoSolution, uuid.UUID(solution_id))
+    if not solution or str(solution.task_id) != task_id:
+        raise HTTPException(status_code=404, detail="方案不存在")
+
+    if solution.solution_data is None:
+        raise HTTPException(status_code=400, detail="方案数据为空，无法生成布局图")
+
+    input_params = task.input_params
+
+    optimized_positions = solution.solution_data.get("individual", [])
+    if not optimized_positions:
+        raise HTTPException(status_code=400, detail="方案数据缺少设备坐标，无法生成布局图")
+
+    device_sizes = _resolve_device_sizes(input_params, len(optimized_positions))
+    original_positions = _resolve_original_positions(input_params)
+    workshop_dims = {
+        "L": input_params.get("workshop_length", 80.0),
+        "W": input_params.get("workshop_width", 60.0),
+    }
+
+    generator = LayoutImageGenerator(task.industry_type.value)
+    try:
+        image_base64 = generator.generate_layout_image(
+            positions=optimized_positions,
+            device_sizes=device_sizes,
+            workshop_dims=workshop_dims,
+            solution_data=solution.solution_data,
+            original_positions=original_positions if original_positions else None,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"生成布局图失败: {str(e)}")
+
+    return LayoutImageResponse(
+        task_id=task_id,
+        image_type="optimized",
+        image_base64=image_base64,
+    )
+
+
+@router.get("/tasks/{task_id}/solutions/{solution_id}/layout-images")
+async def get_layout_images(task_id: str, solution_id: str, session: SessionDep) -> Any:
+    """
+    获取布局图片
+
+    - **task_id**: 任务ID
+    - **solution_id**: 方案ID
+    返回原始布局和优化布局的base64图片
+    """
+    task = session.get(OptimizationTask, uuid.UUID(task_id))
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    solution = session.get(ParetoSolution, uuid.UUID(solution_id))
+    if not solution or str(solution.task_id) != task_id:
+        raise HTTPException(status_code=404, detail="方案不存在")
+    if solution.solution_data is None:
+        raise HTTPException(status_code=400, detail="方案数据为空，无法生成布局图")
+
+    optimized_positions = solution.solution_data.get("individual", [])
+    if not optimized_positions:
+        raise HTTPException(status_code=400, detail="方案数据缺少设备坐标，无法生成布局图")
+
+    input_params = task.input_params
+    original_positions = _resolve_original_positions(input_params)
+    original_device_sizes = _resolve_device_sizes(input_params, len(original_positions))
+    optimized_device_sizes = _resolve_device_sizes(input_params, len(optimized_positions))
+    workshop_dims = {
+        "L": input_params.get("workshop_length", 80.0),
+        "W": input_params.get("workshop_width", 60.0),
+    }
+
+    generator = LayoutImageGenerator(task.industry_type.value)
+    try:
+        original_image = generator.generate_layout_image(
+            positions=original_positions,
+            device_sizes=original_device_sizes,
+            workshop_dims=workshop_dims,
+        )
+        optimized_image = generator.generate_layout_image(
+            positions=optimized_positions,
+            device_sizes=optimized_device_sizes,
+            workshop_dims=workshop_dims,
+            solution_data=solution.solution_data,
+            original_positions=original_positions if original_positions else None,
+        )
+        return {
+            "original_image": original_image,
+            "optimized_image": optimized_image,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"生成布局图片失败: {str(e)}")

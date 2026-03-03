@@ -157,7 +157,9 @@ const Ecosystem: React.FC = () => {
         <div className="p-5">
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
             <div>
-              <p className="font-mono text-sm text-slate-700">tg_sk_**************************************</p>
+              <p className="font-mono text-sm text-slate-700">
+                tg_sk_**************************************
+              </p>
               <p className="text-xs text-slate-500 mt-1">创建于 2026-01-15 · 最后使用 2 小时前</p>
             </div>
             <div className="flex items-center gap-2">
