@@ -4,6 +4,7 @@
 """
 
 import base64
+import logging
 from io import BytesIO
 from typing import Optional
 
@@ -11,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
 
-from app.algorithms import part1_optimization
+logger = logging.getLogger(__name__)
 
 
 class LayoutImageGenerator:
@@ -19,6 +20,9 @@ class LayoutImageGenerator:
 
     def __init__(self, industry_type: str):
         self.industry_type = industry_type
+        logger.info(
+            "LayoutImageGenerator initialized with industry_type: %s", industry_type
+        )
 
     def generate_layout_image(
         self,
@@ -41,46 +45,59 @@ class LayoutImageGenerator:
         返回:
             base64 编码的 PNG 图片字符串
         """
-        L = workshop_dims.get("L", 80.0)
-        W = workshop_dims.get("W", 60.0)
+        if not positions or not isinstance(positions, list):
+            raise ValueError("positions must be a non-empty list")
+        if not device_sizes or not isinstance(device_sizes, list):
+            raise ValueError("device_sizes must be a non-empty list")
+        if len(positions) != len(device_sizes):
+            raise ValueError("positions and device_sizes must have the same length")
+        if not workshop_dims or "L" not in workshop_dims or "W" not in workshop_dims:
+            raise ValueError("workshop_dims must contain 'L' and 'W' keys")
 
-        fig, ax = plt.subplots(1, 1, figsize=(16, 10))
+        try:
+            L = workshop_dims.get("L", 80.0)
+            W = workshop_dims.get("W", 60.0)
 
-        self._draw_layout(
-            ax,
-            positions,
-            device_sizes,
-            L,
-            W,
-            solution_data=solution_data,
-            original_positions=original_positions,
-        )
+            fig, ax = plt.subplots(1, 1, figsize=(16, 10))
 
-        fig.suptitle(
-            "车间设备布局" + (" - 优化后" if solution_data else " - 原始"),
-            fontsize=18,
-            fontweight="bold",
-            y=0.95,
-        )
+            self._draw_layout(
+                ax,
+                positions,
+                device_sizes,
+                L,
+                W,
+                solution_data=solution_data,
+                original_positions=original_positions,
+            )
 
-        plt.tight_layout(pad=3.0)
+            fig.suptitle(
+                "车间设备布局" + (" - 优化后" if solution_data else " - 原始"),
+                fontsize=18,
+                fontweight="bold",
+                y=0.95,
+            )
 
-        buffer = BytesIO()
-        fig.savefig(
-            buffer,
-            format="png",
-            dpi=120,
-            bbox_inches="tight",
-            facecolor="white",
-            edgecolor="none",
-        )
-        buffer.seek(0)
+            plt.tight_layout(pad=3.0)
 
-        img_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            buffer = BytesIO()
+            fig.savefig(
+                buffer,
+                format="png",
+                dpi=120,
+                bbox_inches="tight",
+                facecolor="white",
+                edgecolor="none",
+            )
+            buffer.seek(0)
 
-        plt.close(fig)
+            img_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-        return img_base64
+            plt.close(fig)
+
+            return img_base64
+        except Exception as e:
+            logger.error("Failed to generate layout image: %s", str(e))
+            raise
 
     def _draw_layout(
         self,
