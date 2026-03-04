@@ -11,7 +11,7 @@ from typing import Annotated, Any
 import numpy as np
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel, Field
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 
 from app.algorithms import part1_optimization, part2_decision, scheme_translator
 from app.api.deps import SessionDep
@@ -125,6 +125,29 @@ class LayoutImageResponse(BaseModel):
 class LatestCompletedTaskResponse(BaseModel):
     task: TaskStatusResponse
     solution: SolutionResponse | None
+
+
+class TaskListItem(BaseModel):
+    """历史任务列表项"""
+
+    task_id: str
+    name: str
+    industry_type: IndustryType
+    status: TaskStatus
+    created_at: datetime
+    completed_at: datetime | None
+    solution_count: int
+    recommended_solution_id: str | None
+    recommended_reason: str | None
+
+
+class TaskListResponse(BaseModel):
+    """历史任务列表响应"""
+
+    tasks: list[TaskListItem]
+    total: int
+    limit: int
+    offset: int
 
 
 # ============ 后台任务函数 ============
@@ -478,6 +501,185 @@ async def create_optimization_task(
         created_at=task.created_at,
         started_at=task.started_at,
         completed_at=task.completed_at,
+    )
+
+
+@router.get("/tasks/history", response_model=TaskListResponse)
+async def get_task_list(
+    session: SessionDep,
+    status: TaskStatus = TaskStatus.COMPLETED,
+    limit: int = 20,
+    offset: int = 0,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+) -> Any:
+    """
+    获取历史任务列表
+
+    - **status**: 任务状态 (默认 completed)
+    - **limit**: 返回数量 (1-100)
+    - **offset**: 偏移量
+    - **start_date**: 开始时间筛选
+    - **end_date**: 结束时间筛选
+    """
+    # 构建查询
+    statement = select(OptimizationTask).where(OptimizationTask.status == status)
+
+    # 时间筛选
+    if start_date:
+        statement = statement.where(OptimizationTask.created_at >= start_date)
+    if end_date:
+        statement = statement.where(OptimizationTask.created_at <= end_date)
+
+    # 获取总数（使用 COUNT 而非加载所有数据）
+    count_statement = select(func.count()).select_from(OptimizationTask)
+    if start_date:
+        count_statement = count_statement.where(
+            OptimizationTask.created_at >= start_date
+        )
+    if end_date:
+        count_statement = count_statement.where(OptimizationTask.created_at <= end_date)
+    if status:
+        count_statement = count_statement.where(OptimizationTask.status == status)
+    total = session.exec(count_statement).first() or 0
+
+    # 分页和排序
+    statement = statement.order_by(OptimizationTask.created_at.desc())
+    statement = statement.offset(offset).limit(limit)
+
+    tasks = session.exec(statement).all()
+
+    if not tasks:
+        return TaskListResponse(tasks=[], total=total, limit=limit, offset=offset)
+
+    # 批量查询所有相关数据，避免 N+1 问题
+    task_ids = [t.id for t in tasks]
+
+    # 批量查询每个任务的方案数量
+    sol_count_stmt = (
+        select(ParetoSolution.task_id, func.count(ParetoSolution.id))
+        .where(ParetoSolution.task_id.in_(task_ids))
+        .group_by(ParetoSolution.task_id)
+    )
+    sol_counts = dict(session.exec(sol_count_stmt).all())
+
+    # 批量查询每个任务的最新决策记录
+    # 使用子查询获取每个任务的最新决策
+    latest_decision_subq = (
+        select(
+            DecisionRecord.task_id,
+            func.max(DecisionRecord.created_at).label("max_created_at"),
+        )
+        .where(DecisionRecord.task_id.in_(task_ids))
+        .group_by(DecisionRecord.task_id)
+    ).subquery()
+
+    latest_decision_stmt = (
+        select(DecisionRecord)
+        .join(
+            latest_decision_subq,
+            DecisionRecord.task_id == latest_decision_subq.c.task_id,
+        )
+        .where(DecisionRecord.created_at == latest_decision_subq.c.max_created_at)
+    )
+    all_decisions = session.exec(latest_decision_stmt).all()
+    decisions_map = {d.task_id: d for d in all_decisions}
+
+    # 批量查询每个任务的最佳方案（TOPSIS 评分最高的）
+    best_sol_subq = (
+        select(
+            ParetoSolution.task_id,
+            func.max(ParetoSolution.topsis_score).label("max_score"),
+        )
+        .where(ParetoSolution.task_id.in_(task_ids))
+        .where(ParetoSolution.topsis_score.isnot(None))
+        .group_by(ParetoSolution.task_id)
+    ).subquery()
+
+    best_sol_stmt = (
+        select(ParetoSolution)
+        .join(best_sol_subq, ParetoSolution.task_id == best_sol_subq.c.task_id)
+        .where(ParetoSolution.topsis_score == best_sol_subq.c.max_score)
+    )
+    best_solutions = session.exec(best_sol_stmt).all()
+    best_sols_map = {s.task_id: s for s in best_solutions}
+
+    # 获取每个任务的第一个方案（用于没有 TOPSIS 评分的情况）
+    first_sol_stmt = select(ParetoSolution).where(ParetoSolution.task_id.in_(task_ids))
+    all_solutions = session.exec(first_sol_stmt).all()
+    first_sols_map = {}
+    for sol in all_solutions:
+        if sol.task_id not in first_sols_map:
+            first_sols_map[sol.task_id] = sol
+
+    # 组装结果
+    result_tasks = []
+    for task in tasks:
+        task_uuid = task.id
+        solution_count = sol_counts.get(task_uuid, 0)
+        decision = decisions_map.get(task_uuid)
+        best_solution = best_sols_map.get(task_uuid)
+        first_solution = first_sols_map.get(task_uuid)
+
+        # 生成推荐原因
+        recommended_solution_id = None
+        recommended_reason = None
+
+        if decision and decision.best_solution_id:
+            recommended_solution_id = str(decision.best_solution_id)
+
+            # 生成推荐原因
+            weights = decision.weights or {}
+            cost_w = weights.get("cost", 0)
+            time_w = weights.get("time", 0)
+            benefit_w = weights.get("benefit", 0)
+
+            # 验证权重范围
+            if all(0 <= w <= 1 for w in [cost_w, time_w, benefit_w]):
+                reason_parts = []
+                if cost_w > 0.4:
+                    reason_parts.append("成本权重较高")
+                if time_w > 0.4:
+                    reason_parts.append("工期权重较高")
+                if benefit_w > 0.4:
+                    reason_parts.append("收益权重较高")
+
+                if reason_parts:
+                    recommended_reason = (
+                        f"基于AHP-TOPSIS决策，{'，'.join(reason_parts)}，推荐此方案"
+                    )
+                else:
+                    recommended_reason = "基于AHP-TOPSIS综合评分推荐"
+            else:
+                recommended_reason = "基于AHP-TOPSIS综合评分推荐"
+        elif best_solution:
+            # 有 TOPSIS 评分时，取评分最高的方案
+            recommended_solution_id = str(best_solution.id)
+            recommended_reason = "基于TOPSIS综合评分推荐"
+        elif first_solution:
+            # 取第一个方案
+            recommended_solution_id = str(first_solution.id)
+            recommended_reason = "基于帕累托最优解推荐"
+
+        result_tasks.append(
+            TaskListItem(
+                task_id=str(task.id),
+                name=task.name,
+                industry_type=task.industry_type,
+                status=task.status,
+                created_at=task.created_at,
+                completed_at=task.completed_at,
+                solution_count=solution_count,
+                recommended_solution_id=recommended_solution_id,
+                recommended_reason=recommended_reason,
+            )
+        )
+
+    return TaskListResponse(
+        tasks=result_tasks,
+        total=total,
+        limit=limit,
+        offset=offset,
     )
 
 
@@ -989,7 +1191,9 @@ async def get_optimized_layout_image(
 
     optimized_positions = solution.solution_data.get("individual", [])
     if not optimized_positions:
-        raise HTTPException(status_code=400, detail="方案数据缺少设备坐标，无法生成布局图")
+        raise HTTPException(
+            status_code=400, detail="方案数据缺少设备坐标，无法生成布局图"
+        )
 
     device_sizes = _resolve_device_sizes(input_params, len(optimized_positions))
     original_positions = _resolve_original_positions(input_params)
@@ -1038,12 +1242,16 @@ async def get_layout_images(task_id: str, solution_id: str, session: SessionDep)
 
     optimized_positions = solution.solution_data.get("individual", [])
     if not optimized_positions:
-        raise HTTPException(status_code=400, detail="方案数据缺少设备坐标，无法生成布局图")
+        raise HTTPException(
+            status_code=400, detail="方案数据缺少设备坐标，无法生成布局图"
+        )
 
     input_params = task.input_params
     original_positions = _resolve_original_positions(input_params)
     original_device_sizes = _resolve_device_sizes(input_params, len(original_positions))
-    optimized_device_sizes = _resolve_device_sizes(input_params, len(optimized_positions))
+    optimized_device_sizes = _resolve_device_sizes(
+        input_params, len(optimized_positions)
+    )
     workshop_dims = {
         "L": input_params.get("workshop_length", 80.0),
         "W": input_params.get("workshop_width", 60.0),
