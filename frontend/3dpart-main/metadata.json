@@ -1,5 +1,0 @@
-{
-  "name": "Factory 3D Visualization",
-  "description": "A 3D visualization of a factory floor using React Three Fiber, featuring drill-down navigation from factory to production line levels.",
-  "requestFramePermissions": []
-}
