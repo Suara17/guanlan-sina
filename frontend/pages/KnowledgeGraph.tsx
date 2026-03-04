@@ -19,6 +19,7 @@ const KnowledgeGraphPage: React.FC = () => {
   const [isCompactView, setIsCompactView] = useState(false)
   const [dataSource, setDataSource] = useState<'neo4j' | 'mock'>('mock')
   const [error, setError] = useState<string | null>(null)
+  const MAX_NODES = 200
 
   // 将Neo4j返回的所有异常数据转换为知识图谱格式
   const convertAnomaliesToGraph = (anomalies: any[]): KnowledgeGraph => {
@@ -31,29 +32,49 @@ const KnowledgeGraphPage: React.FC = () => {
       label?: string
     }> = []
 
-    anomalies.forEach((anomaly, index) => {
+    const addNode = (node: KnowledgeNode) => {
+      if (nodes.length < MAX_NODES) {
+        nodes.push(node)
+        return true
+      }
+      return false
+    }
+
+    anomalies.forEach((anomaly) => {
+      if (nodes.length >= MAX_NODES) return
+
       // 创建现象节点
       const phenomenonId = `phenomenon-${anomaly.sequence}`
-      nodes.push({
-        id: phenomenonId,
-        type: 'phenomenon',
-        label: `${anomaly.line_type}-异常${anomaly.sequence}`,
-        description: anomaly.phenomenon,
-      })
+      if (
+        !addNode({
+          id: phenomenonId,
+          type: 'phenomenon',
+          label: `${anomaly.line_type}-异常${anomaly.sequence}`,
+          description: anomaly.phenomenon,
+        })
+      ) {
+        return
+      }
 
       // 处理原因节点
       const causeNodeIds: string[] = []
       if (anomaly.causes && Array.isArray(anomaly.causes)) {
         anomaly.causes.forEach((cause: any, cIndex: number) => {
-          const causeId = `cause-${anomaly.sequence}-${cIndex}`
-          causeNodeIds.push(causeId)
+          if (nodes.length >= MAX_NODES) return
 
-          nodes.push({
-            id: causeId,
-            type: 'cause',
-            label: cause.type || '原因',
-            description: cause.description || '未知原因',
-          })
+          const causeId = `cause-${anomaly.sequence}-${cIndex}`
+          if (
+            !addNode({
+              id: causeId,
+              type: 'cause',
+              label: cause.type || '原因',
+              description: cause.description || '未知原因',
+            })
+          ) {
+            return
+          }
+
+          causeNodeIds.push(causeId)
 
           // 现象到原因的关系
           edges.push({
@@ -69,14 +90,19 @@ const KnowledgeGraphPage: React.FC = () => {
       // 处理解决方案节点
       if (anomaly.solutions && Array.isArray(anomaly.solutions)) {
         anomaly.solutions.forEach((solution: any, sIndex: number) => {
-          const solutionId = `solution-${anomaly.sequence}-${sIndex}`
+          if (nodes.length >= MAX_NODES) return
 
-          nodes.push({
-            id: solutionId,
-            type: 'solution',
-            label: solution.type || '解决方案',
-            description: solution.method || '未知解决方案',
-          })
+          const solutionId = `solution-${anomaly.sequence}-${sIndex}`
+          if (
+            !addNode({
+              id: solutionId,
+              type: 'solution',
+              label: solution.type || '解决方案',
+              description: solution.method || '未知解决方案',
+            })
+          ) {
+            return
+          }
 
           // 将解决方案连接到对应的原因（如果有的话）
           if (causeNodeIds.length > 0) {

@@ -23,7 +23,7 @@ import { TaskConfigForm } from './components/TaskConfigForm'
 import { TaskHistoryList } from './components/TaskHistoryList'
 import { TaskProgress } from './components/TaskProgress'
 import { useTianchou } from './hooks/useTianchou'
-import { tianchouService, type TaskListItem } from './services/tianchouService'
+import { type TaskListItem, tianchouService } from './services/tianchouService'
 import {
   getMetricLabels,
   type OptimizationRequestParams,
@@ -106,21 +106,24 @@ export default function TianchouPage() {
   const hasHandledHuntianRedirectRef = useRef(false)
 
   // 加载历史任务详情
-  const loadTaskDetails = useCallback(async (taskId: string) => {
-    try {
-      setLoading(true)
-      const status = await tianchouService.getTaskStatus(taskId)
-      setTask(status)
+  const loadTaskDetails = useCallback(
+    async (taskId: string) => {
+      try {
+        setLoading(true)
+        const status = await tianchouService.getTaskStatus(taskId)
+        setTask(status)
 
-      const sols = await tianchouService.getSolutions(taskId)
-      setSolutions(sols)
-      setView('results')
-    } catch (error) {
-      console.error('加载任务详情失败:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [setTask, setSolutions])
+        const sols = await tianchouService.getSolutions(taskId)
+        setSolutions(sols)
+        setView('results')
+      } catch (error) {
+        console.error('加载任务详情失败:', error)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [setTask, setSolutions]
+  )
 
   // 任务配置参数（用于显示任务信息）
   const [taskConfig, setTaskConfig] = useState<{
@@ -549,9 +552,7 @@ export default function TianchouPage() {
             {/* 左侧：历史任务列表 (65% = col-span-3) */}
             <div className="col-span-3">
               <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 h-full">
-                <h2 className="text-xl font-semibold text-slate-800 mb-4">
-                  历史优化任务
-                </h2>
+                <h2 className="text-xl font-semibold text-slate-800 mb-4">历史优化任务</h2>
                 <TaskHistoryList
                   selectedTaskId={selectedHistoryTask?.task_id}
                   onSelectTask={(task) => {

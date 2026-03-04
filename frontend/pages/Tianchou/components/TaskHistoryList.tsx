@@ -1,7 +1,15 @@
+import {
+  Calendar,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  Filter,
+  Loader2,
+  Star,
+} from 'lucide-react'
 import type React from 'react'
-import { useState, useEffect } from 'react'
-import { Calendar, CheckCircle, Filter, ChevronDown, ChevronRight, Loader2, Star } from 'lucide-react'
-import { tianchouService, type TaskListItem } from '../services/tianchouService'
+import { useEffect, useState } from 'react'
+import { type TaskListItem, tianchouService } from '../services/tianchouService'
 import type { ParetoSolution } from '../types/tianchou'
 
 interface Props {
@@ -183,9 +191,7 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
                       <Star size={12} className="fill-current" />
                       推荐方案
                     </div>
-                    <div className="text-slate-600 text-xs mt-1">
-                      {task.recommended_reason}
-                    </div>
+                    <div className="text-slate-600 text-xs mt-1">{task.recommended_reason}</div>
                     <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
                       <div>
                         <div className="text-slate-400">总成本</div>
@@ -196,8 +202,8 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
                       <div>
                         <div className="text-slate-400">工期</div>
                         <div className="font-medium text-slate-700">
-                          {task.recommended_implementation_days != null 
-                            ? `${task.recommended_implementation_days.toFixed(1)}天` 
+                          {task.recommended_implementation_days != null
+                            ? `${task.recommended_implementation_days.toFixed(1)}天`
                             : '-'}
                         </div>
                       </div>
@@ -210,8 +216,8 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
                       <div>
                         <div className="text-slate-400">预期损失</div>
                         <div className="font-medium text-red-500">
-                          {task.recommended_expected_loss != null 
-                            ? `¥${task.recommended_expected_loss.toLocaleString()}` 
+                          {task.recommended_expected_loss != null
+                            ? `¥${task.recommended_expected_loss.toLocaleString()}`
                             : '-'}
                         </div>
                       </div>
@@ -239,42 +245,47 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
                             <th className="pb-2 font-medium">TOPSIS</th>
                           </tr>
                         </thead>
-                                                  <tbody>
-                          {taskSolutions.get(task.task_id)?.solutions.slice(0, 10).map((solution, idx) => {
-                            const isRecommended = solution.id === task.recommended_solution_id
-                            return (
-                              <tr
-                                key={solution.id}
-                                className={`border-b border-slate-100 ${
-                                  isRecommended ? 'bg-blue-50' : ''
-                                }`}
-                              >
-                                <td className="py-2">
-                                  <span className="flex items-center gap-1">
-                                    {isRecommended && (
-                                      <Star size={10} className="text-amber-500 fill-current" />
-                                    )}
-                                    方案 #{solution.rank || idx + 1}
-                                  </span>
-                                </td>
-                                <td className="py-2">¥{solution.total_cost.toLocaleString()}</td>
-                                <td className="py-2">{solution.implementation_days.toFixed(1)}天</td>
-                                <td className="py-2 text-green-600">
-                                  ¥{solution.expected_benefit.toLocaleString()}
-                                </td>
-                                <td className="py-2 text-red-500">
-                                  {solution.expected_loss != null
-                                    ? `¥${solution.expected_loss.toLocaleString()}`
-                                    : '-'}
-                                </td>
-                                <td className="py-2">
-                                  {solution.topsis_score != null
-                                    ? `${(solution.topsis_score * 100).toFixed(1)}`
-                                    : '-'}
-                                </td>
-                              </tr>
-                            )
-                          })}
+                        <tbody>
+                          {taskSolutions
+                            .get(task.task_id)
+                            ?.solutions.slice(0, 10)
+                            .map((solution, idx) => {
+                              const isRecommended = solution.id === task.recommended_solution_id
+                              return (
+                                <tr
+                                  key={solution.id}
+                                  className={`border-b border-slate-100 ${
+                                    isRecommended ? 'bg-blue-50' : ''
+                                  }`}
+                                >
+                                  <td className="py-2">
+                                    <span className="flex items-center gap-1">
+                                      {isRecommended && (
+                                        <Star size={10} className="text-amber-500 fill-current" />
+                                      )}
+                                      方案 #{solution.rank || idx + 1}
+                                    </span>
+                                  </td>
+                                  <td className="py-2">¥{solution.total_cost.toLocaleString()}</td>
+                                  <td className="py-2">
+                                    {solution.implementation_days.toFixed(1)}天
+                                  </td>
+                                  <td className="py-2 text-green-600">
+                                    ¥{solution.expected_benefit.toLocaleString()}
+                                  </td>
+                                  <td className="py-2 text-red-500">
+                                    {solution.expected_loss != null
+                                      ? `¥${solution.expected_loss.toLocaleString()}`
+                                      : '-'}
+                                  </td>
+                                  <td className="py-2">
+                                    {solution.topsis_score != null
+                                      ? `${(solution.topsis_score * 100).toFixed(1)}`
+                                      : '-'}
+                                  </td>
+                                </tr>
+                              )
+                            })}
                         </tbody>
                       </table>
                     </div>
