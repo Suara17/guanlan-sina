@@ -1,7 +1,8 @@
 import type React from 'react'
 import { useState, useEffect } from 'react'
-import { Calendar, CheckCircle, Filter, ChevronDown, ChevronRight, Loader2 } from 'lucide-react'
+import { Calendar, CheckCircle, Filter, ChevronDown, ChevronRight, Loader2, Star } from 'lucide-react'
 import { tianchouService, type TaskListItem } from '../services/tianchouService'
+import type { ParetoSolution } from '../types/tianchou'
 
 interface Props {
   onSelectTask: (task: TaskListItem) => void
@@ -10,11 +11,18 @@ interface Props {
 
 type DateFilter = '7days' | '30days' | '90days' | 'all'
 
+interface TaskSolutions {
+  taskId: string
+  solutions: ParetoSolution[]
+  loading: boolean
+}
+
 export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
   const [tasks, setTasks] = useState<TaskListItem[]>([])
   const [loading, setLoading] = useState(false)
   const [dateFilter, setDateFilter] = useState<DateFilter>('30days')
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null)
+  const [taskSolutions, setTaskSolutions] = useState<Map<string, TaskSolutions>>(new Map())
 
   useEffect(() => {
     loadTasks()
@@ -62,6 +70,32 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
     }
   }
 
+  const loadTaskSolutions = async (taskId: string) => {
+    if (taskSolutions.has(taskId)) return
+
+    setTaskSolutions((prev) => {
+      const newMap = new Map(prev)
+      newMap.set(taskId, { taskId, solutions: [], loading: true })
+      return newMap
+    })
+
+    try {
+      const solutions = await tianchouService.getSolutions(taskId)
+      setTaskSolutions((prev) => {
+        const newMap = new Map(prev)
+        newMap.set(taskId, { taskId, solutions, loading: false })
+        return newMap
+      })
+    } catch (error) {
+      console.error('Failed to load solutions:', error)
+      setTaskSolutions((prev) => {
+        const newMap = new Map(prev)
+        newMap.set(taskId, { taskId, solutions: [], loading: false })
+        return newMap
+      })
+    }
+  }
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString('zh-CN', {
       month: 'short',
@@ -69,6 +103,14 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
       hour: '2-digit',
       minute: '2-digit',
     })
+  }
+
+  const handleExpand = (taskId: string) => {
+    const newExpandedId = expandedTaskId === taskId ? null : taskId
+    setExpandedTaskId(newExpandedId)
+    if (newExpandedId) {
+      loadTaskSolutions(newExpandedId)
+    }
   }
 
   return (
@@ -98,14 +140,13 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
           tasks.map((task) => (
             <div
               key={task.task_id}
-              className={`bg-white rounded-lg border transition-all cursor-pointer ${
+              className={`bg-white rounded-lg border transition-all ${
                 selectedTaskId === task.task_id
                   ? 'border-blue-500 shadow-md'
                   : 'border-slate-200 hover:border-slate-300'
               }`}
-              onClick={() => onSelectTask(task)}
             >
-              <div className="p-4">
+              <div className="p-4" onClick={() => onSelectTask(task)}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h4 className="font-semibold text-slate-800">{task.name}</h4>
@@ -124,9 +165,7 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      setExpandedTaskId(
-                        expandedTaskId === task.task_id ? null : task.task_id
-                      )
+                      handleExpand(task.task_id)
                     }}
                     className="p-1 hover:bg-slate-100 rounded"
                   >
@@ -140,7 +179,10 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
 
                 {task.recommended_solution_id && (
                   <div className="mt-3 px-3 py-2 bg-blue-50 rounded text-sm">
-                    <div className="text-blue-600 font-medium">推荐方案</div>
+                    <div className="text-blue-600 font-medium flex items-center gap-1">
+                      <Star size={12} className="fill-current" />
+                      推荐方案
+                    </div>
                     <div className="text-slate-600 text-xs mt-1">
                       {task.recommended_reason}
                     </div>
@@ -149,10 +191,64 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
               </div>
 
               {expandedTaskId === task.task_id && (
-                <div className="border-t border-slate-100 p-4 bg-slate-50">
-                  <div className="text-sm text-slate-600">
-                    点击查看详情和方案对比
-                  </div>
+                <div className="border-t border-slate-100 bg-slate-50">
+                  {taskSolutions.get(task.task_id)?.loading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                    </div>
+                  ) : (
+                    <div className="p-4 overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-left text-slate-500 border-b border-slate-200">
+                            <th className="pb-2 font-medium">方案</th>
+                            <th className="pb-2 font-medium">总成本</th>
+                            <th className="pb-2 font-medium">工期</th>
+                            <th className="pb-2 font-medium">预期收益</th>
+                            <th className="pb-2 font-medium">预期损失</th>
+                            <th className="pb-2 font-medium">TOPSIS</th>
+                          </tr>
+                        </thead>
+                                                  <tbody>
+                          {taskSolutions.get(task.task_id)?.solutions.slice(0, 10).map((solution, idx) => {
+                            const isRecommended = solution.id === task.recommended_solution_id
+                            return (
+                              <tr
+                                key={solution.id}
+                                className={`border-b border-slate-100 ${
+                                  isRecommended ? 'bg-blue-50' : ''
+                                }`}
+                              >
+                                <td className="py-2">
+                                  <span className="flex items-center gap-1">
+                                    {isRecommended && (
+                                      <Star size={10} className="text-amber-500 fill-current" />
+                                    )}
+                                    方案 #{solution.rank || idx + 1}
+                                  </span>
+                                </td>
+                                <td className="py-2">¥{solution.total_cost.toLocaleString()}</td>
+                                <td className="py-2">{solution.implementation_days.toFixed(1)}天</td>
+                                <td className="py-2 text-green-600">
+                                  ¥{solution.expected_benefit.toLocaleString()}
+                                </td>
+                                <td className="py-2 text-red-500">
+                                  {solution.expected_loss != null
+                                    ? `¥${solution.expected_loss.toLocaleString()}`
+                                    : '-'}
+                                </td>
+                                <td className="py-2">
+                                  {solution.topsis_score != null
+                                    ? `${(solution.topsis_score * 100).toFixed(1)}`
+                                    : '-'}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
