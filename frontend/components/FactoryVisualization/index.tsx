@@ -1,126 +1,81 @@
-// frontend/components/FactoryVisualization/index.tsx
-// 主容器：管理厂区 → 车间 → 产线三级下钻状态，面包屑导航
-import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronRight, Factory } from 'lucide-react'
+import { Expand, Factory, Minimize2 } from 'lucide-react'
 import type React from 'react'
-import { useState } from 'react'
-import FactoryView from './FactoryView'
-import type { Workshop, WorkshopLine } from './factoryData'
-import { FACTORY_DATA } from './factoryData'
-import ProductionLineView from './ProductionLineView'
-import WorkshopView from './WorkshopView'
+import { lazy, Suspense, useEffect, useState } from 'react'
 
-type Level = 'factory' | 'workshop' | 'line'
+const FactoryVisualization3D = lazy(() => import('../FactoryVisualization3D'))
 
 const FactoryVisualization: React.FC = () => {
-  const [level, setLevel] = useState<Level>('factory')
-  const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null)
-  const [selectedLine, setSelectedLine] = useState<WorkshopLine | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
-  const handleDrillToWorkshop = (workshop: Workshop) => {
-    setSelectedWorkshop(workshop)
-    setLevel('workshop')
-  }
-
-  const handleDrillToLine = (line: WorkshopLine) => {
-    setSelectedLine(line)
-    setLevel('line')
-  }
-
-  const handleBreadcrumb = (target: Level) => {
-    setLevel(target)
-    if (target === 'factory') {
-      setSelectedWorkshop(null)
-      setSelectedLine(null)
-    } else if (target === 'workshop') {
-      setSelectedLine(null)
+  useEffect(() => {
+    if (!isFullscreen) return
+    const onEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsFullscreen(false)
+      }
     }
-  }
+    window.addEventListener('keydown', onEsc)
+    const { overflow } = document.body.style
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      window.removeEventListener('keydown', onEsc)
+      document.body.style.overflow = overflow
+    }
+  }, [isFullscreen])
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 flex flex-col gap-3">
-      {/* 标题行 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-blue-50 rounded-lg">
-            <Factory className="w-4 h-4 text-blue-600" />
+    <>
+      <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-blue-50 rounded-lg">
+              <Factory className="h-4 w-4 text-blue-600" />
+            </div>
+            <span className="text-sm font-semibold text-slate-700">厂区 3D 动态图</span>
           </div>
-          <span className="text-sm font-semibold text-slate-700">厂区动态图</span>
-        </div>
 
-        {/* 面包屑 */}
-        <nav className="flex items-center gap-1 text-xs text-slate-400">
           <button
             type="button"
-            onClick={() => handleBreadcrumb('factory')}
-            className={`hover:text-blue-600 transition-colors ${level === 'factory' ? 'text-blue-600 font-semibold' : ''}`}
+            onClick={() => setIsFullscreen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-800"
           >
-            厂区
+            <Expand className="h-3.5 w-3.5" />
+            全屏
           </button>
-          {(level === 'workshop' || level === 'line') && selectedWorkshop && (
-            <>
-              <ChevronRight className="w-3 h-3" />
-              <button
-                type="button"
-                onClick={() => handleBreadcrumb('workshop')}
-                className={`hover:text-blue-600 transition-colors ${level === 'workshop' ? 'text-blue-600 font-semibold' : ''}`}
-              >
-                {selectedWorkshop.name}
-              </button>
-            </>
+        </div>
+
+        <div className="relative h-[520px] overflow-hidden rounded-lg border border-slate-100">
+          {!isFullscreen && (
+            <Suspense
+              fallback={<div className="h-full w-full animate-pulse bg-slate-100/80 rounded-lg" />}
+            >
+              <FactoryVisualization3D />
+            </Suspense>
           )}
-          {level === 'line' && selectedLine && (
-            <>
-              <ChevronRight className="w-3 h-3" />
-              <span className="text-blue-600 font-semibold">{selectedLine.name}</span>
-            </>
-          )}
-        </nav>
+        </div>
       </div>
 
-      {/* 视图内容 —— AnimatePresence 负责切换动画 */}
-      <AnimatePresence mode="wait">
-        {level === 'factory' && (
-          <motion.div
-            key="factory"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.25 }}
-          >
-            <FactoryView workshops={FACTORY_DATA} onDrillDown={handleDrillToWorkshop} />
-          </motion.div>
-        )}
-
-        {level === 'workshop' && selectedWorkshop && (
-          <motion.div
-            key="workshop"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.25 }}
-          >
-            <WorkshopView
-              lines={selectedWorkshop.lines}
-              workshopName={selectedWorkshop.name}
-              onDrillDown={handleDrillToLine}
-            />
-          </motion.div>
-        )}
-
-        {level === 'line' && selectedLine && (
-          <motion.div
-            key="line"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.25 }}
-          >
-            <ProductionLineView line={selectedLine} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      {isFullscreen && (
+        <div className="fixed inset-0 z-[120] bg-slate-950/70 p-4 backdrop-blur-sm">
+          <div className="relative h-full w-full overflow-hidden rounded-xl bg-slate-50 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(false)}
+              className="absolute right-4 top-4 z-[130] inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs font-medium text-slate-700 shadow-sm transition-colors hover:bg-white"
+            >
+              <Minimize2 className="h-3.5 w-3.5" />
+              退出全屏
+            </button>
+            <Suspense
+              fallback={<div className="h-full w-full animate-pulse bg-slate-100/80 rounded-lg" />}
+            >
+              <FactoryVisualization3D />
+            </Suspense>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

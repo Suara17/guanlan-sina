@@ -1,5 +1,5 @@
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import AiAssistant from './components/AiAssistant'
 import LandingPage from './components/LandingPage'
@@ -13,28 +13,28 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 // 新手教程存储键
 const TUTORIAL_COMPLETED_KEY = 'tiangong_tutorial_completed'
 
-import AboutUs from './pages/AboutUs'
-import CustomerCases from './pages/CustomerCases'
-import Dashboard from './pages/Dashboard'
-import Ecosystem from './pages/Ecosystem'
-import Huntian from './pages/Huntian'
-import KernelConnect from './pages/KernelConnect'
-import KnowledgeGraph from './pages/KnowledgeGraph'
-import Marketplace from './pages/Marketplace'
-import MonitoringDemo from './pages/MonitoringDemo'
-import ScenarioBuilder from './pages/ScenarioBuilder'
-import Settings from './pages/Settings'
-import Simulation from './pages/Simulation'
-import SinanAnalysis from './pages/SinanAnalysis'
-import SubscriptionValue from './pages/SubscriptionValue'
-import Tianchou from './pages/Tianchou'
-import Zhixing from './pages/Zhixing'
+const AboutUs = lazy(() => import('./pages/AboutUs'))
+const CustomerCases = lazy(() => import('./pages/CustomerCases'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Ecosystem = lazy(() => import('./pages/Ecosystem'))
+const Huntian = lazy(() => import('./pages/Huntian'))
+const KernelConnect = lazy(() => import('./pages/KernelConnect'))
+const KnowledgeGraph = lazy(() => import('./pages/KnowledgeGraph'))
+const Marketplace = lazy(() => import('./pages/Marketplace'))
+const MonitoringDemo = lazy(() => import('./pages/MonitoringDemo'))
+const ScenarioBuilder = lazy(() => import('./pages/ScenarioBuilder'))
+const Settings = lazy(() => import('./pages/Settings'))
+const Simulation = lazy(() => import('./pages/Simulation'))
+const SinanAnalysis = lazy(() => import('./pages/SinanAnalysis'))
+const SubscriptionValue = lazy(() => import('./pages/SubscriptionValue'))
+const Tianchou = lazy(() => import('./pages/Tianchou'))
+const Zhixing = lazy(() => import('./pages/Zhixing'))
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { isAuthenticated, isLoading, showTutorial, clearShowTutorial } = useAuth()
+  const { showTutorial, clearShowTutorial } = useAuth()
 
   // 完成教程
   const handleTutorialComplete = () => {
@@ -131,37 +131,45 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <MemoryRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/monitoring-demo" element={<MonitoringDemo />} />
-          <Route path="/customer-cases" element={<CustomerCases />} />
-          <Route path="/about-us" element={<AboutUs />} />
-          <Route
-            path="/app/*"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/sinan" element={<SinanAnalysis />} />
-                    <Route path="/zhixing" element={<Zhixing />} />
-                    <Route path="/subscription-value" element={<SubscriptionValue />} />
-                    <Route path="/gewu" element={<KnowledgeGraph />} />
-                    <Route path="/huntian" element={<Huntian />} />
-                    <Route path="/tianchou" element={<Tianchou />} />
-                    <Route path="/simulation" element={<Simulation />} />
-                    <Route path="/kernel" element={<KernelConnect />} />
-                    <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/builder" element={<ScenarioBuilder />} />
-                    <Route path="/ecosystem" element={<Ecosystem />} />
-                    <Route path="/settings" element={<Settings />} />
-                  </Routes>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <Suspense
+          fallback={
+            <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-500">
+              页面加载中...
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/monitoring-demo" element={<MonitoringDemo />} />
+            <Route path="/customer-cases" element={<CustomerCases />} />
+            <Route path="/about-us" element={<AboutUs />} />
+            <Route
+              path="/app/*"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/sinan" element={<SinanAnalysis />} />
+                      <Route path="/zhixing" element={<Zhixing />} />
+                      <Route path="/subscription-value" element={<SubscriptionValue />} />
+                      <Route path="/gewu" element={<KnowledgeGraph />} />
+                      <Route path="/huntian" element={<Huntian />} />
+                      <Route path="/tianchou" element={<Tianchou />} />
+                      <Route path="/simulation" element={<Simulation />} />
+                      <Route path="/kernel" element={<KernelConnect />} />
+                      <Route path="/marketplace" element={<Marketplace />} />
+                      <Route path="/builder" element={<ScenarioBuilder />} />
+                      <Route path="/ecosystem" element={<Ecosystem />} />
+                      <Route path="/settings" element={<Settings />} />
+                    </Routes>
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
       </MemoryRouter>
     </AuthProvider>
   )

@@ -27,5 +27,27 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      chunkSizeWarningLimit: 800,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (!id.includes('node_modules')) return
+            if (id.includes('node_modules/three/examples')) {
+              return 'three-examples'
+            }
+            if (id.includes('node_modules/three/')) {
+              return 'three-core'
+            }
+            if (id.includes('@react-three/drei') || id.includes('@react-three/fiber')) {
+              return 'r3-stack'
+            }
+            if (id.includes('gsap')) {
+              return 'gsap-vendor'
+            }
+          },
+        },
+      },
+    },
   }
 })
