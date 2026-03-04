@@ -186,36 +186,36 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
                 </div>
 
                 {task.recommended_solution_id && (
-                  <div className="mt-3 px-3 py-2 bg-blue-50 rounded text-sm">
-                    <div className="text-blue-600 font-medium flex items-center gap-1">
-                      <Star size={12} className="fill-current" />
-                      推荐方案
+                  <div className="mt-3 px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                    <div className="text-base font-semibold text-blue-700 flex items-center gap-2">
+                      <Star size={16} className="fill-current" />
+                      ★ 推荐方案
                     </div>
-                    <div className="text-slate-600 text-xs mt-1">{task.recommended_reason}</div>
-                    <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
+                    <div className="text-sm text-slate-600 mt-1">{task.recommended_reason}</div>
+                    <div className="mt-3 grid grid-cols-4 gap-4 text-sm">
                       <div>
-                        <div className="text-slate-400">总成本</div>
-                        <div className="font-medium text-slate-700">
+                        <div className="text-slate-500 font-medium">总成本</div>
+                        <div className="text-lg font-bold text-slate-800">
                           ¥{task.recommended_total_cost?.toLocaleString() ?? '-'}
                         </div>
                       </div>
                       <div>
-                        <div className="text-slate-400">工期</div>
-                        <div className="font-medium text-slate-700">
+                        <div className="text-slate-500 font-medium">工期</div>
+                        <div className="text-lg font-bold text-slate-800">
                           {task.recommended_implementation_days != null
                             ? `${task.recommended_implementation_days.toFixed(1)}天`
                             : '-'}
                         </div>
                       </div>
                       <div>
-                        <div className="text-slate-400">预期收益</div>
-                        <div className="font-medium text-green-600">
+                        <div className="text-slate-500 font-medium">预期收益</div>
+                        <div className="text-lg font-bold text-green-600">
                           ¥{task.recommended_expected_benefit?.toLocaleString() ?? '-'}
                         </div>
                       </div>
                       <div>
-                        <div className="text-slate-400">预期损失</div>
-                        <div className="font-medium text-red-500">
+                        <div className="text-slate-500 font-medium">预期损失</div>
+                        <div className="text-lg font-bold text-red-500">
                           {task.recommended_expected_loss != null
                             ? `¥${task.recommended_expected_loss.toLocaleString()}`
                             : '-'}
