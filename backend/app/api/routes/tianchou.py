@@ -139,6 +139,12 @@ class TaskListItem(BaseModel):
     solution_count: int
     recommended_solution_id: str | None
     recommended_reason: str | None
+    # 推荐方案详细数据
+    recommended_total_cost: float | None = None
+    recommended_implementation_days: float | None = None
+    recommended_expected_benefit: float | None = None
+    recommended_expected_loss: float | None = None
+    recommended_topsis_score: float | None = None
 
 
 class TaskListResponse(BaseModel):
@@ -663,6 +669,31 @@ async def get_task_list(
             recommended_solution_id = str(first_solution.id)
             recommended_reason = "基于帕累托最优解推荐"
 
+        # 获取推荐方案的详细数据
+        recommended_solution = None
+        if decision and decision.best_solution_id:
+            recommended_solution = session.get(
+                ParetoSolution, decision.best_solution_id
+            )
+        elif best_solution:
+            recommended_solution = best_solution
+        elif first_solution:
+            recommended_solution = first_solution
+
+        # 提取推荐方案数据
+        recommended_total_cost = None
+        recommended_implementation_days = None
+        recommended_expected_benefit = None
+        recommended_expected_loss = None
+        recommended_topsis_score = None
+
+        if recommended_solution:
+            recommended_total_cost = recommended_solution.total_cost
+            recommended_implementation_days = recommended_solution.implementation_days
+            recommended_expected_benefit = recommended_solution.expected_benefit
+            recommended_expected_loss = recommended_solution.expected_loss
+            recommended_topsis_score = recommended_solution.topsis_score
+
         result_tasks.append(
             TaskListItem(
                 task_id=str(task.id),
@@ -674,6 +705,11 @@ async def get_task_list(
                 solution_count=solution_count,
                 recommended_solution_id=recommended_solution_id,
                 recommended_reason=recommended_reason,
+                recommended_total_cost=recommended_total_cost,
+                recommended_implementation_days=recommended_implementation_days,
+                recommended_expected_benefit=recommended_expected_benefit,
+                recommended_expected_loss=recommended_expected_loss,
+                recommended_topsis_score=recommended_topsis_score,
             )
         )
 
