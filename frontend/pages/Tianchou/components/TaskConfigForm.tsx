@@ -4,28 +4,90 @@
 
 import type React from 'react'
 import { useState } from 'react'
-import { IndustryType, type OptimizationRequestParams } from '../types/tianchou'
+import {
+  IndustryType,
+  TaskPriority,
+  type OptimizationRequestParams,
+  type TaskConstraints,
+  type TaskTemplate,
+} from '../types/tianchou'
+import {
+  getTemplatesByIndustry,
+  getTemplateById,
+} from '../data/templates'
 
 interface Props {
-  onSubmit: (params: OptimizationRequestParams) => void
+  onSubmit: (params: OptimizationRequestParams, constraints?: TaskConstraints) => void
 }
 
 export function TaskConfigForm({ onSubmit }: Props) {
   const [industryType, setIndustryType] = useState<IndustryType>(IndustryType.LIGHT)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
   const [name, setName] = useState('')
 
-  // 轻工业参数（与后端示例一致）
   const [workshopLength, setWorkshopLength] = useState(80)
   const [workshopWidth, setWorkshopWidth] = useState(60)
   const [deviceCount, setDeviceCount] = useState(25)
 
-  // 重工业参数
   const [stationCount, setStationCount] = useState(8)
   const [agvCount, setAgvCount] = useState(3)
 
-  // 商业参数
   const [dailyOutputValue, setDailyOutputValue] = useState(20000)
   const [baseCost, setBaseCost] = useState(20000)
+
+  const [showAdvanced, setShowAdvanced] = useState(false)
+
+  const [deadline, setDeadline] = useState('')
+  const [maxCycleTime, setMaxCycleTime] = useState<number | undefined>(undefined)
+  const [changeoverTime, setChangeoverTime] = useState<number | undefined>(undefined)
+  const [priority, setPriority] = useState<TaskPriority>(TaskPriority.NORMAL)
+  const [batchCount, setBatchCount] = useState<number | undefined>(undefined)
+
+  const templates = getTemplatesByIndustry(industryType)
+
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplateId(templateId)
+    if (!templateId) return
+
+    const template = getTemplateById(templateId)
+    if (!template) return
+
+    setName(template.params.name || '')
+
+    if (template.params.workshop_length) {
+      setWorkshopLength(template.params.workshop_length)
+      setWorkshopWidth(template.params.workshop_width || 60)
+      setDeviceCount(template.params.device_count || 25)
+    }
+
+    if (template.params.station_count) {
+      setStationCount(template.params.station_count)
+      setAgvCount(template.params.agv_count || 3)
+    }
+
+    if (template.params.daily_output_value) {
+      setDailyOutputValue(template.params.daily_output_value)
+      setBaseCost(template.params.base_cost || template.params.daily_output_value)
+    }
+
+    if (template.constraints) {
+      setDeadline(template.constraints.deadline || '')
+      setMaxCycleTime(template.constraints.max_cycle_time)
+      setChangeoverTime(template.constraints.changeover_time)
+      setPriority(template.constraints.priority || TaskPriority.NORMAL)
+      setBatchCount(template.constraints.batch_count)
+    }
+  }
+
+  const handleIndustryChange = (type: IndustryType) => {
+    setIndustryType(type)
+    setSelectedTemplateId('')
+    setDeadline('')
+    setMaxCycleTime(undefined)
+    setChangeoverTime(undefined)
+    setPriority(TaskPriority.NORMAL)
+    setBatchCount(undefined)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,7 +111,15 @@ export function TaskConfigForm({ onSubmit }: Props) {
       params.benefit_multiplier = 50000
     }
 
-    onSubmit(params)
+    const constraints: TaskConstraints = {}
+    if (deadline) constraints.deadline = deadline
+    if (maxCycleTime) constraints.max_cycle_time = maxCycleTime
+    if (changeoverTime) constraints.changeover_time = changeoverTime
+    if (priority) constraints.priority = priority
+    if (batchCount) constraints.batch_count = batchCount
+
+    const hasConstraints = Object.keys(constraints).length > 0
+    onSubmit(hasConstraints ? params : params, hasConstraints ? constraints : undefined)
   }
 
   return (
@@ -57,7 +127,6 @@ export function TaskConfigForm({ onSubmit }: Props) {
       <h2 className="text-2xl font-bold mb-6">创建优化任务</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 基础信息 */}
         <div>
           <label className="block text-sm font-medium mb-2">任务名称</label>
           <input
@@ -70,13 +139,12 @@ export function TaskConfigForm({ onSubmit }: Props) {
           />
         </div>
 
-        {/* 行业类型 */}
         <div>
           <label className="block text-sm font-medium mb-2">行业类型</label>
           <div className="flex gap-4">
             <button
               type="button"
-              onClick={() => setIndustryType(IndustryType.LIGHT)}
+              onClick={() => handleIndustryChange(IndustryType.LIGHT)}
               className={`flex-1 py-3 px-4 rounded-lg border-2 transition ${
                 industryType === IndustryType.LIGHT
                   ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -88,7 +156,7 @@ export function TaskConfigForm({ onSubmit }: Props) {
             </button>
             <button
               type="button"
-              onClick={() => setIndustryType(IndustryType.HEAVY)}
+              onClick={() => handleIndustryChange(IndustryType.HEAVY)}
               className={`flex-1 py-3 px-4 rounded-lg border-2 transition ${
                 industryType === IndustryType.HEAVY
                   ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -101,7 +169,27 @@ export function TaskConfigForm({ onSubmit }: Props) {
           </div>
         </div>
 
-        {/* 轻工业参数 */}
+        <div>
+          <label className="block text-sm font-medium mb-2">选择模板 (可选)</label>
+          <select
+            value={selectedTemplateId}
+            onChange={(e) => handleTemplateChange(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">-- 选择预设模板 --</option>
+            {templates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.icon} {template.name}
+              </option>
+            ))}
+          </select>
+          {selectedTemplateId && (
+            <p className="mt-1 text-sm text-gray-500">
+              {getTemplateById(selectedTemplateId)?.description}
+            </p>
+          )}
+        </div>
+
         {industryType === IndustryType.LIGHT && (
           <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-semibold">轻工业参数</h3>
@@ -143,7 +231,6 @@ export function TaskConfigForm({ onSubmit }: Props) {
           </div>
         )}
 
-        {/* 重工业参数 */}
         {industryType === IndustryType.HEAVY && (
           <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-semibold">重工业参数</h3>
@@ -174,7 +261,6 @@ export function TaskConfigForm({ onSubmit }: Props) {
           </div>
         )}
 
-        {/* 商业参数 */}
         <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-semibold">商业参数</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -203,7 +289,94 @@ export function TaskConfigForm({ onSubmit }: Props) {
           </div>
         </div>
 
-        {/* 提交按钮 */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+          >
+            <span>{showAdvanced ? '▼' : '▶'}</span>
+            高级选项 (时间约束、资源约束)
+          </button>
+
+          {showAdvanced && (
+            <div className="mt-4 space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm mb-1">交期 (截止日期)</label>
+                  <input
+                    type="date"
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                    className="w-full px-3 py-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">最大周期时间 (分钟)</label>
+                  <input
+                    type="number"
+                    value={maxCycleTime ?? ''}
+                    onChange={(e) =>
+                      setMaxCycleTime(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    className="w-full px-3 py-2 border rounded"
+                    placeholder="可选"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">切换时间 (分钟)</label>
+                  <input
+                    type="number"
+                    value={changeoverTime ?? ''}
+                    onChange={(e) =>
+                      setChangeoverTime(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    className="w-full px-3 py-2 border rounded"
+                    placeholder="可选"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">批次数量</label>
+                  <input
+                    type="number"
+                    value={batchCount ?? ''}
+                    onChange={(e) =>
+                      setBatchCount(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    className="w-full px-3 py-2 border rounded"
+                    placeholder="可选"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1">优先级</label>
+                <div className="flex gap-2">
+                  {[
+                    { value: TaskPriority.LOW, label: '低', color: 'gray' },
+                    { value: TaskPriority.NORMAL, label: '普通', color: 'blue' },
+                    { value: TaskPriority.HIGH, label: '高', color: 'orange' },
+                    { value: TaskPriority.URGENT, label: '紧急', color: 'red' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setPriority(opt.value)}
+                      className={`flex-1 py-2 px-3 rounded border transition ${
+                        priority === opt.value
+                          ? `border-${opt.color}-500 bg-${opt.color}-50 text-${opt.color}-700`
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         <button
           type="submit"
           className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"

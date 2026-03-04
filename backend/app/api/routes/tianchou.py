@@ -4,6 +4,8 @@
 提供优化任务创建、状态查询、方案获取、AHP-TOPSIS决策等功能
 """
 
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from typing import Annotated, Any
@@ -53,6 +55,35 @@ class OptimizationRequest(BaseModel):
     base_cost: float = Field(20000, description="基础成本(元)")
     construction_rate: float = Field(3000, description="施工效率(元/天)")
     benefit_multiplier: float = Field(200, description="收益乘数")
+
+    # 约束条件
+    constraints: "TaskConstraints | None" = Field(None, description="任务约束条件")
+
+
+class TaskDependency(BaseModel):
+    """任务依赖关系"""
+
+    task_id: str = Field(..., description="依赖任务ID")
+    type: str = Field(
+        "finish_to_start", description="依赖类型: finish_to_start 或 start_to_start"
+    )
+    lag: float | None = Field(None, description="滞后时间(天)")
+
+
+class TaskConstraints(BaseModel):
+    """任务约束条件"""
+
+    deadline: str | None = Field(None, description="交期日期")
+    max_cycle_time: float | None = Field(None, description="最大周期时间(分钟)")
+    priority: str | None = Field(None, description="优先级: low, normal, high, urgent")
+    available_devices: list[str] | None = Field(None, description="可用设备列表")
+    restricted_devices: list[str] | None = Field(None, description="禁用设备列表")
+    production_lines: list[str] | None = Field(None, description="产线列表")
+    line_capacity: dict[str, float] | None = Field(None, description="产线产能")
+    batch_count: int | None = Field(None, description="批次数量")
+    batch_size: float | None = Field(None, description="批次大小")
+    changeover_time: float | None = Field(None, description="切换时间(分钟)")
+    dependencies: list[TaskDependency] | None = Field(None, description="任务依赖关系")
 
 
 class TaskStatusResponse(BaseModel):

@@ -11,6 +11,7 @@ import type {
   OptimizationTask,
   ParetoSolution,
   SolutionDetail,
+  TaskConstraints,
   TaskSummary,
   TOPSISResult,
 } from '../types/tianchou'
@@ -53,13 +54,17 @@ export const tianchouService = {
   /**
    * 创建优化任务
    */
-  async createTask(params: OptimizationRequestParams): Promise<OptimizationTask> {
+  async createTask(
+    params: OptimizationRequestParams,
+    constraints?: TaskConstraints
+  ): Promise<OptimizationTask> {
+    const payload = constraints ? { ...params, constraints } : params
     const response = await fetch(`${API_BASE}/tasks`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify(payload),
     })
 
     if (!response.ok) {

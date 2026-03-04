@@ -29,6 +29,7 @@ import {
   type OptimizationRequestParams,
   type OptimizationResult,
   type ParetoSolution,
+  type TaskConstraints,
   TaskStatus,
 } from './types/tianchou'
 
@@ -208,10 +209,10 @@ export default function TianchouPage() {
 
   // 创建优化任务
   const handleCreateTask = useCallback(
-    async (params: OptimizationRequestParams) => {
+    async (params: OptimizationRequestParams, constraints?: TaskConstraints) => {
       try {
         setLoading(true)
-        const newTask = await tianchouService.createTask(params)
+        const newTask = await tianchouService.createTask(params, constraints)
         setTask(newTask)
         setView('optimizing')
 

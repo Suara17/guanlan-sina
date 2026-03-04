@@ -187,6 +187,47 @@ export interface LightIndustryResult {
 
 export type OptimizationResult = HeavyIndustryResult | LightIndustryResult
 
+export enum TaskPriority {
+  LOW = 'low',
+  NORMAL = 'normal',
+  HIGH = 'high',
+  URGENT = 'urgent',
+}
+
+export interface TaskDependency {
+  task_id: string
+  type: 'finish_to_start' | 'start_to_start'
+  lag?: number
+}
+
+export interface TaskConstraints {
+  deadline?: string
+  max_cycle_time?: number
+  priority?: TaskPriority
+  available_devices?: string[]
+  restricted_devices?: string[]
+  production_lines?: string[]
+  line_capacity?: Record<string, number>
+  batch_count?: number
+  batch_size?: number
+  changeover_time?: number
+  dependencies?: TaskDependency[]
+}
+
+export interface TaskTemplate {
+  id: string
+  name: string
+  industry_type: IndustryType
+  description: string
+  icon: string
+  params: OptimizationRequestParams
+  constraints: TaskConstraints
+}
+
+export interface ExtendedOptimizationRequestParams extends OptimizationRequestParams {
+  constraints?: TaskConstraints
+}
+
 /**
  * 根据行业类型获取技术指标的标签
  * 轻工业: f1=物料搬运成本, f2=设备移动成本, f3=空间利用率
@@ -202,7 +243,6 @@ export const getMetricLabels = (industryType: IndustryType | undefined) => {
     f1Unit: isHeavy ? '分钟' : '元',
     f2Unit: isHeavy ? '%' : '元',
     f3Unit: isHeavy ? '' : '',
-    // 优化方向：min=最小化, max=最大化
     f1Direction: 'min' as const,
     f2Direction: isHeavy ? ('max' as const) : ('min' as const),
     f3Direction: isHeavy ? ('min' as const) : ('max' as const),
