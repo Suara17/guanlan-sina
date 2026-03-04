@@ -20,9 +20,10 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { AHPWizard } from './components/AHPWizard'
 import { ParetoTriplot } from './components/ParetoTriplot'
 import { TaskConfigForm } from './components/TaskConfigForm'
+import { TaskHistoryList } from './components/TaskHistoryList'
 import { TaskProgress } from './components/TaskProgress'
 import { useTianchou } from './hooks/useTianchou'
-import { tianchouService } from './services/tianchouService'
+import { tianchouService, type TaskListItem } from './services/tianchouService'
 import {
   getMetricLabels,
   type OptimizationRequestParams,
@@ -99,9 +100,27 @@ export default function TianchouPage() {
   const [showAHPWizard, setShowAHPWizard] = useState(false)
   const [loading, setLoading] = useState(false)
   const [pendingFocus, setPendingFocus] = useState<FocusTarget | null>(null)
+  const [selectedHistoryTask, setSelectedHistoryTask] = useState<TaskListItem | null>(null)
   const paretoSectionRef = useRef<HTMLDivElement | null>(null)
   const solutionSectionRef = useRef<HTMLDivElement | null>(null)
   const hasHandledHuntianRedirectRef = useRef(false)
+
+  // 加载历史任务详情
+  const loadTaskDetails = useCallback(async (taskId: string) => {
+    try {
+      setLoading(true)
+      const status = await tianchouService.getTaskStatus(taskId)
+      setTask(status)
+
+      const sols = await tianchouService.getSolutions(taskId)
+      setSolutions(sols)
+      setView('results')
+    } catch (error) {
+      console.error('加载任务详情失败:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [setTask, setSolutions])
 
   // 任务配置参数（用于显示任务信息）
   const [taskConfig, setTaskConfig] = useState<{
@@ -524,10 +543,29 @@ export default function TianchouPage() {
       </header>
 
       <main className="max-w-7xl mx-auto space-y-6">
-        {/* 配置阶段 */}
+        {/* 配置阶段 - 左右布局 */}
         {view === 'config' && (
-          <div data-tour="tianchou-config">
-            <TaskConfigForm onSubmit={handleCreateTask} />
+          <div data-tour="tianchou-config" className="grid grid-cols-5 gap-6">
+            {/* 左侧：历史任务列表 (65% = col-span-3) */}
+            <div className="col-span-3">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 h-full">
+                <h2 className="text-xl font-semibold text-slate-800 mb-4">
+                  历史优化任务
+                </h2>
+                <TaskHistoryList
+                  selectedTaskId={selectedHistoryTask?.task_id}
+                  onSelectTask={(task) => {
+                    setSelectedHistoryTask(task)
+                    loadTaskDetails(task.task_id)
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* 右侧：新建任务 (35% = col-span-2) */}
+            <div className="col-span-2">
+              <TaskConfigForm onSubmit={handleCreateTask} />
+            </div>
           </div>
         )}
 
