@@ -17,6 +17,33 @@ import type {
 
 const API_BASE = '/api/v1/tianchou'
 
+export interface TaskListQueryParams {
+  status?: 'pending' | 'running' | 'completed' | 'failed'
+  limit?: number
+  offset?: number
+  start_date?: string
+  end_date?: string
+}
+
+export interface TaskListItem {
+  task_id: string
+  name: string
+  industry_type: 'light' | 'heavy'
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  created_at: string
+  completed_at: string | null
+  solution_count: number
+  recommended_solution_id: string | null
+  recommended_reason: string | null
+}
+
+export interface TaskListResponse {
+  tasks: TaskListItem[]
+  total: number
+  limit: number
+  offset: number
+}
+
 export const tianchouService = {
   /**
    * 创建优化任务
@@ -197,6 +224,27 @@ export const tianchouService = {
 
     if (!response.ok) {
       throw new Error(`Failed to get layout images: ${response.statusText}`)
+    }
+
+    return response.json()
+  },
+
+  /**
+   * 获取历史任务列表
+   */
+  async getTaskList(params: TaskListQueryParams = {}): Promise<TaskListResponse> {
+    const queryParams = new URLSearchParams()
+
+    if (params.status) queryParams.append('status', params.status)
+    if (params.limit) queryParams.append('limit', String(params.limit))
+    if (params.offset) queryParams.append('offset', String(params.offset))
+    if (params.start_date) queryParams.append('start_date', params.start_date)
+    if (params.end_date) queryParams.append('end_date', params.end_date)
+
+    const response = await fetch(`${API_BASE}/tasks/history?${queryParams}`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to get task list: ${response.statusText}`)
     }
 
     return response.json()
