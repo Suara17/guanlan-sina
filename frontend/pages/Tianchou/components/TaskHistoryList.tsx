@@ -186,6 +186,36 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
                     <div className="text-slate-600 text-xs mt-1">
                       {task.recommended_reason}
                     </div>
+                    <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
+                      <div>
+                        <div className="text-slate-400">总成本</div>
+                        <div className="font-medium text-slate-700">
+                          ¥{task.recommended_total_cost?.toLocaleString() ?? '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">工期</div>
+                        <div className="font-medium text-slate-700">
+                          {task.recommended_implementation_days != null 
+                            ? `${task.recommended_implementation_days.toFixed(1)}天` 
+                            : '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">预期收益</div>
+                        <div className="font-medium text-green-600">
+                          ¥{task.recommended_expected_benefit?.toLocaleString() ?? '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">预期损失</div>
+                        <div className="font-medium text-red-500">
+                          {task.recommended_expected_loss != null 
+                            ? `¥${task.recommended_expected_loss.toLocaleString()}` 
+                            : '-'}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

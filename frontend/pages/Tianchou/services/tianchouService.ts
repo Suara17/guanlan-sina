@@ -35,6 +35,11 @@ export interface TaskListItem {
   solution_count: number
   recommended_solution_id: string | null
   recommended_reason: string | null
+  recommended_total_cost: number | null
+  recommended_implementation_days: number | null
+  recommended_expected_benefit: number | null
+  recommended_expected_loss: number | null
+  recommended_topsis_score: number | null
 }
 
 export interface TaskListResponse {
