@@ -434,6 +434,8 @@ def run_optimization_task(task_id: str) -> None:
                     total_cost=float(biz[0]),
                     implementation_days=float(biz[1]),
                     expected_benefit=float(biz[2]),
+                    expected_loss=float(biz[0])
+                    - float(biz[2]),  # 预期损失 = 总成本 - 预期收益
                     solution_data=sol,
                     technical_details=sol.get("individual", {}),
                 )
