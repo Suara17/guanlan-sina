@@ -4,6 +4,7 @@ from app.api.routes import (
     anomalies,
     cases,
     items,
+    kernel,
     knowledge_graph,
     login,
     private,
@@ -22,6 +23,7 @@ api_router.include_router(users.router)
 api_router.include_router(utils.router)
 api_router.include_router(items.router)
 api_router.include_router(production.router, prefix="/production", tags=["production"])
+api_router.include_router(kernel.router, prefix="/kernel", tags=["kernel"])
 api_router.include_router(anomalies.router, prefix="/anomalies", tags=["anomalies"])
 api_router.include_router(solutions.router, prefix="/solutions", tags=["solutions"])
 api_router.include_router(cases.router, prefix="/cases", tags=["cases"])

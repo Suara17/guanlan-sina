@@ -4,19 +4,25 @@ import gsap from 'gsap'
 import type React from 'react'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+import type { StationConnectionDetails } from './factoryData'
 import { FactoryBuilding3D } from './components/FactoryBuilding3D'
 import { Floor3D } from './components/Floor3D'
 import { Workshop3D } from './components/Workshop3D'
 import { useFactoryStore } from './store'
 
+interface FactorySceneProps {
+  resolveStationConnection?: (lineName: string, stationName: string) => StationConnectionDetails
+  onSelectStationConnection?: (details: StationConnectionDetails) => void
+}
+
 const CameraController = () => {
   const { level, selectedFactory, selectedWorkshop, selectedLine, cameraResetToken } =
     useFactoryStore()
   const { camera } = useThree()
-  const controlsRef = useRef<{ target: THREE.Vector3; update: () => void } | null>(null)
+  const controlsRef = useRef<OrbitControlsImpl | null>(null)
 
   useEffect(() => {
-    // 通过 token 触发同层级下的镜头重置（例如 global 层重复点击重置视角）
     void cameraResetToken
     const targetPos = new THREE.Vector3(0, 60, 60)
     const targetLookAt = new THREE.Vector3(0, 0, 0)
@@ -40,7 +46,6 @@ const CameraController = () => {
       targetLookAt.set(workshopX + 10, 0, lineZ)
     }
 
-    // Animate Camera Position
     gsap.to(camera.position, {
       x: targetPos.x,
       y: targetPos.y,
@@ -49,7 +54,6 @@ const CameraController = () => {
       ease: 'power3.inOut',
     })
 
-    // Animate Controls Target (LookAt)
     if (controlsRef.current) {
       gsap.to(controlsRef.current.target, {
         x: targetLookAt.x,
@@ -57,7 +61,7 @@ const CameraController = () => {
         z: targetLookAt.z,
         duration: 1.5,
         ease: 'power3.inOut',
-        onUpdate: () => controlsRef.current.update(),
+        onUpdate: () => controlsRef.current?.update(),
       })
     }
   }, [level, selectedFactory, selectedWorkshop, selectedLine, cameraResetToken, camera])
@@ -65,7 +69,10 @@ const CameraController = () => {
   return <OrbitControls ref={controlsRef} makeDefault maxPolarAngle={Math.PI / 2.1} />
 }
 
-export const FactoryScene: React.FC = () => {
+export const FactoryScene: React.FC<FactorySceneProps> = ({
+  resolveStationConnection,
+  onSelectStationConnection,
+}) => {
   const { data, level, selectedFactory, drillDownToWorkshop } = useFactoryStore()
 
   return (
@@ -73,7 +80,6 @@ export const FactoryScene: React.FC = () => {
       <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 60, 80], fov: 50 }}>
         <CameraController />
 
-        {/* Soft, Bright Studio Lighting */}
         <ambientLight intensity={0.8} />
         <directionalLight
           position={[50, 80, 40]}
@@ -87,8 +93,6 @@ export const FactoryScene: React.FC = () => {
 
         <Environment preset="city" />
         <fog attach="fog" args={['#f8fafc', 30, 200]} />
-
-        {/* Subtle Grid */}
         <gridHelper args={[300, 60, '#cbd5e1', '#f1f5f9']} position={[0, 0.01, 0]} />
 
         <group>
@@ -103,13 +107,14 @@ export const FactoryScene: React.FC = () => {
                 workshop={workshop}
                 position={[workshop.gridPos.x, 0, workshop.gridPos.y]}
                 onClick={() => drillDownToWorkshop(workshop)}
+                resolveStationConnection={resolveStationConnection}
+                onSelectStationConnection={onSelectStationConnection}
               />
             ))}
 
           <Floor3D width={300} depth={300} />
         </group>
 
-        {/* Soft Contact Shadows for grounding */}
         <ContactShadows
           resolution={1024}
           scale={300}
