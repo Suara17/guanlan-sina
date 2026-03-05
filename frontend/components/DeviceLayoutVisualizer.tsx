@@ -6,7 +6,7 @@
 
 import * as d3 from 'd3'
 import { Activity, AlertTriangle, CheckCircle2, DollarSign, Move } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   TEXTILE_MACHINES,
   TEXTILE_METRICS_OPTIMIZED,
@@ -40,6 +40,9 @@ interface DeviceLayoutVisualizerProps {
     expectedLoss?: number
     topsisScore?: number
   }
+  highlightDeviceIds?: string[]
+  highlightLineIds?: string[]
+  onFocusResources?: (selection: { deviceIds?: string[]; lineIds?: string[] }) => void
 }
 
 const SCALE = 10
@@ -51,11 +54,53 @@ const CHANNEL_BANDS = [
   { id: 'channel-right', x: 60, y: 0, width: 20, height: 60 },
 ]
 
+const normalizeResourceId = (id: string): string =>
+  id
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '')
+
+const createDeviceTokens = (id: string, label: string): string[] => {
+  const tokens = new Set<string>()
+  const baseTokens = [id, label]
+  for (const base of baseTokens) {
+    const normalized = normalizeResourceId(base)
+    if (!normalized) continue
+    tokens.add(normalized)
+    const numberToken = normalized.match(/\d+/)?.[0]
+    if (!numberToken) continue
+    tokens.add(numberToken)
+    tokens.add(`m${numberToken}`)
+    tokens.add(`d${numberToken}`)
+    tokens.add(`device${numberToken}`)
+  }
+  return Array.from(tokens)
+}
+
+const createLineTokens = (id: string, name: string): string[] => {
+  const tokens = new Set<string>()
+  const baseTokens = [id, name]
+  for (const base of baseTokens) {
+    const normalized = normalizeResourceId(base)
+    if (!normalized) continue
+    tokens.add(normalized)
+    const numberToken = normalized.match(/\d+/)?.[0]
+    if (!numberToken) continue
+    tokens.add(numberToken)
+    tokens.add(`line${numberToken}`)
+    tokens.add(`l${numberToken}`)
+  }
+  return Array.from(tokens)
+}
+
 export const DeviceLayoutVisualizer: React.FC<DeviceLayoutVisualizerProps> = ({
   isOptimized,
   layoutData,
   layoutImages,
   decisionContext,
+  highlightDeviceIds = [],
+  highlightLineIds = [],
+  onFocusResources,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null)
   const [hoveredMachine, setHoveredMachine] = useState<Machine | null>(null)
@@ -69,6 +114,26 @@ export const DeviceLayoutVisualizer: React.FC<DeviceLayoutVisualizerProps> = ({
   const metrics = isOptimized
     ? layoutData?.metricsOptimized || TEXTILE_METRICS_OPTIMIZED
     : layoutData?.metricsOriginal || TEXTILE_METRICS_ORIGINAL
+  const highlightDeviceSet = useMemo(
+    () => new Set(highlightDeviceIds.map(normalizeResourceId).filter(Boolean)),
+    [highlightDeviceIds]
+  )
+  const highlightLineSet = useMemo(
+    () => new Set(highlightLineIds.map(normalizeResourceId).filter(Boolean)),
+    [highlightLineIds]
+  )
+  const hasDeviceHighlights = highlightDeviceSet.size > 0
+  const hasLineHighlights = highlightLineSet.size > 0
+  const isMachineHighlighted = useCallback(
+    (machine: Machine): boolean =>
+      createDeviceTokens(machine.id, machine.label).some((token) => highlightDeviceSet.has(token)),
+    [highlightDeviceSet]
+  )
+  const isLineHighlighted = useCallback(
+    (lineId: string, lineName: string): boolean =>
+      createLineTokens(lineId, lineName).some((token) => highlightLineSet.has(token)),
+    [highlightLineSet]
+  )
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -241,6 +306,8 @@ export const DeviceLayoutVisualizer: React.FC<DeviceLayoutVisualizerProps> = ({
     productLines.forEach((line, idx) => {
       const yPos = y(line.path[0].y)
       const label = `产品线${idx + 1}: ${line.name}`
+      const highlighted = isLineHighlighted(line.id, line.name)
+      const lineOpacity = hasLineHighlights ? (highlighted ? 1 : 0.2) : 0.75
 
       lineGroup
         .append('line')
@@ -249,10 +316,12 @@ export const DeviceLayoutVisualizer: React.FC<DeviceLayoutVisualizerProps> = ({
         .attr('x2', x(72))
         .attr('y2', yPos)
         .attr('stroke', line.color)
-        .attr('stroke-width', 3)
+        .attr('stroke-width', highlighted ? 4.5 : 3)
         .attr('stroke-dasharray', '6,4')
         .attr('marker-end', `url(#arrow-${line.id})`)
-        .attr('opacity', 0.75)
+        .attr('opacity', lineOpacity)
+        .style('cursor', 'pointer')
+        .on('click', () => onFocusResources?.({ lineIds: [line.id, line.name] }))
 
       lineGroup
         .append('rect')
@@ -261,9 +330,12 @@ export const DeviceLayoutVisualizer: React.FC<DeviceLayoutVisualizerProps> = ({
         .attr('width', 122)
         .attr('height', 18)
         .attr('fill', 'white')
-        .attr('stroke', line.color)
-        .attr('stroke-width', 1.5)
+        .attr('stroke', highlighted ? '#0ea5e9' : line.color)
+        .attr('stroke-width', highlighted ? 2.5 : 1.5)
+        .attr('opacity', hasLineHighlights ? (highlighted ? 1 : 0.3) : 1)
         .attr('rx', 3)
+        .style('cursor', 'pointer')
+        .on('click', () => onFocusResources?.({ lineIds: [line.id, line.name] }))
 
       lineGroup
         .append('text')
@@ -271,8 +343,11 @@ export const DeviceLayoutVisualizer: React.FC<DeviceLayoutVisualizerProps> = ({
         .attr('y', yPos + 1)
         .text(label)
         .attr('font-size', '11px')
-        .attr('fill', line.color)
+        .attr('fill', highlighted ? '#0369a1' : line.color)
         .attr('font-weight', '700')
+        .attr('opacity', hasLineHighlights ? (highlighted ? 1 : 0.4) : 1)
+        .style('cursor', 'pointer')
+        .on('click', () => onFocusResources?.({ lineIds: [line.id, line.name] }))
     })
 
     const machineGroup = g.append('g').attr('class', 'machines')
@@ -288,6 +363,12 @@ export const DeviceLayoutVisualizer: React.FC<DeviceLayoutVisualizerProps> = ({
       })
       .on('mouseover', (_e, d) => setHoveredMachine(d))
       .on('mouseout', () => setHoveredMachine(null))
+      .style('cursor', 'pointer')
+      .attr('opacity', (d) => {
+        if (!hasDeviceHighlights) return 1
+        return isMachineHighlighted(d) ? 1 : 0.3
+      })
+      .on('click', (_event, d) => onFocusResources?.({ deviceIds: [d.id, d.label] }))
 
     nodes
       .append('rect')
@@ -303,8 +384,8 @@ export const DeviceLayoutVisualizer: React.FC<DeviceLayoutVisualizerProps> = ({
       .attr('width', (d) => x(d.width))
       .attr('height', (d) => HEIGHT - y(d.height))
       .attr('fill', '#f8fafc')
-      .attr('stroke', '#1f2937')
-      .attr('stroke-width', 1.6)
+      .attr('stroke', (d) => (isMachineHighlighted(d) ? '#0ea5e9' : '#1f2937'))
+      .attr('stroke-width', (d) => (isMachineHighlighted(d) ? 3 : 1.6))
       .attr('rx', 2)
 
     nodes
@@ -456,7 +537,17 @@ export const DeviceLayoutVisualizer: React.FC<DeviceLayoutVisualizerProps> = ({
 
       distTags.transition().delay(400).duration(400).attr('opacity', 1)
     }
-  }, [isOptimized, zones, machines, productLines])
+  }, [
+    isOptimized,
+    zones,
+    machines,
+    productLines,
+    hasDeviceHighlights,
+    hasLineHighlights,
+    isMachineHighlighted,
+    isLineHighlighted,
+    onFocusResources,
+  ])
 
   const movedMachines = machines.filter(
     (m) => m.original.x !== m.optimized.x || m.original.y !== m.optimized.y

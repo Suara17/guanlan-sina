@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import type { AssetMode, SimulationComparisonPayload } from '../../types'
 import { AHPWizard } from './components/AHPWizard'
 import { ParetoTriplot } from './components/ParetoTriplot'
 import { TaskConfigForm } from './components/TaskConfigForm'
@@ -26,6 +27,7 @@ import { useTianchou } from './hooks/useTianchou'
 import { type TaskListItem, tianchouService } from './services/tianchouService'
 import {
   getMetricLabels,
+  IndustryType,
   type OptimizationRequestParams,
   type OptimizationResult,
   type ParetoSolution,
@@ -129,6 +131,7 @@ export default function TianchouPage() {
   // 任务配置参数（用于显示任务信息）
   const [taskConfig, setTaskConfig] = useState<{
     industryType?: string
+    assetMode?: AssetMode
     taskName?: string
     // 轻工业参数
     workshopLength?: number
@@ -152,10 +155,13 @@ export default function TianchouPage() {
     const optimizationMode = location.state?.optimizationMode
     if (optimizationMode === 'product_switch') {
       const params = location.state
+      const assetMode: AssetMode = params.asset_mode === 'heavy' ? 'heavy' : 'light'
+      const industryType = assetMode === 'heavy' ? IndustryType.HEAVY : IndustryType.LIGHT
 
       // 设置任务配置
       setTaskConfig({
-        industryType: 'light',
+        industryType: industryType,
+        assetMode,
         taskName: `产品切换优化: ${params.current_product_code || '当前产品'} → ${params.next_product_code || '下一产品'}`,
         currentProduct: params.current_product_code,
         nextProduct: params.next_product_code,
@@ -170,7 +176,7 @@ export default function TianchouPage() {
 
       // 自动开始优化
       handleCreateTask({
-        industry_type: 'light',
+        industry_type: industryType,
         name: `${params.current_product_code || '产品A'} → ${params.next_product_code || '产品B'} 切换优化`,
         workshop_length: params.current_layout?.workshopDimensions?.length || 100,
         workshop_width: params.current_layout?.workshopDimensions?.width || 60,
@@ -222,6 +228,7 @@ export default function TianchouPage() {
           const movableCount = Math.max(0, deviceCount - 5) // 默认最后5台固定
           setTaskConfig({
             industryType: 'light',
+            assetMode: 'light',
             taskName: params.name,
             workshopLength: params.workshop_length,
             workshopWidth: params.workshop_width,
@@ -234,6 +241,7 @@ export default function TianchouPage() {
         } else {
           setTaskConfig({
             industryType: 'heavy',
+            assetMode: 'heavy',
             taskName: params.name,
             stationCount: params.station_count,
             agvCount: params.agv_count,
@@ -412,11 +420,24 @@ export default function TianchouPage() {
 
   // 跳转到浑天页面查看仿真
   const handleViewSimulation = useCallback(
-    (solution: ParetoSolution) => {
+    async (solution: ParetoSolution) => {
       if (!task) return
 
       // 根据任务类型生成不同的数据
       const isHeavyIndustry = task.industry_type === 'heavy'
+      const defaultAssetMode: AssetMode = isHeavyIndustry ? 'heavy' : 'light'
+      let assetMode: AssetMode = defaultAssetMode
+      let comparisonPayload: SimulationComparisonPayload | undefined
+
+      try {
+        const comparison = await tianchouService.getSolutionComparison(task.task_id, solution.id)
+        if (comparison.asset_mode) {
+          assetMode = comparison.asset_mode
+        }
+        comparisonPayload = comparison.comparison_payload
+      } catch (error) {
+        console.error('获取方案对比载荷失败，使用默认仿真数据回退:', error)
+      }
 
       const optimizationResult: OptimizationResult = isHeavyIndustry
         ? {
@@ -469,6 +490,8 @@ export default function TianchouPage() {
                 bottleneckUtilization: 0.85,
               },
             },
+            asset_mode: assetMode,
+            comparison_payload: comparisonPayload,
           }
         : {
             // 轻工业 - 设备布局优化
@@ -520,6 +543,8 @@ export default function TianchouPage() {
                 { deviceId: 4, distance: 200, cost: 5000 },
               ],
             },
+            asset_mode: assetMode,
+            comparison_payload: comparisonPayload,
           }
 
       const decisionContext = {

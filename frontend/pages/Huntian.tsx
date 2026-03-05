@@ -11,13 +11,12 @@ import {
   Pause,
   Play,
   RotateCcw,
-  Settings2,
   ShieldCheck,
   TrendingUp,
   Truck,
 } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Bar, BarChart, ResponsiveContainer } from 'recharts'
 import { AGVLayoutVisualizer } from '../components/AGVLayoutVisualizer'
@@ -25,6 +24,13 @@ import AGVPathVisualizer from '../components/AGVPathVisualizer'
 // 新版可视化组件（D3.js 增强版）
 import { DeviceLayoutVisualizer } from '../components/DeviceLayoutVisualizer'
 import LayoutVisualizer from '../components/LayoutVisualizer'
+import type {
+  AssetMode,
+  CompareViewMode,
+  ScheduleBar,
+  SimulationComparisonPayload,
+  TimelineBinding,
+} from '../types'
 import { tianchouService } from './Tianchou/services/tianchouService'
 
 // 模拟布局数据（轻工业场景）
@@ -269,6 +275,8 @@ type HuntianRouteState = {
   optimizationResult?: {
     type?: string
     taskId?: string
+    asset_mode?: AssetMode
+    comparison_payload?: SimulationComparisonPayload
     agvData?: Record<string, unknown>
     layoutData?: Record<string, unknown>
     solution?: {
@@ -291,9 +299,466 @@ type ModeSimulationState = {
   showReport: boolean
   isOptimized: boolean
 }
+type SimulationTaskStatus = 'idle' | 'running' | 'completed'
 
-const formatCurrency = (value?: number) =>
-  typeof value === 'number' ? `¥${value.toLocaleString()}` : '--'
+type LegacyLayoutData = typeof mockLayoutData
+type LinkedResourceSelection = {
+  deviceIds?: string[]
+  lineIds?: string[]
+  agvRouteIds?: string[]
+}
+
+const DEFAULT_BASELINE_TASKS: ScheduleBar[] = [
+  { id: 'base-1', label: '上料准备', start: 0, end: 10, resourceIds: ['D1'], lane: 'A' },
+  { id: 'base-2', label: '设备切换', start: 12, end: 26, resourceIds: ['D2'], lane: 'A' },
+  { id: 'base-3', label: '首件验证', start: 28, end: 42, resourceIds: ['D3'], lane: 'A' },
+  { id: 'base-4', label: '稳定生产', start: 45, end: 70, resourceIds: ['D4'], lane: 'A' },
+]
+
+const DEFAULT_OPTIMIZED_TASKS: ScheduleBar[] = [
+  { id: 'opt-1', label: '上料准备', start: 0, end: 8, resourceIds: ['D1'], lane: 'B' },
+  { id: 'opt-2', label: '设备切换', start: 9, end: 20, resourceIds: ['D2'], lane: 'B' },
+  { id: 'opt-3', label: '首件验证', start: 21, end: 31, resourceIds: ['D3'], lane: 'B' },
+  { id: 'opt-4', label: '稳定生产', start: 33, end: 52, resourceIds: ['D4'], lane: 'B' },
+]
+
+const normalizeResourceId = (id: string): string =>
+  id
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '')
+
+const extractResourceNumber = (id: string): string | null => {
+  const matched = id.match(/\d+/)
+  return matched ? matched[0] : null
+}
+
+const buildResourceTokenSet = (
+  ids: string[] = [],
+  kind: 'device' | 'line' | 'agv'
+): Set<string> => {
+  const tokens = new Set<string>()
+  for (const id of ids) {
+    if (!id) continue
+    const normalized = normalizeResourceId(id)
+    if (!normalized) continue
+    tokens.add(normalized)
+    const numberToken = extractResourceNumber(normalized)
+    if (!numberToken) continue
+    tokens.add(numberToken)
+    if (kind === 'device') {
+      tokens.add(`d${numberToken}`)
+      tokens.add(`m${numberToken}`)
+      tokens.add(`device${numberToken}`)
+    } else if (kind === 'line') {
+      tokens.add(`line${numberToken}`)
+      tokens.add(`l${numberToken}`)
+    } else {
+      tokens.add(`agv${numberToken}`)
+      tokens.add(`r${numberToken}`)
+      tokens.add(`route${numberToken}`)
+    }
+  }
+  return tokens
+}
+
+const hasBindingIntersection = (
+  selectedTokens: Set<string>,
+  bindingIds: string[] = [],
+  kind: 'device' | 'line' | 'agv'
+): boolean => {
+  if (selectedTokens.size === 0 || bindingIds.length === 0) return false
+  const bindingTokens = buildResourceTokenSet(bindingIds, kind)
+  for (const token of bindingTokens) {
+    if (selectedTokens.has(token)) return true
+  }
+  return false
+}
+
+type ABTimelineComparisonProps = {
+  baselineTasks: ScheduleBar[]
+  optimizedTasks: ScheduleBar[]
+  timelineBindings: TimelineBinding[]
+  selectedSlotId: string | null
+  onSelectSlot: (slotId: string) => void
+  currentTime: number
+  deltaSummary?: string
+}
+
+type ToolbarIconButtonProps = {
+  active: boolean
+  label: string
+  onClick: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}
+
+const ToolbarIconButton: React.FC<ToolbarIconButtonProps> = ({
+  active,
+  label,
+  onClick,
+  disabled = false,
+  children,
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={`group relative h-8 w-8 rounded-lg border flex items-center justify-center transition-all ${
+      disabled ? 'bg-white/[0.03] text-slate-600 border-white/5 cursor-not-allowed' : ''
+    } ${
+      active
+        ? 'bg-blue-600 text-white border-blue-400/60 shadow-[0_0_12px_rgba(59,130,246,0.45)]'
+        : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white'
+    }`}
+    aria-label={label}
+  >
+    {children}
+    <span className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-[10px] font-medium bg-slate-950/95 border border-white/15 text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-40">
+      {label}
+    </span>
+  </button>
+)
+
+const ABTimelineComparison: React.FC<ABTimelineComparisonProps> = ({
+  baselineTasks,
+  optimizedTasks,
+  timelineBindings,
+  selectedSlotId,
+  onSelectSlot,
+  currentTime,
+  deltaSummary,
+}) => {
+  const resolveSlotId = (task: ScheduleBar): string | null => {
+    const exact = timelineBindings.find(
+      (binding) =>
+        Math.abs(binding.start - task.start) < 1e-6 && Math.abs(binding.end - task.end) < 1e-6
+    )
+    if (exact) return exact.slotId
+    const overlap = timelineBindings.find(
+      (binding) => task.start < binding.end && task.end > binding.start
+    )
+    return overlap?.slotId ?? null
+  }
+
+  const selectedBinding =
+    timelineBindings.find((binding) => binding.slotId === selectedSlotId) ?? null
+  const stageColumns = useMemo(() => {
+    const allTasks = [...baselineTasks, ...optimizedTasks]
+    if (timelineBindings.length > 0) {
+      return timelineBindings
+        .slice()
+        .sort((a, b) => a.start - b.start)
+        .map((binding, index) => {
+          const matchedTask =
+            allTasks.find(
+              (task) =>
+                Math.abs(task.start - binding.start) < 1e-6 &&
+                Math.abs(task.end - binding.end) < 1e-6
+            ) ?? allTasks.find((task) => task.start < binding.end && task.end > binding.start)
+          return {
+            slotId: binding.slotId,
+            label: matchedTask?.label ?? `阶段 ${index + 1}`,
+          }
+        })
+    }
+
+    const fallbackTasks = baselineTasks.length > 0 ? baselineTasks : optimizedTasks
+    return fallbackTasks.map((task, index) => ({
+      slotId: `fallback-${index}`,
+      label: task.label || `阶段 ${index + 1}`,
+    }))
+  }, [baselineTasks, optimizedTasks, timelineBindings])
+  const getTaskForStage = (
+    tasks: ScheduleBar[],
+    stageSlotId: string,
+    stageIndex: number
+  ): ScheduleBar | null => {
+    const matchedBySlot = stageSlotId.startsWith('fallback-')
+      ? null
+      : tasks.find((candidate) => resolveSlotId(candidate) === stageSlotId)
+    return matchedBySlot ?? tasks[stageIndex] ?? null
+  }
+  const baselineTotalHours = useMemo(
+    () => baselineTasks.reduce((sum, task) => sum + Math.max(task.end - task.start, 0), 0),
+    [baselineTasks]
+  )
+  const optimizedTotalHours = useMemo(
+    () => optimizedTasks.reduce((sum, task) => sum + Math.max(task.end - task.start, 0), 0),
+    [optimizedTasks]
+  )
+  const savedHours = baselineTotalHours - optimizedTotalHours
+  const savedRate = baselineTotalHours > 0 ? (savedHours / baselineTotalHours) * 100 : 0
+  const stageDiffs: Array<{
+    slotId: string
+    label: string
+    saved: number
+    baselineHours: number
+    optimizedHours: number
+  }> = []
+  for (let index = 0; index < stageColumns.length; index += 1) {
+    const stage = stageColumns[index]
+    const baselineTask = getTaskForStage(baselineTasks, stage.slotId, index)
+    const optimizedTask = getTaskForStage(optimizedTasks, stage.slotId, index)
+    if (!baselineTask || !optimizedTask) continue
+    const baselineHours = Math.max(baselineTask.end - baselineTask.start, 0)
+    const optimizedHours = Math.max(optimizedTask.end - optimizedTask.start, 0)
+    stageDiffs.push({
+      slotId: stage.slotId,
+      label: stage.label,
+      saved: baselineHours - optimizedHours,
+      baselineHours,
+      optimizedHours,
+    })
+  }
+  stageDiffs.sort((a, b) => Math.abs(b.saved) - Math.abs(a.saved))
+
+  const lanes: Array<{
+    key: 'A' | 'B'
+    title: string
+    tasks: ScheduleBar[]
+    tone: string
+    activeTone: string
+  }> = [
+    {
+      key: 'A',
+      title: 'A 基线方案',
+      tasks: baselineTasks,
+      tone: 'bg-slate-600/70 hover:bg-slate-500/80',
+      activeTone: 'ring-2 ring-slate-200',
+    },
+    {
+      key: 'B',
+      title: 'B 优化方案',
+      tasks: optimizedTasks,
+      tone: 'bg-blue-600/70 hover:bg-blue-500/80',
+      activeTone: 'ring-2 ring-blue-200',
+    },
+  ]
+
+  return (
+    <div className="h-full flex flex-col rounded-2xl border border-cyan-400/20 bg-gradient-to-b from-slate-950/95 via-slate-900/90 to-slate-900/85 backdrop-blur-xl shadow-[0_20px_80px_rgba(2,132,199,0.18)] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold text-cyan-300 uppercase tracking-widest">
+            A/B 时间轴对比
+          </p>
+          <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+            {deltaSummary || '点击任务条可查看关联时段与资源绑定'}
+          </p>
+        </div>
+        <div className="text-right shrink-0 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5">
+          <p className="text-[9px] uppercase tracking-wider text-slate-400">Cursor</p>
+          <p className="text-sm font-mono text-cyan-100">
+            T+{Math.max(0, currentTime).toFixed(1)}h
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mt-3 mb-3">
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-slate-400">基线工序</p>
+          <p className="text-sm font-mono text-white">{baselineTasks.length}</p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-slate-400">优化工序</p>
+          <p className="text-sm font-mono text-white">{optimizedTasks.length}</p>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto pr-1">
+        <div className="h-full flex flex-col gap-3">
+          <div
+            className="grid gap-2"
+            style={{
+              gridTemplateColumns: `6.25rem repeat(${stageColumns.length}, minmax(0, 1fr))`,
+            }}
+          >
+            <div className="text-[10px] uppercase tracking-wider text-slate-500 px-2 py-1.5">
+              方案
+            </div>
+            {stageColumns.map((stage) => (
+              <button
+                key={`header-${stage.slotId}`}
+                type="button"
+                onClick={() => {
+                  if (!stage.slotId.startsWith('fallback-')) onSelectSlot(stage.slotId)
+                }}
+                className={`h-8 rounded-md border px-2 text-center text-[12px] font-semibold transition-colors ${
+                  selectedSlotId === stage.slotId
+                    ? 'bg-cyan-500/20 border-cyan-300/70 text-cyan-100'
+                    : 'bg-white/[0.04] border-white/10 text-slate-200 hover:bg-white/[0.08]'
+                }`}
+                title={stage.label}
+              >
+                <span className="block whitespace-nowrap overflow-hidden text-ellipsis">
+                  {stage.label}
+                </span>
+              </button>
+            ))}
+
+            {lanes.map((lane) => (
+              <Fragment key={lane.key}>
+                <div className="h-9 rounded-md border border-white/10 bg-white/[0.03] px-2 flex items-center text-[11px] text-slate-100 font-semibold">
+                  {lane.title}
+                </div>
+                {stageColumns.map((stage, index) => {
+                  const task = getTaskForStage(lane.tasks, stage.slotId, index)
+                  const active =
+                    task !== null && currentTime >= task.start && currentTime <= task.end
+                  const selected = selectedSlotId === stage.slotId
+                  const selectable = task !== null && !stage.slotId.startsWith('fallback-')
+                  return (
+                    <button
+                      key={`${lane.key}-${stage.slotId}`}
+                      type="button"
+                      disabled={!selectable}
+                      onClick={() => {
+                        if (selectable) onSelectSlot(stage.slotId)
+                      }}
+                      className={`h-9 rounded-md px-2 text-center text-[11px] font-mono border transition-colors ${
+                        task === null
+                          ? 'bg-white/[0.03] border-white/10 text-slate-500 cursor-not-allowed'
+                          : `${lane.tone} text-white border-white/20`
+                      } ${selected ? lane.activeTone : ''} ${active ? 'brightness-110' : ''}`}
+                      title={
+                        task
+                          ? `${stage.label}: ${task.start.toFixed(1)}h - ${task.end.toFixed(1)}h`
+                          : `${stage.label}: 暂无数据`
+                      }
+                    >
+                      {task ? `${task.start.toFixed(1)}-${task.end.toFixed(1)}h` : '--'}
+                    </button>
+                  )
+                })}
+              </Fragment>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1">
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400">效率概览</p>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                <div className="rounded-md bg-slate-900/60 border border-white/10 px-2 py-1.5">
+                  <p className="text-[9px] text-slate-400">A 总时长</p>
+                  <p className="text-[12px] font-mono text-slate-100">
+                    {baselineTotalHours.toFixed(1)}h
+                  </p>
+                </div>
+                <div className="rounded-md bg-slate-900/60 border border-white/10 px-2 py-1.5">
+                  <p className="text-[9px] text-slate-400">B 总时长</p>
+                  <p className="text-[12px] font-mono text-cyan-100">
+                    {optimizedTotalHours.toFixed(1)}h
+                  </p>
+                </div>
+                <div className="rounded-md bg-slate-900/60 border border-cyan-400/30 px-2 py-1.5">
+                  <p className="text-[9px] text-slate-400">净节省</p>
+                  <p
+                    className={`text-[12px] font-mono ${savedHours >= 0 ? 'text-emerald-300' : 'text-amber-300'}`}
+                  >
+                    {savedHours >= 0 ? '-' : '+'}
+                    {Math.abs(savedHours).toFixed(1)}h
+                  </p>
+                </div>
+              </div>
+              <p className="mt-2 text-[10px] text-slate-300">
+                相比基线方案，优化方案整体
+                <span
+                  className={`${savedRate >= 0 ? 'text-emerald-300' : 'text-amber-300'} font-semibold`}
+                >
+                  {' '}
+                  {savedRate >= 0 ? '缩短' : '增加'} {Math.abs(savedRate).toFixed(1)}%
+                </span>
+                的执行时间。
+              </p>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400">阶段收益</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {stageDiffs.length > 0 ? (
+                  stageDiffs.slice(0, 6).map((item) => (
+                    <button
+                      key={`delta-${item.slotId}`}
+                      type="button"
+                      onClick={() => {
+                        if (!item.slotId.startsWith('fallback-')) onSelectSlot(item.slotId)
+                      }}
+                      className={`px-2 py-1 rounded border text-[10px] transition-colors ${
+                        item.saved >= 0
+                          ? 'bg-emerald-500/15 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/25'
+                          : 'bg-amber-500/15 border-amber-300/40 text-amber-200 hover:bg-amber-500/25'
+                      }`}
+                      title={`${item.label}: A ${item.baselineHours.toFixed(1)}h / B ${item.optimizedHours.toFixed(1)}h`}
+                    >
+                      {item.label} {item.saved >= 0 ? '-' : '+'}
+                      {Math.abs(item.saved).toFixed(1)}h
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-[11px] text-slate-400">暂无可用对比数据</p>
+                )}
+              </div>
+              <p className="mt-2 text-[10px] text-slate-400">
+                点击阶段标签可联动下方“联动时段”详情。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        <div className="bg-slate-800/70 border border-white/10 rounded-lg p-3">
+          <p className="text-[10px] uppercase tracking-wider text-slate-400 mb-1">联动时段</p>
+          {selectedBinding ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
+              <div className="lg:col-span-4 rounded-md border border-cyan-400/25 bg-cyan-500/10 px-2.5 py-2">
+                <p className="text-[9px] uppercase tracking-wider text-cyan-200/80">时段</p>
+                <p className="text-[12px] font-semibold text-cyan-50">
+                  {selectedBinding.slotId}: {selectedBinding.start.toFixed(1)} -{' '}
+                  {selectedBinding.end.toFixed(1)}h
+                </p>
+              </div>
+              <div className="lg:col-span-4 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2">
+                <p className="text-[9px] uppercase tracking-wider text-slate-400">设备 / 产线</p>
+                <p className="text-[11px] text-slate-100">
+                  设备 {selectedBinding.deviceIds.join(', ') || '--'} · 产线{' '}
+                  {selectedBinding.lineIds.join(', ') || '--'}
+                </p>
+              </div>
+              <div className="lg:col-span-4 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2">
+                <p className="text-[9px] uppercase tracking-wider text-slate-400">AGV 路径</p>
+                <p className="text-[11px] text-slate-100">
+                  {selectedBinding.agvRouteIds.join(', ') || '--'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400">暂无选中时段</p>
+          )}
+        </div>
+
+        <div className="bg-slate-800/70 border border-white/10 rounded-lg p-3">
+          <p className="text-[10px] uppercase tracking-wider text-slate-400 mb-1">时段列表</p>
+          <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+            {timelineBindings.slice(0, 10).map((binding) => (
+              <button
+                key={binding.slotId}
+                type="button"
+                onClick={() => onSelectSlot(binding.slotId)}
+                className={`px-2 py-1 rounded text-[10px] border transition-colors ${
+                  selectedSlotId === binding.slotId
+                    ? 'bg-blue-600/70 text-white border-blue-300/60'
+                    : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10'
+                }`}
+              >
+                {binding.slotId}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const Huntian: React.FC = () => {
   const location = useLocation()
@@ -320,17 +785,117 @@ const Huntian: React.FC = () => {
   })
   const [isViewportFullscreen, setIsViewportFullscreen] = useState(false)
   // 新增：可视化模式切换（'new' = 新版 D3.js 组件, 'legacy' = 旧版组件）
-  const [visualMode, setVisualMode] = useState<'new' | 'legacy'>('new')
+  const [visualMode, _setVisualMode] = useState<'new' | 'legacy'>('new')
   const timerRef = useRef<number | null>(null)
   const [agvData, setAgvData] = useState<Record<string, unknown> | null>(null)
   const [layoutData, setLayoutData] = useState<Record<string, unknown> | null>(null)
   const [decisionContext, setDecisionContext] = useState<HuntianDecisionContext | null>(null)
+  const [assetMode, setAssetMode] = useState<AssetMode>('light')
+  const [compareViewMode, setCompareViewMode] = useState<CompareViewMode>('single_toggle')
+  const [comparisonPayload, setComparisonPayload] = useState<SimulationComparisonPayload | null>(
+    null
+  )
+  const [selectedTimelineSlotId, setSelectedTimelineSlotId] = useState<string | null>(null)
+  const [isTimelineDrawerOpen, setIsTimelineDrawerOpen] = useState(false)
+  const [isRoiPanelVisible, setIsRoiPanelVisible] = useState(false)
+  const [taskStatusByMode, setTaskStatusByMode] = useState<
+    Record<SimulationMode, SimulationTaskStatus>
+  >({
+    device_rearrangement: 'idle',
+    route_optimization: 'idle',
+  })
+  const completionNotifiedRef = useRef<Record<SimulationMode, boolean>>({
+    device_rearrangement: false,
+    route_optimization: false,
+  })
 
   const currentModeState = modeSimulationState[simulationMode]
   const progress = currentModeState.progress
   const conflicts = currentModeState.conflicts
   const showReport = currentModeState.showReport
   const isOptimized = currentModeState.isOptimized
+  const baselineTasks = useMemo(() => {
+    const fromPayload = comparisonPayload?.scheduleComparison?.baselineTasks
+    return fromPayload && fromPayload.length > 0 ? fromPayload : DEFAULT_BASELINE_TASKS
+  }, [comparisonPayload?.scheduleComparison?.baselineTasks])
+  const optimizedTasks = useMemo(() => {
+    const fromPayload = comparisonPayload?.scheduleComparison?.optimizedTasks
+    return fromPayload && fromPayload.length > 0 ? fromPayload : DEFAULT_OPTIMIZED_TASKS
+  }, [comparisonPayload?.scheduleComparison?.optimizedTasks])
+  const timelineBindings = useMemo(() => {
+    const fromPayload = comparisonPayload?.timelineBindings
+    if (fromPayload && fromPayload.length > 0) return fromPayload
+    return optimizedTasks.map((task, index) => ({
+      slotId: `slot-${index + 1}`,
+      start: task.start,
+      end: task.end,
+      deviceIds: task.resourceIds,
+      lineIds: [],
+      agvRouteIds: [],
+    }))
+  }, [comparisonPayload?.timelineBindings, optimizedTasks])
+  const timelineMaxEnd = useMemo(
+    () =>
+      Math.max(
+        ...baselineTasks.map((task) => task.end),
+        ...optimizedTasks.map((task) => task.end),
+        1
+      ),
+    [baselineTasks, optimizedTasks]
+  )
+  const timelineCurrentTime = (progress / 100) * timelineMaxEnd
+  const selectedTimelineBinding =
+    timelineBindings.find((binding) => binding.slotId === selectedTimelineSlotId) ?? null
+  const highlightedResources = useMemo(
+    () => ({
+      deviceIds: Array.from(buildResourceTokenSet(selectedTimelineBinding?.deviceIds, 'device')),
+      lineIds: Array.from(buildResourceTokenSet(selectedTimelineBinding?.lineIds, 'line')),
+      agvRouteIds: Array.from(buildResourceTokenSet(selectedTimelineBinding?.agvRouteIds, 'agv')),
+    }),
+    [selectedTimelineBinding]
+  )
+  const handleViewportResourceFocus = useCallback(
+    (selection: LinkedResourceSelection) => {
+      const deviceTokens = buildResourceTokenSet(selection.deviceIds, 'device')
+      const lineTokens = buildResourceTokenSet(selection.lineIds, 'line')
+      const agvTokens = buildResourceTokenSet(selection.agvRouteIds, 'agv')
+      const matched = timelineBindings.filter((binding) => {
+        const deviceMatched = hasBindingIntersection(deviceTokens, binding.deviceIds, 'device')
+        const lineMatched = hasBindingIntersection(lineTokens, binding.lineIds, 'line')
+        const agvMatched = hasBindingIntersection(agvTokens, binding.agvRouteIds, 'agv')
+        return deviceMatched || lineMatched || agvMatched
+      })
+      if (matched.length === 0) return
+      const nearest = matched.reduce((best, current) => {
+        const bestCenter = (best.start + best.end) / 2
+        const currentCenter = (current.start + current.end) / 2
+        const bestGap = Math.abs(bestCenter - timelineCurrentTime)
+        const currentGap = Math.abs(currentCenter - timelineCurrentTime)
+        return currentGap < bestGap ? current : best
+      })
+      setSelectedTimelineSlotId(nearest.slotId)
+    },
+    [timelineBindings, timelineCurrentTime]
+  )
+
+  useEffect(() => {
+    if (timelineBindings.length === 0) {
+      setSelectedTimelineSlotId(null)
+      return
+    }
+    setSelectedTimelineSlotId((previous) => {
+      if (previous && timelineBindings.some((binding) => binding.slotId === previous)) {
+        return previous
+      }
+      return timelineBindings[0].slotId
+    })
+  }, [timelineBindings])
+
+  useEffect(() => {
+    if (!showReport) {
+      setIsRoiPanelVisible(false)
+    }
+  }, [showReport])
 
   // 从路由 state 接收数据，无数据时兜底读取最近已完成任务
   useEffect(() => {
@@ -359,6 +924,20 @@ const Huntian: React.FC = () => {
     // 优先级3：处理仿真模式与可视化数据
     const { optimizationResult } = state ?? {}
     if (optimizationResult) {
+      if (optimizationResult.asset_mode) {
+        setAssetMode(optimizationResult.asset_mode)
+      } else if (optimizationResult.type === 'heavy') {
+        setAssetMode('heavy')
+      } else {
+        setAssetMode('light')
+      }
+      if (optimizationResult.comparison_payload) {
+        setComparisonPayload(optimizationResult.comparison_payload)
+        if (optimizationResult.comparison_payload.viewMode) {
+          setCompareViewMode(optimizationResult.comparison_payload.viewMode)
+        }
+      }
+
       if (optimizationResult.type === 'heavy') {
         setSimulationMode('route_optimization')
         if (optimizationResult.agvData) setAgvData(optimizationResult.agvData)
@@ -447,6 +1026,19 @@ const Huntian: React.FC = () => {
   }, [isPlaying, speed, simulationMode, currentModeState.progress])
 
   useEffect(() => {
+    if (currentModeState.progress < 100) return
+    if (completionNotifiedRef.current[simulationMode]) return
+    completionNotifiedRef.current[simulationMode] = true
+    setTaskStatusByMode((prev) => ({
+      ...prev,
+      [simulationMode]: 'completed',
+    }))
+    alert(
+      `${simulationMode === 'device_rearrangement' ? '设备重排仿真' : '线路优化仿真'}已完成，任务状态已更新为“已完成”。`
+    )
+  }, [currentModeState.progress, simulationMode])
+
+  useEffect(() => {
     if (!isViewportFullscreen) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -468,6 +1060,8 @@ const Huntian: React.FC = () => {
   const resetSimulation = () => {
     setIsPlaying(false)
     setIsDeploying(false)
+    setIsRoiPanelVisible(false)
+    completionNotifiedRef.current[simulationMode] = false
     setModeSimulationState((prev) => ({
       ...prev,
       [simulationMode]: {
@@ -477,9 +1071,45 @@ const Huntian: React.FC = () => {
         isOptimized: false,
       },
     }))
+    setTaskStatusByMode((prev) => ({
+      ...prev,
+      [simulationMode]: 'idle',
+    }))
   }
 
-  const handleBackToTianchou = (focus: 'solution' | 'pareto') => {
+  const handleSimulationToggle = () => {
+    if (isPlaying) {
+      setIsPlaying(false)
+      setTaskStatusByMode((prev) => ({
+        ...prev,
+        [simulationMode]: 'idle',
+      }))
+      return
+    }
+
+    completionNotifiedRef.current[simulationMode] = false
+    setModeSimulationState((prev) => {
+      const modeState = prev[simulationMode]
+      if (modeState.progress < 100) return prev
+      return {
+        ...prev,
+        [simulationMode]: {
+          progress: 0,
+          conflicts: [],
+          showReport: false,
+          isOptimized: false,
+        },
+      }
+    })
+    setTaskStatusByMode((prev) => ({
+      ...prev,
+      [simulationMode]: 'running',
+    }))
+    setIsRoiPanelVisible(false)
+    setIsPlaying(true)
+  }
+
+  const _handleBackToTianchou = (focus: 'solution' | 'pareto') => {
     navigate('/app/tianchou', {
       state: {
         fromHuntian: true,
@@ -497,32 +1127,60 @@ const Huntian: React.FC = () => {
       setIsDeploying(false)
     }, 1500)
   }
+  const currentTaskStatus = taskStatusByMode[simulationMode]
+  const currentTaskStatusLabel =
+    currentTaskStatus === 'running'
+      ? '仿真中'
+      : currentTaskStatus === 'completed'
+        ? '已完成'
+        : '待运行'
+  const currentTaskStatusTone =
+    currentTaskStatus === 'running'
+      ? 'bg-blue-500/15 border-blue-400/40 text-blue-200'
+      : currentTaskStatus === 'completed'
+        ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200'
+        : 'bg-slate-700/40 border-white/10 text-slate-300'
 
-  const renderCurrentSimulationView = () => {
+  const renderCurrentSimulationView = (variant: 'single' | 'baseline' | 'optimized' = 'single') => {
+    const paneOptimized = variant === 'single' ? isOptimized : variant === 'optimized'
+    const effectiveVisualMode = variant === 'single' ? visualMode : 'new'
+
     if (simulationMode === 'device_rearrangement') {
-      if (visualMode === 'new') {
+      if (effectiveVisualMode === 'new') {
         return (
-          <div className="absolute inset-0 bg-white rounded-xl overflow-hidden">
+          <div className="h-full w-full bg-white rounded-xl overflow-hidden">
             <DeviceLayoutVisualizer
-              isOptimized={isOptimized}
-              layoutData={layoutData}
+              isOptimized={paneOptimized}
+              layoutData={
+                layoutData as React.ComponentProps<typeof DeviceLayoutVisualizer>['layoutData']
+              }
               decisionContext={decisionContext ?? undefined}
+              highlightDeviceIds={highlightedResources.deviceIds}
+              highlightLineIds={highlightedResources.lineIds}
+              onFocusResources={handleViewportResourceFocus}
             />
           </div>
         )
       }
 
       if (layoutData) {
-        return <LayoutVisualizer layoutData={layoutData} isPlaying={isPlaying} />
+        return (
+          <LayoutVisualizer layoutData={layoutData as LegacyLayoutData} isPlaying={isPlaying} />
+        )
       }
 
       return <LayoutVisualizer layoutData={mockLayoutData} isPlaying={isPlaying} />
     }
 
-    if (visualMode === 'new') {
+    if (effectiveVisualMode === 'new') {
       return (
-        <div className="absolute inset-0 bg-white rounded-xl overflow-hidden">
-          <AGVLayoutVisualizer isOptimized={isOptimized} agvData={agvData} />
+        <div className="h-full w-full bg-white rounded-xl overflow-hidden">
+          <AGVLayoutVisualizer
+            isOptimized={paneOptimized}
+            agvData={agvData}
+            highlightRouteIds={highlightedResources.agvRouteIds}
+            onFocusResources={handleViewportResourceFocus}
+          />
         </div>
       )
     }
@@ -544,6 +1202,8 @@ const Huntian: React.FC = () => {
             (agvData.timelineMarkers as typeof mockAGVData.timelineMarkers) ||
             mockAGVData.timelineMarkers
           }
+          highlightRouteIds={highlightedResources.agvRouteIds}
+          onFocusResources={handleViewportResourceFocus}
           showPerformancePanel={true}
         />
       )
@@ -559,8 +1219,39 @@ const Huntian: React.FC = () => {
         canvasHeight={800}
         conflictPoints={mockAGVData.conflictPoints}
         timelineMarkers={mockAGVData.timelineMarkers}
+        highlightRouteIds={highlightedResources.agvRouteIds}
+        onFocusResources={handleViewportResourceFocus}
         showPerformancePanel={true}
       />
+    )
+  }
+
+  const renderViewportContent = () => {
+    if (compareViewMode === 'single_toggle') {
+      return <div className="absolute inset-0">{renderCurrentSimulationView('single')}</div>
+    }
+
+    const splitClass = compareViewMode === 'split_tb' ? 'grid-rows-2' : 'grid-cols-2'
+    return (
+      <div className={`absolute inset-0 p-3 grid ${splitClass} gap-3`}>
+        {[
+          { variant: 'baseline' as const, title: '基线方案 A', subtitle: '优化前' },
+          { variant: 'optimized' as const, title: '优化方案 B', subtitle: '优化后' },
+        ].map((panel) => (
+          <div
+            key={panel.variant}
+            className="relative min-h-0 rounded-2xl border border-white/15 bg-slate-900/50 overflow-hidden"
+          >
+            <div className="absolute top-3 left-3 z-20 px-2 py-1 rounded-md bg-slate-950/70 border border-white/15">
+              <p className="text-[10px] text-blue-300 font-bold uppercase tracking-wider">
+                {panel.title}
+              </p>
+              <p className="text-[10px] text-slate-400">{panel.subtitle}</p>
+            </div>
+            <div className="h-full">{renderCurrentSimulationView(panel.variant)}</div>
+          </div>
+        ))}
+      </div>
     )
   }
 
@@ -574,77 +1265,154 @@ const Huntian: React.FC = () => {
 
       {/* Simulation Header / Toolbar */}
       <div className="h-16 bg-slate-900/40 backdrop-blur-xl border-b border-white/5 px-8 flex items-center justify-between z-20">
-        <div className="flex items-center gap-8">
-          <div className="flex flex-col">
-            <h2 className="font-bold text-white flex items-center gap-2 text-lg tracking-tight">
+        <div className="flex items-center gap-4 min-w-0 flex-1 overflow-visible pr-2">
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="group relative inline-flex">
               <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_10px_#3b82f6]"></span>
-              浑天 · 验证仿真中心
-            </h2>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
-                Digital Twin Sandbox v2.4
+              <span className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-[10px] font-medium bg-slate-950/95 border border-white/15 text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-40">
+                仿真在线
               </span>
-              <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0 rounded border border-blue-500/20">
-                Active Solution: LOGIC_RECONFIG_09
+            </span>
+            <span className="group relative inline-flex">
+              <span
+                className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px] ${
+                  assetMode === 'heavy'
+                    ? 'bg-amber-400 shadow-amber-500/60'
+                    : 'bg-emerald-400 shadow-emerald-500/60'
+                }`}
+              ></span>
+              <span className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-[10px] font-medium bg-slate-950/95 border border-white/15 text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-40">
+                {assetMode === 'heavy' ? '重资产' : '轻资产'}
               </span>
-            </div>
+            </span>
           </div>
 
-          <div className="h-8 w-px bg-white/10 mx-2"></div>
+          <div className="h-8 w-px bg-white/10 mx-1 shrink-0"></div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-              Simulation Mode
-            </span>
+          <div className="flex items-center gap-2 shrink-0">
             <div className="flex bg-white/5 border border-white/10 rounded-xl p-1">
-              <button
-                type="button"
+              <ToolbarIconButton
+                active={simulationMode === 'device_rearrangement'}
+                label="设备重排"
                 onClick={() => {
+                  setTaskStatusByMode((prev) => ({
+                    ...prev,
+                    [simulationMode]: isPlaying ? 'idle' : prev[simulationMode],
+                  }))
                   setIsPlaying(false)
                   setSimulationMode('device_rearrangement')
                 }}
-                className={`relative px-3 py-1 text-xs font-bold rounded-lg transition-all ${simulationMode === 'device_rearrangement' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-slate-400 hover:text-slate-200'}`}
               >
-                设备重排
-              </button>
-              <button
-                type="button"
+                <Package size={15} />
+              </ToolbarIconButton>
+              <ToolbarIconButton
+                active={simulationMode === 'route_optimization'}
+                label="线路优化"
                 onClick={() => {
+                  setTaskStatusByMode((prev) => ({
+                    ...prev,
+                    [simulationMode]: isPlaying ? 'idle' : prev[simulationMode],
+                  }))
                   setIsPlaying(false)
                   setSimulationMode('route_optimization')
                 }}
-                className={`relative px-3 py-1 text-xs font-bold rounded-lg transition-all ${simulationMode === 'route_optimization' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-slate-400 hover:text-slate-200'}`}
               >
-                线路优化
-              </button>
+                <Truck size={15} />
+              </ToolbarIconButton>
             </div>
           </div>
 
-          <div className="h-6 w-px bg-white/10"></div>
+          <div className="h-6 w-px bg-white/10 shrink-0"></div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-              Time Warp
-            </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex bg-white/5 border border-white/10 rounded-xl p-1">
+              <ToolbarIconButton
+                active={compareViewMode === 'single_toggle'}
+                label="单屏视图"
+                onClick={() => setCompareViewMode('single_toggle')}
+              >
+                <span className="inline-block w-3.5 h-3.5 border border-current rounded-[3px]"></span>
+              </ToolbarIconButton>
+              <ToolbarIconButton
+                active={compareViewMode === 'split_lr'}
+                label="左右分屏"
+                onClick={() => setCompareViewMode('split_lr')}
+              >
+                <span className="inline-grid grid-cols-2 gap-[2px] w-3.5 h-3.5">
+                  <span className="border border-current rounded-[2px]"></span>
+                  <span className="border border-current rounded-[2px]"></span>
+                </span>
+              </ToolbarIconButton>
+              <ToolbarIconButton
+                active={compareViewMode === 'split_tb'}
+                label="上下分屏"
+                onClick={() => setCompareViewMode('split_tb')}
+              >
+                <span className="inline-grid grid-rows-2 gap-[2px] w-3.5 h-3.5">
+                  <span className="border border-current rounded-[2px]"></span>
+                  <span className="border border-current rounded-[2px]"></span>
+                </span>
+              </ToolbarIconButton>
+            </div>
+          </div>
+
+          <div className="h-6 w-px bg-white/10 shrink-0"></div>
+
+          <div className="flex items-center gap-2 shrink-0">
             <div className="flex bg-white/5 border border-white/10 rounded-xl p-1">
               {[1, 10, 100].map((s) => (
-                <button
+                <ToolbarIconButton
                   key={s}
-                  type="button"
+                  active={speed === s}
+                  label={`${s}x 播放速度`}
                   onClick={() => setSpeed(s as 1 | 10 | 100)}
-                  className={`relative px-4 py-1 text-xs font-bold rounded-lg transition-all ${speed === s ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'text-slate-400 hover:text-slate-200'}`}
                 >
-                  {s}x
+                  <span className="relative flex items-center justify-center">
+                    <Clock size={14} />
+                    <span className="absolute -bottom-1 -right-1 text-[8px] font-bold leading-none">
+                      {s}
+                    </span>
+                  </span>
                   {speed === s && (
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full animate-ping"></span>
                   )}
-                </button>
+                </ToolbarIconButton>
               ))}
+            </div>
+          </div>
+
+          <div className="h-6 w-px bg-white/10 shrink-0"></div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex bg-white/5 border border-white/10 rounded-xl p-1">
+              <ToolbarIconButton
+                active={isTimelineDrawerOpen}
+                label={isTimelineDrawerOpen ? '收起时间轴侧栏' : '展开时间轴侧栏'}
+                onClick={() => setIsTimelineDrawerOpen((prev) => !prev)}
+              >
+                <Clock size={15} />
+              </ToolbarIconButton>
+              <ToolbarIconButton
+                active={isRoiPanelVisible}
+                disabled={!showReport}
+                label={showReport ? '显示或隐藏 ROI 报告' : 'ROI 报告未生成'}
+                onClick={() => {
+                  if (!showReport) return
+                  setIsRoiPanelVisible((prev) => !prev)
+                }}
+              >
+                <ShieldCheck size={15} />
+              </ToolbarIconButton>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
+          <div
+            className={`px-3 py-1.5 rounded-lg border text-xs font-medium tracking-wide ${currentTaskStatusTone}`}
+          >
+            任务状态 · {currentTaskStatusLabel}
+          </div>
           <div className="flex items-center gap-3 bg-slate-800/50 px-4 py-2 rounded-xl border border-white/5">
             <Clock size={16} className="text-blue-400" />
             <span className="text-sm font-mono text-blue-100 tabular-nums">
@@ -660,7 +1428,7 @@ const Huntian: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => setIsPlaying(!isPlaying)}
+            onClick={handleSimulationToggle}
             className={`flex items-center gap-3 px-8 py-2.5 rounded-xl font-bold text-sm transition-all shadow-2xl ${
               isPlaying
                 ? 'bg-amber-500 text-black hover:bg-amber-400'
@@ -678,7 +1446,7 @@ const Huntian: React.FC = () => {
       </div>
 
       {/* Main Viewport Area */}
-      <div className="flex-1 relative overflow-hidden flex items-center justify-center p-12">
+      <div className="flex-1 relative overflow-hidden flex items-center justify-center pt-2 px-5 pb-5 lg:pt-3 lg:px-8 lg:pb-8">
         {/* The Digital Twin Canvas (Top-Down Map Simulation) */}
         <div className="relative w-full h-full bg-[#0a0f1d] rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden">
           {/* Grid with perspective feel */}
@@ -720,7 +1488,19 @@ const Huntian: React.FC = () => {
             ))}
           </div>
 
-          {renderCurrentSimulationView()}
+          {renderViewportContent()}
+
+          {selectedTimelineBinding && (
+            <div className="absolute top-6 right-6 z-20 px-3 py-2 rounded-lg bg-slate-950/80 border border-cyan-400/40">
+              <p className="text-[10px] text-cyan-300 uppercase tracking-wider">
+                Active Timeline Slot
+              </p>
+              <p className="text-xs text-white font-semibold">
+                {selectedTimelineBinding.slotId}: {selectedTimelineBinding.start.toFixed(1)}-
+                {selectedTimelineBinding.end.toFixed(1)}h
+              </p>
+            </div>
+          )}
 
           {/* AGV Collision Highlight Layer */}
           {conflicts.map((conflict, i) => (
@@ -742,41 +1522,14 @@ const Huntian: React.FC = () => {
               <div className="w-px h-10 bg-gradient-to-b from-red-600 to-transparent mx-auto"></div>
             </div>
           )}
-
-          {/* Bottom Progress Bar */}
-          <div className="absolute bottom-10 left-10 right-10">
-            <div className="flex justify-between items-end mb-3">
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">
-                  Simulation Progress
-                </p>
-                <p className="text-xl font-black text-white italic tracking-tighter">
-                  7-DAY PROJECTION
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-3xl font-mono font-black text-blue-500">
-                  {Math.floor(progress)}%
-                </p>
-              </div>
-            </div>
-            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-              <div
-                className="h-full bg-gradient-to-r from-blue-700 via-blue-500 to-indigo-400 transition-all duration-300 relative shadow-[0_0_20px_rgba(59,130,246,0.5)]"
-                style={{ width: `${progress}%` }}
-              >
-                <div className="absolute top-0 right-0 w-8 h-full bg-white/30 blur-sm"></div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* ROI Report Panel (Glassmorphism Floating Panel) */}
+        {/* ROI Report Panel (Toggleable) */}
         <div
-          className={`absolute right-8 top-1/2 -translate-y-1/2 w-80 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-[0_40px_100px_rgba(0,0,0,0.6)] transition-all duration-1000 transform ${
-            showReport
+          className={`absolute z-30 right-6 top-6 bottom-6 w-80 bg-slate-900/85 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-[0_40px_100px_rgba(0,0,0,0.6)] transition-all duration-500 transform overflow-y-auto ${
+            showReport && isRoiPanelVisible
               ? 'opacity-100 translate-x-0'
-              : 'opacity-0 translate-x-20 pointer-events-none'
+              : 'opacity-0 translate-x-24 pointer-events-none'
           }`}
         >
           <div className="flex items-center gap-3 mb-4">
@@ -854,6 +1607,54 @@ const Huntian: React.FC = () => {
           </div>
 
           <div className="mt-4 space-y-3">
+            {comparisonPayload && (
+              <div className="space-y-2">
+                <div className="p-2 bg-slate-800/70 border border-white/10 rounded-lg">
+                  <p className="text-[9px] font-bold text-blue-300 uppercase tracking-widest mb-1">
+                    物流方案摘要
+                  </p>
+                  <p className="text-[10px] text-slate-300 leading-snug">
+                    {comparisonPayload.logisticsSummary?.textSummary || '暂无物流摘要'}
+                  </p>
+                </div>
+                <div className="p-2 bg-slate-800/70 border border-white/10 rounded-lg">
+                  <p className="text-[9px] font-bold text-amber-300 uppercase tracking-widest mb-1">
+                    布局变更摘要
+                  </p>
+                  <p className="text-[10px] text-slate-300 leading-snug">
+                    {comparisonPayload.layoutSummary?.textSummary || '暂无布局变更摘要'}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-slate-800/70 border border-white/10 rounded-lg p-2">
+                    <p className="text-[8px] text-slate-400 uppercase tracking-wider mb-0.5">
+                      物料搬运成本
+                    </p>
+                    <p className="text-xs font-mono font-bold text-white">
+                      ¥
+                      {(
+                        comparisonPayload.costBinding?.materialHandlingCost ??
+                        decisionContext?.totalCost ??
+                        0
+                      ).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="bg-slate-800/70 border border-white/10 rounded-lg p-2">
+                    <p className="text-[8px] text-slate-400 uppercase tracking-wider mb-0.5">
+                      设备移动成本
+                    </p>
+                    <p className="text-xs font-mono font-bold text-white">
+                      ¥
+                      {(
+                        comparisonPayload.costBinding?.equipmentMoveCost ??
+                        decisionContext?.totalCost ??
+                        0
+                      ).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-2 p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
               <Info size={14} className="text-emerald-400 shrink-0" />
               <p className="text-[9px] text-emerald-300/80 leading-snug">
@@ -878,6 +1679,22 @@ const Huntian: React.FC = () => {
           </div>
         </div>
 
+        <div
+          className={`absolute z-30 top-6 bottom-6 w-[24rem] transition-all duration-500 ${
+            showReport && isRoiPanelVisible ? 'right-[22.5rem]' : 'right-6'
+          } ${isTimelineDrawerOpen ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0 pointer-events-none'}`}
+        >
+          <ABTimelineComparison
+            baselineTasks={baselineTasks}
+            optimizedTasks={optimizedTasks}
+            timelineBindings={timelineBindings}
+            selectedSlotId={selectedTimelineSlotId}
+            onSelectSlot={setSelectedTimelineSlotId}
+            currentTime={timelineCurrentTime}
+            deltaSummary={comparisonPayload?.scheduleComparison?.deltaSummary}
+          />
+        </div>
+
         {/* Viewport Actions */}
         <div className="absolute z-30 flex flex-col gap-3 bottom-10 right-10">
           <button
@@ -888,19 +1705,33 @@ const Huntian: React.FC = () => {
           >
             <Maximize2 size={20} />
           </button>
-          <button
-            type="button"
-            className="p-3 bg-slate-900/60 backdrop-blur-md rounded-2xl text-slate-400 border border-white/10 hover:text-white transition-all shadow-xl"
-          >
-            <Settings2 size={20} />
-          </button>
         </div>
       </div>
 
       {isViewportFullscreen && (
         <div className="fixed inset-0 z-[120] bg-[#050810] p-3 sm:p-4">
           <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/15 shadow-[0_30px_120px_rgba(0,0,0,0.8)]">
-            {renderCurrentSimulationView()}
+            {renderViewportContent()}
+
+            <div
+              className={`absolute z-40 top-4 bottom-4 w-[24rem] transition-all duration-500 ${
+                showReport && isRoiPanelVisible ? 'right-[22.5rem]' : 'right-4'
+              } ${
+                isTimelineDrawerOpen
+                  ? 'translate-x-0 opacity-100'
+                  : 'translate-x-[120%] opacity-0 pointer-events-none'
+              }`}
+            >
+              <ABTimelineComparison
+                baselineTasks={baselineTasks}
+                optimizedTasks={optimizedTasks}
+                timelineBindings={timelineBindings}
+                selectedSlotId={selectedTimelineSlotId}
+                onSelectSlot={setSelectedTimelineSlotId}
+                currentTime={timelineCurrentTime}
+                deltaSummary={comparisonPayload?.scheduleComparison?.deltaSummary}
+              />
+            </div>
 
             <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
               <span className="hidden sm:block text-xs text-slate-300 bg-slate-900/70 border border-white/10 px-2 py-1 rounded-lg">

@@ -17,7 +17,13 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { NextPlan, OptimizationParams, ProcessStep, ProductChangeWarning } from '../types'
+import type {
+  AssetMode,
+  NextPlan,
+  OptimizationParams,
+  ProcessStep,
+  ProductChangeWarning,
+} from '../types'
 
 interface ProductionPlanCardProps {
   className?: string
@@ -36,6 +42,7 @@ interface ProductionPlanCardProps {
   } | null
   nextPlan: NextPlan | null
   productChangeWarning: ProductChangeWarning | null
+  assetMode?: AssetMode
   loading?: boolean
   onViewDetails?: () => void
   onOptimize?: (params: OptimizationParams) => void
@@ -101,6 +108,7 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
   currentPlan,
   nextPlan,
   productChangeWarning,
+  assetMode = 'light',
   loading = false,
   onViewDetails,
   onOptimize,
@@ -157,6 +165,7 @@ export const ProductionPlanCard: React.FC<ProductionPlanCardProps> = ({
       mode: 'product_switch',
       current_product_id: currentPlan.product_id,
       next_product_id: nextPlan.product_id,
+      asset_mode: assetMode,
       current_layout: {
         devices: [],
         workshopDimensions: { length: 100, width: 60 },

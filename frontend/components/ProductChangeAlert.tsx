@@ -6,14 +6,17 @@
 
 import { AlertTriangle, ChevronDown, ChevronUp, Settings2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import type { AssetMode } from '../types'
 
 interface ProductChangeAlertProps {
   visible: boolean
   currentProduct: string
   nextProduct: string
   differences: string[]
+  assetMode: AssetMode
   layoutSwitchDays?: number // 布局切换所需天数
   layoutSwitchMinutes?: number // 布局切换所需分钟
+  onAssetModeChange?: (mode: AssetMode) => void
   onOptimize?: () => void
   onDismiss?: () => void
 }
@@ -23,8 +26,10 @@ export const ProductChangeAlert: React.FC<ProductChangeAlertProps> = ({
   currentProduct,
   nextProduct,
   differences = [],
+  assetMode,
   layoutSwitchDays,
   layoutSwitchMinutes,
+  onAssetModeChange,
   onOptimize,
   onDismiss,
 }) => {
@@ -78,6 +83,35 @@ export const ProductChangeAlert: React.FC<ProductChangeAlertProps> = ({
               <div className="text-center flex-1">
                 <p className="text-xs text-slate-500 mb-0.5">下一单</p>
                 <p className="font-semibold text-sm text-blue-600">{nextProduct}</p>
+              </div>
+            </div>
+
+            {/* 资产模式选择 */}
+            <div className="mt-3">
+              <p className="text-xs text-slate-500 mb-2">资产策略</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onAssetModeChange?.('light')}
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                    assetMode === 'light'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  轻资产
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAssetModeChange?.('heavy')}
+                  className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                    assetMode === 'heavy'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  重资产
+                </button>
               </div>
             </div>
 

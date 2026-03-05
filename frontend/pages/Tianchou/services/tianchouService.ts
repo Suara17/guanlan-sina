@@ -1,6 +1,7 @@
 /**
  * 天筹优化决策系统 API 服务
  */
+import type { AssetMode, SimulationComparisonPayload } from '../../../types'
 
 import type {
   AHPResult,
@@ -48,6 +49,11 @@ export interface TaskListResponse {
   total: number
   limit: number
   offset: number
+}
+
+export interface SolutionComparisonResponse {
+  asset_mode?: AssetMode
+  comparison_payload?: SimulationComparisonPayload
 }
 
 export const tianchouService = {
@@ -111,6 +117,20 @@ export const tianchouService = {
     }
 
     return response.json()
+  },
+
+  /**
+   * 获取方案对比载荷（用于浑天 A/B 对比联动）
+   */
+  async getSolutionComparison(
+    taskId: string,
+    solutionId: string
+  ): Promise<SolutionComparisonResponse> {
+    const detail = await this.getSolutionDetail(taskId, solutionId)
+    return {
+      asset_mode: detail.asset_mode,
+      comparison_payload: detail.comparison_payload,
+    }
   },
 
   /**

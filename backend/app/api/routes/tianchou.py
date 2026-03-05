@@ -501,6 +501,144 @@ def run_optimization_task(task_id: str) -> None:
 # ============ API端点 ============
 
 
+def _build_comparison_payload(
+    task: OptimizationTask | None, solution: ParetoSolution
+) -> dict[str, Any]:
+    """构建浑天对比视图所需的标准载荷。"""
+    solution_data = solution.solution_data or {}
+    schedule = solution_data.get("schedule") or {}
+    operation_times = schedule.get("operation_times") or {}
+
+    original_positions: list[list[float]] = []
+    if task and task.input_params:
+        original_positions = _resolve_original_positions(task.input_params)
+
+    optimized_positions = solution_data.get("individual") or []
+
+    moved_devices: list[dict[str, Any]] = []
+    if original_positions and optimized_positions:
+        total_count = min(len(original_positions), len(optimized_positions))
+        for index in range(total_count):
+            original = original_positions[index]
+            optimized = optimized_positions[index]
+            if not isinstance(original, (list, tuple)) or not isinstance(
+                optimized, (list, tuple)
+            ):
+                continue
+            dx = float(optimized[0]) - float(original[0])
+            dy = float(optimized[1]) - float(original[1])
+            distance = float(np.sqrt(dx * dx + dy * dy))
+            if distance > 1e-6:
+                moved_devices.append(
+                    {
+                        "deviceId": f"D{index + 1}",
+                        "from": {"x": float(original[0]), "y": float(original[1])},
+                        "to": {"x": float(optimized[0]), "y": float(optimized[1])},
+                        "distance": round(distance, 3),
+                        "changeType": "moved",
+                    }
+                )
+
+    optimized_tasks: list[dict[str, Any]] = []
+    baseline_tasks: list[dict[str, Any]] = []
+    timeline_bindings: list[dict[str, Any]] = []
+    sorted_operations = sorted(
+        operation_times.items(), key=lambda item: float(item[1].get("start", 0))
+    )
+    for index, (op_id, op_info) in enumerate(sorted_operations):
+        start = float(op_info.get("start", 0))
+        finish = float(op_info.get("finish", start))
+        slot_id = f"slot-{index + 1}"
+        device_id = op_info.get("device")
+        agv_id = op_info.get("agv")
+        task_id = op_info.get("task_id")
+        operation_idx = op_info.get("operation_idx")
+        resource_ids = (
+            [f"D{int(device_id) + 1}"] if isinstance(device_id, (int, float)) else []
+        )
+        line_ids: list[str] = []
+        if isinstance(task_id, (int, float)):
+            line_number = int(task_id) + 1
+            line_ids = [f"line-{line_number}", f"L{line_number}"]
+        elif isinstance(task_id, str) and task_id.strip():
+            line_ids = [task_id.strip()]
+        agv_route_ids: list[str] = []
+        if isinstance(agv_id, (int, float)):
+            agv_number = int(agv_id) + 1
+            agv_route_ids = [f"R{agv_number}", f"AGV-{agv_number}"]
+        elif isinstance(agv_id, str) and agv_id.strip():
+            agv_route_ids = [agv_id.strip()]
+
+        if isinstance(task_id, (int, float)):
+            task_label = f"任务{int(task_id) + 1}"
+        elif isinstance(task_id, str) and task_id.strip():
+            task_label = task_id.strip()
+        else:
+            task_label = f"任务{index + 1}"
+
+        if isinstance(operation_idx, (int, float)):
+            op_label = f"工序{int(operation_idx) + 1}"
+        else:
+            op_label = f"工序{index + 1}"
+
+        task_item = {
+            "id": str(op_id),
+            "label": f"{task_label}-{op_label}",
+            "start": start,
+            "end": finish,
+            "resourceIds": resource_ids,
+            "lane": "B",
+        }
+        optimized_tasks.append(task_item)
+        baseline_tasks.append({**task_item, "lane": "A"})
+        timeline_bindings.append(
+            {
+                "slotId": slot_id,
+                "start": start,
+                "end": finish,
+                "deviceIds": resource_ids,
+                "lineIds": line_ids,
+                "agvRouteIds": agv_route_ids,
+            }
+        )
+
+    asset_mode = task.industry_type.value if task else "light"
+    material_cost = float(solution.f1 or 0)
+    move_cost = float(solution.f2 or 0)
+
+    return {
+        "viewMode": "single_toggle",
+        "layoutSummary": {
+            "movedDevices": moved_devices,
+            "lineDirectionChanges": [],
+            "textSummary": f"共{len(moved_devices)}台设备发生位移",
+        },
+        "logisticsSummary": {
+            "textSummary": (
+                f"物流路径已基于当前解进行重排，映射到{len(timeline_bindings)}个可联动时段"
+            ),
+            "keyMetrics": {
+                "f1": float(solution.f1 or 0),
+                "f2": float(solution.f2 or 0),
+                "f3": float(solution.f3 or 0),
+            },
+        },
+        "scheduleComparison": {
+            "baselineTasks": baseline_tasks,
+            "optimizedTasks": optimized_tasks,
+            "deltaSummary": f"共映射{len(optimized_tasks)}个可联动时段",
+        },
+        "timelineBindings": timeline_bindings,
+        "costBinding": {
+            "scenarioId": str(solution.id),
+            "assetMode": asset_mode,
+            "materialHandlingCost": material_cost,
+            "equipmentMoveCost": move_cost,
+            "totalCost": float(solution.total_cost or 0),
+        },
+    }
+
+
 @router.post("/tasks", response_model=TaskStatusResponse)
 async def create_optimization_task(
     request: OptimizationRequest,
@@ -948,6 +1086,7 @@ async def get_solution_detail(
     original_positions = None
     if task and task.input_params:
         original_positions = task.input_params.get("original_positions")
+    comparison_payload = _build_comparison_payload(task, solution)
 
     return {
         "id": str(solution.id),
@@ -958,10 +1097,13 @@ async def get_solution_detail(
         "total_cost": solution.total_cost,
         "implementation_days": solution.implementation_days,
         "expected_benefit": solution.expected_benefit,
+        "expected_loss": solution.expected_loss,
         "topsis_score": solution.topsis_score,
         "solution_data": solution.solution_data,
         "technical_details": solution.technical_details,
         "original_positions": original_positions,
+        "asset_mode": task.industry_type.value if task else "light",
+        "comparison_payload": comparison_payload,
     }
 
 
