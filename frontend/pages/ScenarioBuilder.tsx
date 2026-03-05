@@ -656,7 +656,7 @@ function FlowCanvas() {
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => {
-      setNodes((nds) => applyNodeChanges(changes, nds))
+      setNodes((nds) => applyNodeChanges<CustomNodeData>(changes, nds))
       // 更新选中状态
       changes.forEach((change) => {
         if (change.type === 'select') {

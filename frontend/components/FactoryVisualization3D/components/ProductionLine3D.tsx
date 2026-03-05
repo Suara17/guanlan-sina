@@ -1,6 +1,6 @@
 import { Html } from '@react-three/drei'
 import type React from 'react'
-import type { WorkshopLine } from '../factoryData'
+import type { StationConnectionDetails, WorkshopLine } from '../factoryData'
 import { useFactoryStore } from '../store'
 import { Conveyor3D } from './Conveyor3D'
 import { MaterialFlow3D } from './MaterialFlow3D'
@@ -10,12 +10,16 @@ interface ProductionLine3DProps {
   line: WorkshopLine
   position?: [number, number, number]
   onClick?: () => void
+  resolveStationConnection?: (lineName: string, stationName: string) => StationConnectionDetails
+  onSelectStationConnection?: (details: StationConnectionDetails) => void
 }
 
 export const ProductionLine3D: React.FC<ProductionLine3DProps> = ({
   line,
   position = [0, 0, 0],
   onClick,
+  resolveStationConnection,
+  onSelectStationConnection,
 }) => {
   const STATION_SPACING = 2.5
   const TOTAL_LENGTH = line.stations.length * STATION_SPACING
@@ -44,9 +48,29 @@ export const ProductionLine3D: React.FC<ProductionLine3DProps> = ({
       )}
 
       {/* Stations */}
-      {line.stations.map((station, index) => (
-        <Station3D key={station.id} station={station} position={[index * STATION_SPACING, 0, 0]} />
-      ))}
+      {line.stations.map((station, index) => {
+        const connection =
+          resolveStationConnection?.(line.name, station.name) || {
+            line_name: line.name,
+            station_name: station.name,
+            integration_status: 'unconnected' as const,
+            device_id: null,
+            device_name: null,
+            protocol: null,
+            connectivity_status: null,
+            last_communication_at: null,
+          }
+
+        return (
+          <Station3D
+            key={station.id}
+            station={station}
+            position={[index * STATION_SPACING, 0, 0]}
+            connection={connection}
+            onSelectConnection={onSelectStationConnection}
+          />
+        )
+      })}
 
       {/* Line Label (only visible at workshop level or higher) */}
       {level !== 'line' && (

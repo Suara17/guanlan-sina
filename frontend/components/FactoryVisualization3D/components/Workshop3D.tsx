@@ -1,7 +1,7 @@
 /* biome-ignore-all lint/suspicious/noArrayIndexKey: 车间装饰结构为固定渲染序列，索引键不会影响业务状态。 */
 import { Box, Html, Text } from '@react-three/drei'
 import type React from 'react'
-import type { Workshop } from '../factoryData'
+import type { StationConnectionDetails, Workshop } from '../factoryData'
 import { useFactoryStore } from '../store'
 import { ProductionLine3D } from './ProductionLine3D'
 
@@ -9,6 +9,8 @@ interface Workshop3DProps {
   workshop: Workshop
   position?: [number, number, number]
   onClick?: () => void
+  resolveStationConnection?: (lineName: string, stationName: string) => StationConnectionDetails
+  onSelectStationConnection?: (details: StationConnectionDetails) => void
 }
 
 const getStatusLabel = (status: 'running' | 'idle' | 'error'): string => {
@@ -122,6 +124,8 @@ export const Workshop3D: React.FC<Workshop3DProps> = ({
   workshop,
   position = [0, 0, 0],
   onClick,
+  resolveStationConnection,
+  onSelectStationConnection,
 }) => {
   const LINE_SPACING = 8 // Increased spacing for better visibility
   const { drillDownToLine, level } = useFactoryStore()
@@ -176,6 +180,8 @@ export const Workshop3D: React.FC<Workshop3DProps> = ({
             line={line}
             position={[0, 0, 0]}
             onClick={() => drillDownToLine(line)}
+            resolveStationConnection={resolveStationConnection}
+            onSelectStationConnection={onSelectStationConnection}
           />
         </group>
       ))}

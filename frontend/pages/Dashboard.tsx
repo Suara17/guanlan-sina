@@ -29,6 +29,7 @@ import type {
   DashboardMetrics,
   NextPlan,
   OptimizationParams,
+  ProductionPlan,
   ProductChangeWarning,
   ProductionData,
   ProductionLine,
@@ -57,18 +58,7 @@ const Dashboard: React.FC = () => {
 
   // 3.2 优化路线：生产计划状态
   const [productionPlan, setProductionPlan] = useState<{
-    currentPlan: {
-      work_order_no: string
-      product_id: string
-      product_code: string
-      product_name: string
-      line_id: string
-      planned_quantity: number
-      actual_quantity: number
-      progress_percent: number
-      estimated_completion_time: string | null
-      status: 'running' | 'paused' | 'completed'
-    } | null
+    currentPlan: ProductionPlan | null
     nextPlan: NextPlan | null
     productChangeWarning: ProductChangeWarning | null
   }>({

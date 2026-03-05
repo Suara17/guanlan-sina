@@ -17,7 +17,7 @@ interface AuthState {
 }
 
 // 认证上下文类型
-interface AuthContextType extends AuthState {
+export interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<boolean>
   logout: () => void
   checkAuth: () => Promise<void>
@@ -206,13 +206,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Login failed:', error)
 
       let errorMessage = '登录失败，请稍后重试'
+      const apiError = error as {
+        response?: {
+          status?: number
+          data?: {
+            detail?: string
+          }
+        }
+      }
 
-      if (error.response?.status === 401) {
+      if (apiError.response?.status === 401) {
         errorMessage = '用户名或密码错误'
-      } else if (error.response?.status === 422) {
+      } else if (apiError.response?.status === 422) {
         errorMessage = '输入信息格式错误'
-      } else if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail
+      } else if (apiError.response?.data?.detail) {
+        errorMessage = apiError.response.data.detail
       }
 
       updateAuthState({
