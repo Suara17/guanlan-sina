@@ -5,7 +5,7 @@
 
 import { motion } from 'framer-motion'
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AGVPerformancePanel from './AGVPerformancePanel'
 
 interface Station {
@@ -59,6 +59,8 @@ interface AGVPathVisualizerProps {
   timelineMarkers?: TimelineMarker[]
   onTimeChange?: (time: number) => void
   showPerformancePanel?: boolean
+  highlightRouteIds?: string[]
+  onFocusResources?: (selection: { agvRouteIds?: string[] }) => void
 }
 
 // AGV 颜色配置
@@ -87,6 +89,17 @@ const STATION_TYPE_ICONS: Record<string, string> = {
   storage: '🏪',
 }
 
+const normalizeResourceId = (id: string): string =>
+  id
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '')
+
+const createRouteTokens = (agvId: number): string[] => {
+  const id = String(agvId)
+  return [`agv${id}`, `r${id}`, `route${id}`, id]
+}
+
 /**
  * 时间轴控制组件
  */
@@ -112,7 +125,7 @@ const TimelineControl: React.FC<{
     <div className="absolute bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-md p-4 rounded-t-xl border-t border-white/10">
       {/* 时间标记点 */}
       <div className="relative h-2 mb-2">
-        {markers.map((marker, index) => {
+        {markers.map((marker) => {
           const markerPosition = duration > 0 ? (marker.time / duration) * 100 : 0
           const markerColors: Record<string, string> = {
             task: '#3b82f6',
@@ -121,7 +134,7 @@ const TimelineControl: React.FC<{
           }
           return (
             <div
-              key={`marker-${index}`}
+              key={`marker-${marker.type}-${marker.time}-${marker.label}`}
               className="absolute top-0 w-1 h-full cursor-pointer group"
               style={{ left: `${markerPosition}%` }}
               title={marker.label}
@@ -139,8 +152,9 @@ const TimelineControl: React.FC<{
       </div>
 
       {/* 进度条 */}
-      <div
-        className="relative h-2 bg-slate-700 rounded-full cursor-pointer group"
+      <button
+        type="button"
+        className="relative h-2 w-full bg-slate-700 rounded-full cursor-pointer group"
         onClick={(e) => {
           if (duration <= 0) return
           const rect = e.currentTarget.getBoundingClientRect()
@@ -157,7 +171,7 @@ const TimelineControl: React.FC<{
           className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg cursor-grab"
           style={{ left: `calc(${progress}% - 8px)` }}
         />
-      </div>
+      </button>
 
       {/* 控制按钮 */}
       <div className="flex items-center justify-between mt-3">
@@ -403,7 +417,7 @@ const generatePathD = (points: Array<[number, number]>): string => {
 /**
  * AGV 图标组件
  */
-const AGVIcon: React.FC<{
+const _AGVIcon: React.FC<{
   route: Array<[number, number]>
   color: string
   isPlaying: boolean
@@ -412,7 +426,7 @@ const AGVIcon: React.FC<{
   agvId: number
 }> = ({ route, color, isPlaying, speed, completionTime, agvId }) => {
   const [currentPosition, setCurrentPosition] = useState(route[0])
-  const [progress, setProgress] = useState(0)
+  const [_progress, setProgress] = useState(0)
 
   useEffect(() => {
     if (!isPlaying) {
@@ -499,11 +513,18 @@ export default function AGVPathVisualizer({
   timelineMarkers = [],
   onTimeChange,
   showPerformancePanel = true,
+  highlightRouteIds = [],
+  onFocusResources,
 }: AGVPathVisualizerProps) {
   // 内部状态管理
   const [isPlaying, setIsPlaying] = useState(externalIsPlaying)
   const [speed, setSpeed] = useState(externalSpeed)
   const [currentTime, setCurrentTime] = useState(0)
+  const highlightRouteSet = useMemo(
+    () => new Set(highlightRouteIds.map(normalizeResourceId).filter(Boolean)),
+    [highlightRouteIds]
+  )
+  const hasRouteHighlights = highlightRouteSet.size > 0
 
   // 计算总时长
   const totalDuration = Math.max(...routes.map((r) => r.completionTime), 0)
@@ -661,15 +682,23 @@ export default function AGVPathVisualizer({
         {/* AGV 路径线 */}
         {routes.map((route, index) => {
           const color = AGV_COLORS[index % AGV_COLORS.length]
+          const highlighted = createRouteTokens(route.agvId).some((token) =>
+            highlightRouteSet.has(token)
+          )
+          const routeOpacity = hasRouteHighlights ? (highlighted ? 0.95 : 0.2) : 0.6
           return (
             <motion.path
               key={`route-${route.agvId}`}
               d={generatePathD(route.route)}
               stroke={color}
-              strokeWidth={3}
+              strokeWidth={highlighted ? 5 : 3}
               fill="none"
               strokeDasharray="10,5"
-              opacity={0.6}
+              opacity={routeOpacity}
+              style={{ cursor: 'pointer' }}
+              onClick={() =>
+                onFocusResources?.({ agvRouteIds: [`AGV-${route.agvId}`, `R${route.agvId}`] })
+              }
               initial={{ pathLength: 0 }}
               animate={{ pathLength: isPlaying ? 1 : 0 }}
               transition={{
@@ -809,9 +838,9 @@ export default function AGVPathVisualizer({
         ))}
 
         {/* 任务状态指示器 */}
-        {getActiveTasks().map(({ task, position, agvId }, index) => (
+        {getActiveTasks().map(({ task, position, agvId }) => (
           <TaskStatusIndicator
-            key={`task-${agvId}-${index}`}
+            key={`task-${agvId}-${task.from}-${task.to}-${task.startTime}-${task.endTime}`}
             task={task}
             currentTime={currentTime}
             position={position}
@@ -822,8 +851,12 @@ export default function AGVPathVisualizer({
         {routes.map((route, index) => {
           const color = AGV_COLORS[index % AGV_COLORS.length]
           const position = getAGVPosition(route)
+          const highlighted = createRouteTokens(route.agvId).some((token) =>
+            highlightRouteSet.has(token)
+          )
+          const agvOpacity = hasRouteHighlights ? (highlighted ? 1 : 0.25) : 1
           return (
-            <g key={`agv-${route.agvId}`}>
+            <g key={`agv-${route.agvId}`} opacity={agvOpacity}>
               {/* AGV 小车主体 */}
               <circle
                 cx={position[0]}

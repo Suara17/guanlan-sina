@@ -6,7 +6,7 @@
 
 import * as d3 from 'd3'
 import { BarChart3, Clock, Truck, Zap } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import {
   AUTO_METRICS_OPTIMIZED,
   AUTO_METRICS_ORIGINAL,
@@ -24,6 +24,8 @@ interface AGVLayoutVisualizerProps {
     metricsOriginal?: typeof AUTO_METRICS_ORIGINAL
     metricsOptimized?: typeof AUTO_METRICS_OPTIMIZED
   }
+  highlightRouteIds?: string[]
+  onFocusResources?: (selection: { agvRouteIds?: string[] }) => void
 }
 
 const SCALE = 10
@@ -31,9 +33,33 @@ const WIDTH = 80 * SCALE
 const HEIGHT = 80 * SCALE
 const MARGIN = { top: 30, right: 30, bottom: 40, left: 40 }
 
+const normalizeResourceId = (id: string): string =>
+  id
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '')
+
+const createRouteTokens = (routeId: string, routeName: string, index: number): string[] => {
+  const tokens = new Set<string>()
+  for (const source of [routeId, routeName, `AGV-${index + 1}`, `R${index + 1}`]) {
+    const normalized = normalizeResourceId(source)
+    if (!normalized) continue
+    tokens.add(normalized)
+    const numberToken = normalized.match(/\d+/)?.[0]
+    if (!numberToken) continue
+    tokens.add(numberToken)
+    tokens.add(`agv${numberToken}`)
+    tokens.add(`r${numberToken}`)
+    tokens.add(`route${numberToken}`)
+  }
+  return Array.from(tokens)
+}
+
 export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
   isOptimized,
   agvData,
+  highlightRouteIds = [],
+  onFocusResources,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null)
 
@@ -44,6 +70,11 @@ export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
   const metrics = isOptimized
     ? agvData?.metricsOptimized || AUTO_METRICS_OPTIMIZED
     : agvData?.metricsOriginal || AUTO_METRICS_ORIGINAL
+  const highlightRouteSet = useMemo(
+    () => new Set(highlightRouteIds.map(normalizeResourceId).filter(Boolean)),
+    [highlightRouteIds]
+  )
+  const hasRouteHighlights = highlightRouteSet.size > 0
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -154,6 +185,9 @@ export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
 
     routes.forEach((route, i) => {
       const pathData = isOptimized ? route.pathOptimized : route.pathOriginal
+      const routeTokens = createRouteTokens(route.id, route.name, i)
+      const highlighted = routeTokens.some((token) => highlightRouteSet.has(token))
+      const routeOpacity = hasRouteHighlights ? (highlighted ? 1 : 0.2) : 0.8
 
       // 渲染路径线
       const path = routeGroup
@@ -161,11 +195,15 @@ export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
         .datum(pathData)
         .attr('fill', 'none')
         .attr('stroke', route.color)
-        .attr('stroke-width', 3)
+        .attr('stroke-width', highlighted ? 5 : 3)
         .attr('d', lineGenerator)
         .attr('stroke-linejoin', 'round')
         .attr('stroke-linecap', 'round')
-        .attr('opacity', 0.8)
+        .attr('opacity', routeOpacity)
+        .style('cursor', 'pointer')
+        .on('click', () =>
+          onFocusResources?.({ agvRouteIds: [route.id, route.name, `AGV-${i + 1}`] })
+        )
 
       // 路径中点箭头
       for (let j = 0; j < pathData.length - 1; j++) {
@@ -181,6 +219,7 @@ export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
           .attr('fill', 'white')
           .attr('stroke', route.color)
           .attr('stroke-width', 1)
+          .attr('opacity', routeOpacity)
           .attr('transform', `translate(${x(midX)}, ${y(midY)}) rotate(${-angle})`)
       }
 
@@ -190,6 +229,12 @@ export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
         const length = pathNode.getTotalLength()
 
         const agvGroup = g.append('g')
+        agvGroup
+          .style('cursor', 'pointer')
+          .attr('opacity', routeOpacity)
+          .on('click', () =>
+            onFocusResources?.({ agvRouteIds: [route.id, route.name, `AGV-${i + 1}`] })
+          )
 
         // AGV 主体
         agvGroup
@@ -208,9 +253,10 @@ export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
           .append('text')
           .text(`AGV${i + 1}`)
           .attr('font-size', '10px')
-          .attr('fill', '#1e293b')
+          .attr('fill', highlighted ? '#0f172a' : '#64748b')
           .attr('font-weight', 'bold')
           .attr('text-anchor', 'middle')
+          .attr('opacity', routeOpacity)
 
         const animate = () => {
           agvGroup
@@ -276,7 +322,7 @@ export const AGVLayoutVisualizer: React.FC<AGVLayoutVisualizerProps> = ({
       .attr('font-size', '9px')
       .attr('fill', '#475569')
       .attr('font-weight', '600')
-  }, [isOptimized, zones, routes, nodes])
+  }, [isOptimized, zones, routes, nodes, hasRouteHighlights, highlightRouteSet, onFocusResources])
 
   return (
     <div className="relative flex flex-col lg:flex-row gap-6 h-full min-h-0 p-4 lg:p-6 overflow-y-auto">

@@ -78,6 +78,75 @@ export interface TaskItem {
 }
 
 export type AssetMode = 'light' | 'heavy'
+export type CompareViewMode = 'single_toggle' | 'split_lr' | 'split_tb'
+
+export interface LayoutChangeItem {
+  deviceId: string
+  from: { x: number; y: number }
+  to: { x: number; y: number }
+  distance: number
+  changeType: 'moved' | 'fixed'
+}
+
+export interface LineDirectionChangeItem {
+  lineId: string
+  beforePath: Array<{ x: number; y: number }>
+  afterPath: Array<{ x: number; y: number }>
+}
+
+export interface ScheduleBar {
+  id: string
+  label: string
+  start: number
+  end: number
+  resourceIds: string[]
+  lane: 'A' | 'B'
+}
+
+export interface TimelineBinding {
+  slotId: string
+  start: number
+  end: number
+  deviceIds: string[]
+  lineIds: string[]
+  agvRouteIds: string[]
+}
+
+export interface ScenarioCostBinding {
+  scenarioId: string
+  assetMode: AssetMode
+  materialHandlingCost: number
+  equipmentMoveCost: number
+  totalCost: number
+}
+
+export interface SimulationComparisonPayload {
+  viewMode?: CompareViewMode
+  baseline?: {
+    layout?: Record<string, unknown>
+    schedule?: ScheduleBar[]
+  }
+  optimized?: {
+    layout?: Record<string, unknown>
+    schedule?: ScheduleBar[]
+  }
+  layoutSummary?: {
+    movedDevices: LayoutChangeItem[]
+    lineDirectionChanges: LineDirectionChangeItem[]
+    textSummary?: string
+  }
+  logisticsSummary?: {
+    textSummary?: string
+    keyMetrics?: Record<string, number>
+  }
+  scheduleComparison?: {
+    baselineTasks: ScheduleBar[]
+    optimizedTasks: ScheduleBar[]
+    deltaSummary?: string
+  }
+  timelineBindings?: TimelineBinding[]
+  costBinding?: ScenarioCostBinding
+}
 
 export interface EconomicMetric {
   label: string
@@ -328,6 +397,8 @@ export interface OptimizationParams {
   mode: 'product_switch'
   current_product_id: string
   next_product_id: string
+  asset_mode: AssetMode
+  compare_view_mode?: CompareViewMode
   current_layout: LayoutData
   process_flow: ProcessFlowData
   line_id: string

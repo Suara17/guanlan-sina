@@ -25,6 +25,7 @@ import ProductionPlanCard from '../components/ProductionPlanCard'
 import SinanAvatar from '../components/SinanAvatar'
 import { DASHBOARD_METRICS, getAnomaliesByLineType, PRODUCTION_LINES } from '../mockData'
 import type {
+  AssetMode,
   DashboardMetrics,
   NextPlan,
   OptimizationParams,
@@ -77,6 +78,7 @@ const Dashboard: React.FC = () => {
   })
 
   const [showProductAlert, setShowProductAlert] = useState(false)
+  const [assetMode, setAssetMode] = useState<AssetMode>('light')
 
   // 3.2 优化路线：加载生产计划数据（Mock数据）
   useEffect(() => {
@@ -168,10 +170,15 @@ const Dashboard: React.FC = () => {
   // 3.2 优化路线：处理优化按钮点击
   const handleOptimize = (params: OptimizationParams) => {
     // 跳转到天筹页面，携带产品切换优化参数
+    const optimizationParams: OptimizationParams = {
+      ...params,
+      asset_mode: params.asset_mode || assetMode,
+    }
+
     navigate('/app/tianchou', {
       state: {
         optimizationMode: 'product_switch',
-        ...params,
+        ...optimizationParams,
       },
     })
   }
@@ -313,6 +320,7 @@ const Dashboard: React.FC = () => {
             currentPlan={productionPlan.currentPlan}
             nextPlan={productionPlan.nextPlan}
             productChangeWarning={productionPlan.productChangeWarning}
+            assetMode={assetMode}
             onOptimize={handleOptimize}
           />
         </div>
@@ -500,6 +508,8 @@ const Dashboard: React.FC = () => {
         currentProduct={productionPlan.productChangeWarning?.current_product || ''}
         nextProduct={productionPlan.productChangeWarning?.next_product || ''}
         differences={productionPlan.productChangeWarning?.flow_differences || []}
+        assetMode={assetMode}
+        onAssetModeChange={setAssetMode}
         layoutSwitchMinutes={productionPlan.productChangeWarning?.layout_switch_minutes}
         onOptimize={() => {
           setShowProductAlert(false)
@@ -507,6 +517,7 @@ const Dashboard: React.FC = () => {
             mode: 'product_switch',
             current_product_id: productionPlan.currentPlan?.product_id || '',
             next_product_id: productionPlan.nextPlan?.product_id || '',
+            asset_mode: assetMode,
             current_layout: { devices: [], workshopDimensions: { length: 100, width: 60 } },
             process_flow: { steps: [] },
             line_id: selectedLine?.id || '',

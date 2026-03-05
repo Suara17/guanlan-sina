@@ -257,6 +257,7 @@ def trigger_product_switch_optimization(
     next_product_id: str,
     session: SessionDep,
     _current_user: CurrentUser,
+    asset_mode: str = "light",
 ) -> Any:
     """
     触发产品切换优化任务
@@ -274,6 +275,7 @@ def trigger_product_switch_optimization(
     return {
         "task_id": str(uuid.uuid4()),
         "status": "pending",
+        "asset_mode": asset_mode if asset_mode in {"light", "heavy"} else "light",
         "estimated_time": 30,
         "redirect_url": f"/app/tianchou"
     }

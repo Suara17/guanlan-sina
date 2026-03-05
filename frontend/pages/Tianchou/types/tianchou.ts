@@ -1,6 +1,7 @@
 /**
  * 天筹优化决策系统类型定义
  */
+import type { AssetMode, SimulationComparisonPayload } from '../../../types'
 
 export enum IndustryType {
   LIGHT = 'light',
@@ -63,6 +64,8 @@ export interface ParetoSolution {
 export interface SolutionDetail extends ParetoSolution {
   solution_data: Record<string, any>
   technical_details: Record<string, any>
+  asset_mode?: AssetMode
+  comparison_payload?: SimulationComparisonPayload
 }
 
 /**
@@ -176,6 +179,8 @@ export interface HeavyIndustryResult {
   solution: ParetoSolution
   taskId: string
   agvData: HeavyIndustryAGVData
+  asset_mode?: AssetMode
+  comparison_payload?: SimulationComparisonPayload
 }
 
 export interface LightIndustryResult {
@@ -183,6 +188,8 @@ export interface LightIndustryResult {
   solution: ParetoSolution
   taskId: string
   layoutData: LightIndustryLayoutData
+  asset_mode?: AssetMode
+  comparison_payload?: SimulationComparisonPayload
 }
 
 export type OptimizationResult = HeavyIndustryResult | LightIndustryResult
