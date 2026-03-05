@@ -44,6 +44,15 @@ type HuntianRedirectState = {
   focus?: FocusTarget
 }
 
+type ScenarioPlanContext = {
+  id: string
+  name: string
+  lineIds: string[]
+  deviceLabels: string[]
+  decisionSummary: string
+  expectedLoss: number | null
+}
+
 /**
  * 简单的 Card 组件
  */
@@ -104,6 +113,7 @@ export default function TianchouPage() {
   const [loading, setLoading] = useState(false)
   const [pendingFocus, setPendingFocus] = useState<FocusTarget | null>(null)
   const [selectedHistoryTask, setSelectedHistoryTask] = useState<TaskListItem | null>(null)
+  const [scenarioPlanContext, setScenarioPlanContext] = useState<ScenarioPlanContext | null>(null)
   const paretoSectionRef = useRef<HTMLDivElement | null>(null)
   const solutionSectionRef = useRef<HTMLDivElement | null>(null)
   const hasHandledHuntianRedirectRef = useRef(false)
@@ -157,6 +167,7 @@ export default function TianchouPage() {
       const params = location.state
       const assetMode: AssetMode = params.asset_mode === 'heavy' ? 'heavy' : 'light'
       const industryType = assetMode === 'heavy' ? IndustryType.HEAVY : IndustryType.LIGHT
+      setScenarioPlanContext(null)
 
       // 设置任务配置
       setTaskConfig({
@@ -184,7 +195,21 @@ export default function TianchouPage() {
         daily_output_value: 20000,
         base_cost: 20000,
       })
+      return
     }
+
+    if (optimizationMode === 'scenario_builder') {
+      const plan = location.state?.scenarioPlan as ScenarioPlanContext | undefined
+      if (!plan) return
+      setScenarioPlanContext(plan)
+      setTaskConfig({
+        industryType: 'light',
+        assetMode: 'light',
+        taskName: `编排联动优化: ${plan.name}`,
+      })
+      return
+    }
+    setScenarioPlanContext(null)
   }, [location.state])
 
   // 获取行业类型对应的标签
@@ -555,7 +580,7 @@ export default function TianchouPage() {
         totalCost: solution.total_cost,
         implementationDays: solution.implementation_days,
         expectedBenefit: solution.expected_benefit,
-        expectedLoss: solution.expected_benefit,
+        expectedLoss: solution.expected_loss,
         topsisScore: solution.topsis_score || 0,
       }
 
@@ -574,24 +599,55 @@ export default function TianchouPage() {
       <main className="max-w-7xl mx-auto space-y-6">
         {/* 配置阶段 - 左右布局 */}
         {view === 'config' && (
-          <div data-tour="tianchou-config" className="grid grid-cols-5 gap-6">
-            {/* 左侧：历史任务列表 (65% = col-span-3) */}
-            <div className="col-span-3">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 h-full">
-                <h2 className="text-xl font-semibold text-slate-800 mb-4">历史优化任务</h2>
-                <TaskHistoryList
-                  selectedTaskId={selectedHistoryTask?.task_id}
-                  onSelectTask={(task) => {
-                    setSelectedHistoryTask(task)
-                    loadTaskDetails(task.task_id)
-                  }}
+          <div data-tour="tianchou-config" className="space-y-4">
+            {scenarioPlanContext && (
+              <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                <h3 className="text-sm font-semibold text-blue-800">当前编排下的约束与目标</h3>
+                <p className="mt-1 text-sm text-blue-700">{scenarioPlanContext.decisionSummary}</p>
+                <p className="mt-1 text-sm text-blue-700">
+                  编排方案：{scenarioPlanContext.name} · 绑定产线{' '}
+                  {scenarioPlanContext.lineIds.length} 条
+                </p>
+                {scenarioPlanContext.expectedLoss != null && (
+                  <p className="mt-1 text-sm text-blue-700">
+                    预期损失：¥{scenarioPlanContext.expectedLoss.toLocaleString()}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-5 gap-6">
+              {/* 左侧：历史任务列表 (65% = col-span-3) */}
+              <div className="col-span-3">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 h-full">
+                  <h2 className="text-xl font-semibold text-slate-800 mb-4">历史优化任务</h2>
+                  <TaskHistoryList
+                    selectedTaskId={selectedHistoryTask?.task_id}
+                    onSelectTask={(task) => {
+                      setSelectedHistoryTask(task)
+                      loadTaskDetails(task.task_id)
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* 右侧：新建任务 (35% = col-span-2) */}
+              <div className="col-span-2">
+                <TaskConfigForm
+                  onSubmit={handleCreateTask}
+                  prefillFromScenario={
+                    scenarioPlanContext
+                      ? {
+                          scenarioName: scenarioPlanContext.name,
+                          taskName: `编排联动优化: ${scenarioPlanContext.name}`,
+                          productionLines: scenarioPlanContext.lineIds,
+                          expectedLoss: scenarioPlanContext.expectedLoss,
+                          decisionSummary: scenarioPlanContext.decisionSummary,
+                        }
+                      : undefined
+                  }
                 />
               </div>
-            </div>
-
-            {/* 右侧：新建任务 (35% = col-span-2) */}
-            <div className="col-span-2">
-              <TaskConfigForm onSubmit={handleCreateTask} />
             </div>
           </div>
         )}

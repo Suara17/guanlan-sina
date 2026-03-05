@@ -53,7 +53,9 @@ import {
   Zap,
 } from 'lucide-react'
 import type React from 'react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { PRODUCTION_LINES } from '../mockData'
 
 // 组件库项类型定义
 type ComponentItem = {
@@ -71,6 +73,7 @@ type ComponentItem = {
 const componentLibrary: {
   dataSources: ComponentItem[]
   atomicCapabilities: ComponentItem[]
+  decisionOutputs: ComponentItem[]
   dataProcessing: ComponentItem[]
   actions: ComponentItem[]
 } = {
@@ -159,6 +162,26 @@ const componentLibrary: {
       icon: Globe2,
       iconName: 'Globe2',
       color: 'cyan',
+      featured: true,
+    },
+  ],
+  decisionOutputs: [
+    {
+      id: 'decision-output',
+      label: '决策输出',
+      description: '输出推荐方案',
+      icon: Brain,
+      iconName: 'Brain',
+      color: 'blue',
+      featured: true,
+    },
+    {
+      id: 'plan-loss',
+      label: '方案与预期损失',
+      description: '方案收益/损失评估',
+      icon: AlertTriangle,
+      iconName: 'AlertTriangle',
+      color: 'rose',
       featured: true,
     },
   ],
@@ -332,6 +355,7 @@ function CustomNode({ data, selected }: NodeProps<Node<CustomNodeData>>) {
       Gauge,
       Microscope,
       Network,
+      Brain,
       Calculator,
       Globe2,
       GitBranch,
@@ -564,6 +588,38 @@ const initialEdges: Edge[] = [
   },
 ]
 
+const SCENARIO_PLAN_STORAGE_KEY = 'scenario_builder_plans_v1'
+
+type ScenarioPlanDraft = {
+  id: string
+  name: string
+  lineIds: string[]
+  deviceLabels: string[]
+  decisionSummary: string
+  expectedLoss: number | null
+  nodes: Node<CustomNodeData>[]
+  edges: Edge[]
+  createdAt: string
+  updatedAt: string
+}
+
+const getStoredPlans = (): ScenarioPlanDraft[] => {
+  try {
+    const raw = localStorage.getItem(SCENARIO_PLAN_STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as ScenarioPlanDraft[]
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+const setStoredPlans = (plans: ScenarioPlanDraft[]) => {
+  localStorage.setItem(SCENARIO_PLAN_STORAGE_KEY, JSON.stringify(plans))
+}
+
+const ACTION_NODE_LABEL_SET = new Set(componentLibrary.actions.map((item) => item.label))
+
 // 组件库项组件
 interface ComponentItemProps {
   item: ComponentItem
@@ -648,11 +704,65 @@ function CollapsibleSection({
 
 // 主画布组件
 function FlowCanvas() {
+  const navigate = useNavigate()
   const [nodes, setNodes] = useState<Node<CustomNodeData>[]>(initialNodes)
   const [edges, setEdges] = useState<Edge[]>(initialEdges)
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const { screenToFlowPosition } = useReactFlow()
   const [selectedNodes, setSelectedNodes] = useState<string[]>([])
+  const [scenarioId, setScenarioId] = useState<string>(`scn-${Date.now()}`)
+  const [scenarioName, setScenarioName] = useState('PCB 缺陷检测流程')
+  const [selectedLineIds, setSelectedLineIds] = useState<string[]>([])
+  const [selectedDeviceLabels, setSelectedDeviceLabels] = useState<string[]>([])
+  const [decisionSummary, setDecisionSummary] = useState(
+    '默认推荐方案：先执行根因工位隔离，再触发优化求解。'
+  )
+  const [expectedLossInput, setExpectedLossInput] = useState('12000')
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
+  const [saveNotice, setSaveNotice] = useState<string | null>(null)
+
+  const actionNodeLabels = useMemo(
+    () =>
+      nodes
+        .filter((node) => ACTION_NODE_LABEL_SET.has(node.data.label))
+        .map((node) => node.data.label)
+        .filter((label, index, arr) => arr.indexOf(label) === index),
+    [nodes]
+  )
+
+  useEffect(() => {
+    const stored = getStoredPlans()
+    if (stored.length === 0) {
+      return
+    }
+    const latest = stored
+      .slice()
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0]
+    if (!latest) return
+    setScenarioId(latest.id)
+    setScenarioName(latest.name)
+    setSelectedLineIds(latest.lineIds)
+    setSelectedDeviceLabels(latest.deviceLabels)
+    setDecisionSummary(latest.decisionSummary)
+    setExpectedLossInput(
+      latest.expectedLoss != null && Number.isFinite(latest.expectedLoss)
+        ? String(latest.expectedLoss)
+        : ''
+    )
+    setNodes(latest.nodes)
+    setEdges(latest.edges)
+    setLastSavedAt(latest.updatedAt)
+  }, [])
+
+  useEffect(() => {
+    if (actionNodeLabels.length === 0) {
+      setSelectedDeviceLabels([])
+      return
+    }
+    setSelectedDeviceLabels((previous) =>
+      previous.filter((label) => actionNodeLabels.includes(label))
+    )
+  }, [actionNodeLabels])
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => {
@@ -752,12 +862,81 @@ function FlowCanvas() {
     setSelectedNodes([])
   }, [])
 
+  const persistScenarioPlan = useCallback((): ScenarioPlanDraft => {
+    const nowIso = new Date().toISOString()
+    const expectedLoss = Number(expectedLossInput)
+    const draft: ScenarioPlanDraft = {
+      id: scenarioId,
+      name: scenarioName.trim() || '未命名编排方案',
+      lineIds: selectedLineIds,
+      deviceLabels: selectedDeviceLabels,
+      decisionSummary: decisionSummary.trim(),
+      expectedLoss: Number.isFinite(expectedLoss) ? expectedLoss : null,
+      nodes,
+      edges,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    }
+    const previous = getStoredPlans().filter((plan) => plan.id !== draft.id)
+    setStoredPlans([draft, ...previous])
+    setLastSavedAt(nowIso)
+    setSaveNotice(`已保存：${draft.name}`)
+    return draft
+  }, [
+    decisionSummary,
+    edges,
+    expectedLossInput,
+    nodes,
+    scenarioId,
+    scenarioName,
+    selectedDeviceLabels,
+    selectedLineIds,
+  ])
+
+  const handleDeployToOptimization = useCallback(() => {
+    const draft = persistScenarioPlan()
+    navigate('/app/tianchou', {
+      state: {
+        optimizationMode: 'scenario_builder',
+        scenarioPlan: draft,
+      },
+    })
+  }, [navigate, persistScenarioPlan])
+
+  const handleDeployToSimulation = useCallback(() => {
+    const draft = persistScenarioPlan()
+    navigate('/app/huntian', {
+      state: {
+        fromScenarioBuilder: true,
+        scenarioPlan: draft,
+      },
+    })
+  }, [navigate, persistScenarioPlan])
+
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]" onKeyDown={onKeyDown} tabIndex={0}>
       {/* Toolbar */}
-      <div className="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h2 className="font-bold text-slate-800">PCB 缺陷检测流程</h2>
+      <div className="bg-white border-b border-slate-200 px-6 py-2 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <input
+            type="text"
+            value={scenarioName}
+            onChange={(event) => setScenarioName(event.target.value)}
+            className="px-3 py-1.5 border border-slate-300 rounded text-sm font-semibold text-slate-800 min-w-[260px]"
+            placeholder="输入编排方案名称"
+          />
+          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+            适用产线 {selectedLineIds.length} 条
+          </span>
+          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+            绑定设备 {selectedDeviceLabels.length} 个
+          </span>
+          {lastSavedAt && (
+            <span className="text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded">
+              最近保存 {new Date(lastSavedAt).toLocaleString()}
+            </span>
+          )}
+          {saveNotice && <span className="text-xs text-blue-700">{saveNotice}</span>}
         </div>
         <div className="flex items-center gap-2">
           {selectedNodes.length > 0 && (
@@ -778,15 +957,24 @@ function FlowCanvas() {
           </button>
           <button
             type="button"
+            onClick={persistScenarioPlan}
             className="px-3 py-1.5 text-slate-600 hover:bg-slate-50 rounded text-sm font-medium flex items-center gap-2 transition-colors"
           >
             <Save size={16} /> 保存
           </button>
           <button
             type="button"
+            onClick={handleDeployToSimulation}
+            className="px-4 py-1.5 bg-cyan-600 text-white rounded text-sm font-medium flex items-center gap-2 hover:bg-cyan-700 transition-colors"
+          >
+            <Play size={16} /> 按编排推演
+          </button>
+          <button
+            type="button"
+            onClick={handleDeployToOptimization}
             className="px-4 py-1.5 bg-blue-600 text-white rounded text-sm font-medium flex items-center gap-2 hover:bg-blue-700 transition-colors"
           >
-            <Play size={16} /> 部署运行
+            <Play size={16} /> 创建优化任务
           </button>
         </div>
       </div>
@@ -814,6 +1002,15 @@ function FlowCanvas() {
               defaultExpanded={true}
             />
 
+            {/* 决策输出 */}
+            <CollapsibleSection
+              title="决策输出"
+              titleColor="text-blue-600"
+              icon={<Target size={12} />}
+              items={componentLibrary.decisionOutputs}
+              onDragStart={onDragStart}
+            />
+
             {/* 数据处理 */}
             <CollapsibleSection
               title="数据处理"
@@ -831,6 +1028,94 @@ function FlowCanvas() {
               items={componentLibrary.actions}
               onDragStart={onDragStart}
             />
+
+            <div className="p-3 bg-white border border-slate-200 rounded-lg space-y-3">
+              <div>
+                <p className="text-xs font-bold text-slate-600 uppercase">适用产线</p>
+                <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                  {PRODUCTION_LINES.map((line) => {
+                    const checked = selectedLineIds.includes(line.id)
+                    return (
+                      <label
+                        key={line.id}
+                        className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(event) => {
+                            if (event.target.checked) {
+                              setSelectedLineIds((prev) =>
+                                prev.includes(line.id) ? prev : [...prev, line.id]
+                              )
+                            } else {
+                              setSelectedLineIds((prev) => prev.filter((id) => id !== line.id))
+                            }
+                          }}
+                        />
+                        <span>{line.name}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-600 uppercase">绑定设备列表</p>
+                {actionNodeLabels.length === 0 ? (
+                  <p className="mt-2 text-xs text-slate-400">暂无可绑定执行节点</p>
+                ) : (
+                  <div className="mt-2 space-y-1">
+                    {actionNodeLabels.map((label) => {
+                      const checked = selectedDeviceLabels.includes(label)
+                      return (
+                        <label
+                          key={label}
+                          className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(event) => {
+                              if (event.target.checked) {
+                                setSelectedDeviceLabels((prev) =>
+                                  prev.includes(label) ? prev : [...prev, label]
+                                )
+                              } else {
+                                setSelectedDeviceLabels((prev) =>
+                                  prev.filter((item) => item !== label)
+                                )
+                              }
+                            }}
+                          />
+                          <span>{label}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-600 uppercase">本次方案</label>
+                <textarea
+                  value={decisionSummary}
+                  onChange={(event) => setDecisionSummary(event.target.value)}
+                  rows={3}
+                  className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded text-xs"
+                  placeholder="例如：先降载后旁路，10分钟内恢复产能。"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-600 uppercase">预期损失（元）</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={expectedLossInput}
+                  onChange={(event) => setExpectedLossInput(event.target.value)}
+                  className="mt-1 w-full px-2 py-1.5 border border-slate-300 rounded text-xs"
+                  placeholder="12000"
+                />
+              </div>
+            </div>
           </div>
 
           {/* 使用提示 */}
