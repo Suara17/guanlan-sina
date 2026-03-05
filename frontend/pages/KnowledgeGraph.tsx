@@ -1,12 +1,75 @@
 import { AlertTriangle, RefreshCw, Settings, X } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import KnowledgeGraphCanvas from '../components/KnowledgeGraphCanvas'
 import NodeDetailPanel from '../components/NodeDetailPanel'
 import { getAllKnowledgeGraphsMerged } from '../mockData'
 import { KnowledgeGraphAdapter } from '../services/dataAdapter'
 import type { KnowledgeGraph, KnowledgeNode } from '../types'
+
+const MAX_NODES = 100
+
+const getEdgeNodeId = (node: string | { id: string }) => (typeof node === 'string' ? node : node.id)
+
+const limitGraphNodes = (graph: KnowledgeGraph, maxNodes: number): KnowledgeGraph => {
+  if (graph.nodes.length <= maxNodes) return graph
+
+  const nodeOrder = graph.nodes.map((node) => node.id)
+  const adjacency = new Map<string, string[]>()
+  nodeOrder.forEach((nodeId) => adjacency.set(nodeId, []))
+
+  graph.edges.forEach((edge) => {
+    const sourceId = getEdgeNodeId(edge.source)
+    const targetId = getEdgeNodeId(edge.target)
+    adjacency.set(sourceId, [...(adjacency.get(sourceId) || []), targetId])
+    adjacency.set(targetId, [...(adjacency.get(targetId) || []), sourceId])
+  })
+
+  const selected = new Set<string>()
+  const queue: string[] = []
+  const seeds = graph.nodes.filter((node) => node.type === 'phenomenon')
+  const initialSeeds = (seeds.length > 0 ? seeds : graph.nodes.slice(0, 1))
+    .map((node) => node.id)
+    .slice(0, maxNodes)
+
+  initialSeeds.forEach((nodeId) => {
+    selected.add(nodeId)
+    queue.push(nodeId)
+  })
+
+  while (queue.length > 0 && selected.size < maxNodes) {
+    const currentId = queue.shift()
+    if (!currentId) continue
+    const neighbors = adjacency.get(currentId) || []
+    for (const neighborId of neighbors) {
+      if (selected.size >= maxNodes) break
+      if (selected.has(neighborId)) continue
+      selected.add(neighborId)
+      queue.push(neighborId)
+    }
+  }
+
+  if (selected.size < maxNodes) {
+    for (const nodeId of nodeOrder) {
+      if (selected.size >= maxNodes) break
+      if (!selected.has(nodeId)) selected.add(nodeId)
+    }
+  }
+
+  const nodes = graph.nodes.filter((node) => selected.has(node.id))
+  const edges = graph.edges.filter((edge) => {
+    const sourceId = getEdgeNodeId(edge.source)
+    const targetId = getEdgeNodeId(edge.target)
+    return selected.has(sourceId) && selected.has(targetId)
+  })
+
+  return {
+    ...graph,
+    nodes,
+    edges,
+  }
+}
 
 const KnowledgeGraphPage: React.FC = () => {
   const navigate = useNavigate()
@@ -19,9 +82,10 @@ const KnowledgeGraphPage: React.FC = () => {
   const [isCompactView, setIsCompactView] = useState(false)
   const [dataSource, setDataSource] = useState<'neo4j' | 'mock'>('mock')
   const [error, setError] = useState<string | null>(null)
-  const MAX_NODES = 200
+  const [visibleNodeIds, setVisibleNodeIds] = useState<Set<string>>(new Set())
+  const [isGrowthFinished, setIsGrowthFinished] = useState(false)
+  const visibleNodeIdsRef = useRef<Set<string>>(new Set())
 
-  // 将Neo4j返回的所有异常数据转换为知识图谱格式
   const convertAnomaliesToGraph = (anomalies: any[]): KnowledgeGraph => {
     const nodes: KnowledgeNode[] = []
     const edges: Array<{
@@ -43,7 +107,6 @@ const KnowledgeGraphPage: React.FC = () => {
     anomalies.forEach((anomaly) => {
       if (nodes.length >= MAX_NODES) return
 
-      // 创建现象节点
       const phenomenonId = `phenomenon-${anomaly.sequence}`
       if (
         !addNode({
@@ -56,12 +119,10 @@ const KnowledgeGraphPage: React.FC = () => {
         return
       }
 
-      // 处理原因节点
       const causeNodeIds: string[] = []
       if (anomaly.causes && Array.isArray(anomaly.causes)) {
         anomaly.causes.forEach((cause: any, cIndex: number) => {
           if (nodes.length >= MAX_NODES) return
-
           const causeId = `cause-${anomaly.sequence}-${cIndex}`
           if (
             !addNode({
@@ -75,8 +136,6 @@ const KnowledgeGraphPage: React.FC = () => {
           }
 
           causeNodeIds.push(causeId)
-
-          // 现象到原因的关系
           edges.push({
             id: `edge-phenomenon-${anomaly.sequence}-cause-${cIndex}`,
             source: phenomenonId,
@@ -87,11 +146,9 @@ const KnowledgeGraphPage: React.FC = () => {
         })
       }
 
-      // 处理解决方案节点
       if (anomaly.solutions && Array.isArray(anomaly.solutions)) {
         anomaly.solutions.forEach((solution: any, sIndex: number) => {
           if (nodes.length >= MAX_NODES) return
-
           const solutionId = `solution-${anomaly.sequence}-${sIndex}`
           if (
             !addNode({
@@ -104,7 +161,6 @@ const KnowledgeGraphPage: React.FC = () => {
             return
           }
 
-          // 将解决方案连接到对应的原因（如果有的话）
           if (causeNodeIds.length > 0) {
             const targetCause = causeNodeIds[sIndex % causeNodeIds.length]
             edges.push({
@@ -126,44 +182,135 @@ const KnowledgeGraphPage: React.FC = () => {
     }
   }
 
+  const nodeClusterMap = useMemo(() => {
+    const map = new Map<string, string>()
+    if (!graphData) return map
+
+    const adjacency = new Map<string, string[]>()
+    graphData.nodes.forEach((node) => adjacency.set(node.id, []))
+    graphData.edges.forEach((edge) => {
+      const sourceId = getEdgeNodeId(edge.source)
+      const targetId = getEdgeNodeId(edge.target)
+      adjacency.set(sourceId, [...(adjacency.get(sourceId) || []), targetId])
+    })
+
+    const roots = graphData.nodes.filter((node) => node.type === 'phenomenon')
+    const seeds = roots.length > 0 ? roots : graphData.nodes.slice(0, 1)
+
+    seeds.forEach((root) => {
+      if (!map.has(root.id)) map.set(root.id, root.id)
+      const queue = [root.id]
+      while (queue.length > 0) {
+        const current = queue.shift()
+        if (!current) continue
+        const neighbors = adjacency.get(current) || []
+        neighbors.forEach((neighborId) => {
+          if (!map.has(neighborId)) {
+            map.set(neighborId, root.id)
+            queue.push(neighborId)
+          }
+        })
+      }
+    })
+
+    graphData.nodes.forEach((node) => {
+      if (!map.has(node.id)) map.set(node.id, node.id)
+    })
+
+    return map
+  }, [graphData])
+
+  const initializeGrowth = useCallback((graph: KnowledgeGraph) => {
+    const roots = graph.nodes.filter((node) => node.type === 'phenomenon')
+    const seeds = roots.length > 0 ? roots : graph.nodes.slice(0, 1)
+    const initialVisible = new Set(seeds.map((node) => node.id))
+    visibleNodeIdsRef.current = initialVisible
+    setVisibleNodeIds(initialVisible)
+    setIsGrowthFinished(initialVisible.size >= graph.nodes.length)
+
+    setSelectedNode((current) => {
+      if (current && initialVisible.has(current.id)) return current
+      return seeds[0] || current
+    })
+  }, [])
+
+  const growOneStep = useCallback(() => {
+    if (!graphData) return
+    const current = visibleNodeIdsRef.current
+    const total = graphData.nodes.length
+    if (current.size >= total) {
+      setIsGrowthFinished(true)
+      return
+    }
+
+    const candidates = new Set<string>()
+    graphData.edges.forEach((edge) => {
+      const sourceId = getEdgeNodeId(edge.source)
+      const targetId = getEdgeNodeId(edge.target)
+      if (current.has(sourceId) && !current.has(targetId)) {
+        candidates.add(targetId)
+      }
+    })
+
+    if (candidates.size === 0) {
+      const remaining = graphData.nodes.find((node) => !current.has(node.id))
+      if (remaining) candidates.add(remaining.id)
+    }
+
+    if (candidates.size === 0) {
+      setIsGrowthFinished(true)
+      return
+    }
+
+    const bucket = new Map<string, string[]>()
+    candidates.forEach((nodeId) => {
+      const key = nodeClusterMap.get(nodeId) || nodeId
+      if (!bucket.has(key)) bucket.set(key, [])
+      bucket.get(key)?.push(nodeId)
+    })
+
+    const nextIds: string[] = []
+    bucket.forEach((ids) => {
+      if (ids.length > 0) nextIds.push(ids[0])
+    })
+
+    const nextVisible = new Set(current)
+    nextIds.forEach((id) => nextVisible.add(id))
+    visibleNodeIdsRef.current = nextVisible
+    setVisibleNodeIds(nextVisible)
+    if (nextVisible.size >= total) setIsGrowthFinished(true)
+  }, [graphData, nodeClusterMap])
+
   useEffect(() => {
     const loadKnowledgeGraph = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        // 从URL参数获取异常ID
         const searchParams = new URLSearchParams(location.search)
         const anomalyId = searchParams.get('anomalyId')
 
-        // 如果没有ID，展示所有知识图谱数据（从Neo4j获取）
         if (!anomalyId) {
-          // 首先检查Neo4j可用性
           const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
-
           if (neo4jAvailable) {
             try {
-              // 从Neo4j获取所有异常数据
               const allAnomalies = await KnowledgeGraphAdapter.getAllAnomalies()
-
               if (allAnomalies && allAnomalies.length > 0) {
-                // 将所有异常数据转换为知识图谱格式
                 const mergedGraph = convertAnomaliesToGraph(allAnomalies)
-                setGraphData(mergedGraph)
+                setGraphData(limitGraphNodes(mergedGraph, MAX_NODES))
                 setIsDefaultView(false)
                 setIsCompactView(true)
                 setDataSource('neo4j')
                 setLoading(false)
                 return
               }
-            } catch (error) {
-              console.error('Failed to load all anomalies from Neo4j:', error)
+            } catch (loadError) {
+              console.error('Failed to load all anomalies from Neo4j:', loadError)
             }
           }
 
-          // 如果Neo4j不可用或查询失败，降级到模拟数据
           const allData = getAllKnowledgeGraphsMerged()
-          setGraphData(allData)
+          setGraphData(limitGraphNodes(allData, MAX_NODES))
           setIsDefaultView(false)
           setIsCompactView(true)
           setDataSource('mock')
@@ -171,30 +318,18 @@ const KnowledgeGraphPage: React.FC = () => {
           return
         }
 
-        // 首先检查Neo4j可用性
         const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
-
         let data: KnowledgeGraph | null = null
-
         if (neo4jAvailable) {
-          // 尝试从Neo4j获取数据
           data = await KnowledgeGraphAdapter.getKnowledgeGraph(anomalyId)
-          if (data) {
-            setDataSource('neo4j')
-          }
+          if (data) setDataSource('neo4j')
         }
-
-        // 如果Neo4j失败或无数据，已在适配器内部降级到模拟数据
-        if (!data) {
-          setDataSource('mock')
-        }
+        if (!data) setDataSource('mock')
 
         if (data) {
-          setGraphData(data)
+          setGraphData(limitGraphNodes(data, MAX_NODES))
           setIsDefaultView(false)
           setIsCompactView(false)
-
-          // 默认选中第一个现象节点
           const phenomenonNode = data.nodes.find((node) => node.type === 'phenomenon')
           if (phenomenonNode) {
             setSelectedNode(phenomenonNode)
@@ -215,6 +350,17 @@ const KnowledgeGraphPage: React.FC = () => {
     loadKnowledgeGraph()
   }, [location.search])
 
+  useEffect(() => {
+    if (!graphData) return
+    initializeGrowth(graphData)
+  }, [graphData, initializeGrowth])
+
+  useEffect(() => {
+    if (!graphData || isGrowthFinished) return
+    const timer = setInterval(growOneStep, 800)
+    return () => clearInterval(timer)
+  }, [graphData, isGrowthFinished, growOneStep])
+
   const handleNodeClick = (node: KnowledgeNode) => {
     setSelectedNode(node)
     setShowDetailPanel(true)
@@ -231,51 +377,35 @@ const KnowledgeGraphPage: React.FC = () => {
     try {
       setLoading(true)
       setError(null)
-
       if (!anomalyId) {
-        // 如果没有异常ID，刷新所有数据
         const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
-
         if (neo4jAvailable) {
           try {
-            // 从Neo4j获取所有异常数据
             const allAnomalies = await KnowledgeGraphAdapter.getAllAnomalies()
-
             if (allAnomalies && allAnomalies.length > 0) {
-              // 将所有异常数据转换为知识图谱格式
               const mergedGraph = convertAnomaliesToGraph(allAnomalies)
-              setGraphData(mergedGraph)
+              setGraphData(limitGraphNodes(mergedGraph, MAX_NODES))
               setDataSource('neo4j')
+              return
             }
-          } catch (error) {
-            console.error('Failed to refresh all anomalies from Neo4j:', error)
+          } catch (refreshError) {
+            console.error('Failed to refresh all anomalies from Neo4j:', refreshError)
           }
         }
-
-        // 如果Neo4j不可用或查询失败，降级到模拟数据
-        if (!graphData || dataSource === 'mock') {
-          const allData = getAllKnowledgeGraphsMerged()
-          setGraphData(allData)
-          setDataSource('mock')
-        }
+        const allData = getAllKnowledgeGraphsMerged()
+        setGraphData(limitGraphNodes(allData, MAX_NODES))
+        setDataSource('mock')
       } else {
-        // 有异常ID的情况，按原有逻辑处理
         const neo4jAvailable = await KnowledgeGraphAdapter.checkNeo4jAvailability()
         let data: KnowledgeGraph | null = null
-
         if (neo4jAvailable) {
           data = await KnowledgeGraphAdapter.getKnowledgeGraph(anomalyId)
-          if (data) {
-            setDataSource('neo4j')
-          }
+          if (data) setDataSource('neo4j')
         }
-
-        if (!data) {
-          setDataSource('mock')
-        }
+        if (!data) setDataSource('mock')
 
         if (data) {
-          setGraphData(data)
+          setGraphData(limitGraphNodes(data, MAX_NODES))
           const phenomenonNode = data.nodes.find((node) => node.type === 'phenomenon')
           if (phenomenonNode) {
             setSelectedNode(phenomenonNode)
@@ -292,30 +422,29 @@ const KnowledgeGraphPage: React.FC = () => {
   }
 
   const handleGenerateSolution = () => {
-    if (graphData) {
-      navigate(`/app/sinan?anomalyId=${graphData.anomalyId}`, {
-        state: {
-          anomaly: {
-            id: graphData.anomalyId,
-            phenomenon: selectedNode?.description || '未知异常',
-            rootCauses: graphData.nodes
-              .filter((node) => node.type === 'cause')
-              .map((node) => node.description),
-            solutions: graphData.nodes
-              .filter((node) => node.type === 'solution')
-              .map((node) => ({
-                id: node.id,
-                name: node.label,
-                description: node.description,
-                estimatedTime: '15-30分钟',
-                successRate: 85,
-                risk: 12,
-              })),
-          },
-          knowledgeGraph: graphData,
+    if (!graphData) return
+    navigate(`/app/sinan?anomalyId=${graphData.anomalyId}`, {
+      state: {
+        anomaly: {
+          id: graphData.anomalyId,
+          phenomenon: selectedNode?.description || '未知异常',
+          rootCauses: graphData.nodes
+            .filter((node) => node.type === 'cause')
+            .map((node) => node.description),
+          solutions: graphData.nodes
+            .filter((node) => node.type === 'solution')
+            .map((node) => ({
+              id: node.id,
+              name: node.label,
+              description: node.description,
+              estimatedTime: '15-30分钟',
+              successRate: 85,
+              risk: 12,
+            })),
         },
-      })
-    }
+        knowledgeGraph: graphData,
+      },
+    })
   }
 
   if (loading) {
@@ -351,9 +480,12 @@ const KnowledgeGraphPage: React.FC = () => {
     )
   }
 
+  const totalNodes = graphData.nodes.length
+  const visibleCount = visibleNodeIds.size
+  const growthPercent = totalNodes > 0 ? Math.round((visibleCount / totalNodes) * 100) : 0
+
   return (
     <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
-      {/* 顶部导航 */}
       <div className="bg-white border-b border-slate-200 px-6 py-3 flex-none z-20 shadow-sm">
         <div className="relative flex items-center justify-center">
           <div className="flex items-center gap-4">
@@ -364,7 +496,6 @@ const KnowledgeGraphPage: React.FC = () => {
               </p>
             </div>
 
-            {/* 数据源指示器 */}
             <div className="flex items-center gap-2">
               <div
                 className={`w-2 h-2 rounded-full ${
@@ -374,6 +505,11 @@ const KnowledgeGraphPage: React.FC = () => {
               <span className="text-xs text-slate-600">
                 {dataSource === 'neo4j' ? '实时数据' : '演示数据'}
               </span>
+            </div>
+
+            <div className="bg-slate-100 border border-slate-200 text-slate-600 px-3 py-1 rounded-md text-xs">
+              自动生长: {visibleCount}/{totalNodes} ({growthPercent}%)
+              {isGrowthFinished ? ' 已完成' : ' 进行中'}
             </div>
 
             {isDefaultView && (
@@ -410,7 +546,6 @@ const KnowledgeGraphPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 错误提示 */}
       {error && (
         <div className="bg-red-50 border-b border-red-200 px-6 py-3">
           <div className="flex items-center gap-2 text-red-700">
@@ -426,19 +561,17 @@ const KnowledgeGraphPage: React.FC = () => {
         </div>
       )}
 
-      {/* 主要内容区域 - 相对定位容器 */}
       <div className="flex-1 relative overflow-hidden">
-        {/* 图谱画布 - 占据整个区域 */}
         <div className="absolute inset-0 bg-slate-50" data-tour="gewu-canvas">
           <KnowledgeGraphCanvas
             graphData={graphData}
+            visibleNodeIds={visibleNodeIds}
             onNodeClick={handleNodeClick}
             selectedNodeId={selectedNode?.id}
             isCompactView={isCompactView}
           />
         </div>
 
-        {/* 节点详情面板 - 悬浮在右侧 */}
         {showDetailPanel && (
           <div className="absolute top-4 right-4 w-80 max-h-[calc(100%-32px)] flex flex-col z-10 shadow-2xl rounded-xl overflow-hidden animate-in slide-in-from-right-10 duration-300">
             <div className="bg-white flex-1 overflow-hidden flex flex-col rounded-xl border border-slate-200">
@@ -455,7 +588,6 @@ const KnowledgeGraphPage: React.FC = () => {
           </div>
         )}
 
-        {/* 提示遮罩 - 如果未选中节点且面板关闭，可以显示一个小的提示按钮或文字（可选） */}
         {!showDetailPanel && (
           <div className="absolute top-4 right-4 z-10">
             <button
