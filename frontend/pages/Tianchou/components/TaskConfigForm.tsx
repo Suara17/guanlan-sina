@@ -3,24 +3,27 @@
  */
 
 import type React from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getTemplateById, getTemplatesByIndustry } from '../data/templates'
 import {
   IndustryType,
-  TaskPriority,
   type OptimizationRequestParams,
   type TaskConstraints,
-  type TaskTemplate,
+  TaskPriority,
 } from '../types/tianchou'
-import {
-  getTemplatesByIndustry,
-  getTemplateById,
-} from '../data/templates'
 
 interface Props {
   onSubmit: (params: OptimizationRequestParams, constraints?: TaskConstraints) => void
+  prefillFromScenario?: {
+    scenarioName: string
+    taskName?: string
+    productionLines?: string[]
+    expectedLoss?: number | null
+    decisionSummary?: string
+  }
 }
 
-export function TaskConfigForm({ onSubmit }: Props) {
+export function TaskConfigForm({ onSubmit, prefillFromScenario }: Props) {
   const [industryType, setIndustryType] = useState<IndustryType>(IndustryType.LIGHT)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
   const [name, setName] = useState('')
@@ -44,6 +47,13 @@ export function TaskConfigForm({ onSubmit }: Props) {
   const [batchCount, setBatchCount] = useState<number | undefined>(undefined)
 
   const templates = getTemplatesByIndustry(industryType)
+
+  useEffect(() => {
+    if (!prefillFromScenario) return
+    if (prefillFromScenario.taskName) {
+      setName(prefillFromScenario.taskName)
+    }
+  }, [prefillFromScenario])
 
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplateId(templateId)
@@ -117,6 +127,9 @@ export function TaskConfigForm({ onSubmit }: Props) {
     if (changeoverTime) constraints.changeover_time = changeoverTime
     if (priority) constraints.priority = priority
     if (batchCount) constraints.batch_count = batchCount
+    if (prefillFromScenario?.productionLines && prefillFromScenario.productionLines.length > 0) {
+      constraints.production_lines = prefillFromScenario.productionLines
+    }
 
     const hasConstraints = Object.keys(constraints).length > 0
     onSubmit(hasConstraints ? params : params, hasConstraints ? constraints : undefined)
@@ -127,6 +140,27 @@ export function TaskConfigForm({ onSubmit }: Props) {
       <h2 className="text-2xl font-bold mb-6">创建优化任务</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {prefillFromScenario && (
+          <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm">
+            <p className="font-semibold text-blue-800">
+              来自场景编排：{prefillFromScenario.scenarioName}
+            </p>
+            <p className="mt-1 text-blue-700">
+              {prefillFromScenario.decisionSummary || '已注入编排上下文约束。'}
+            </p>
+            {prefillFromScenario.productionLines &&
+              prefillFromScenario.productionLines.length > 0 && (
+                <p className="mt-1 text-blue-700">
+                  适用产线：{prefillFromScenario.productionLines.join(', ')}
+                </p>
+              )}
+            {prefillFromScenario.expectedLoss != null && (
+              <p className="mt-1 text-blue-700">
+                预期损失：¥{prefillFromScenario.expectedLoss.toLocaleString()}
+              </p>
+            )}
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium mb-2">任务名称</label>
           <input

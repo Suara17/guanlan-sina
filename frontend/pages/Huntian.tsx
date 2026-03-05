@@ -271,6 +271,15 @@ type HuntianDecisionContext = {
   topsisScore?: number
 }
 
+type ScenarioPlanContext = {
+  id: string
+  name: string
+  lineIds: string[]
+  deviceLabels: string[]
+  decisionSummary: string
+  expectedLoss: number | null
+}
+
 type HuntianRouteState = {
   optimizationResult?: {
     type?: string
@@ -289,6 +298,8 @@ type HuntianRouteState = {
     }
   }
   decisionContext?: HuntianDecisionContext
+  scenarioPlan?: ScenarioPlanContext
+  fromScenarioBuilder?: boolean
 }
 
 type SimulationMode = 'device_rearrangement' | 'route_optimization'
@@ -790,6 +801,7 @@ const Huntian: React.FC = () => {
   const [agvData, setAgvData] = useState<Record<string, unknown> | null>(null)
   const [layoutData, setLayoutData] = useState<Record<string, unknown> | null>(null)
   const [decisionContext, setDecisionContext] = useState<HuntianDecisionContext | null>(null)
+  const [scenarioPlanContext, setScenarioPlanContext] = useState<ScenarioPlanContext | null>(null)
   const [assetMode, setAssetMode] = useState<AssetMode>('light')
   const [compareViewMode, setCompareViewMode] = useState<CompareViewMode>('single_toggle')
   const [comparisonPayload, setComparisonPayload] = useState<SimulationComparisonPayload | null>(
@@ -900,6 +912,17 @@ const Huntian: React.FC = () => {
   // 从路由 state 接收数据，无数据时兜底读取最近已完成任务
   useEffect(() => {
     const state = location.state as HuntianRouteState | null
+
+    if (state?.scenarioPlan) {
+      setScenarioPlanContext(state.scenarioPlan)
+      if (!state.decisionContext) {
+        setDecisionContext((prev) => ({
+          ...prev,
+          taskName: state.scenarioPlan.name,
+          expectedLoss: state.scenarioPlan.expectedLoss ?? undefined,
+        }))
+      }
+    }
 
     // 优先级1：直接传入 decisionContext
     if (state?.decisionContext) {
@@ -1288,6 +1311,22 @@ const Huntian: React.FC = () => {
           </div>
 
           <div className="h-8 w-px bg-white/10 mx-1 shrink-0"></div>
+
+          {scenarioPlanContext && (
+            <div className="flex items-center gap-2 shrink-0 text-[10px]">
+              <span className="px-2 py-1 rounded border border-cyan-300/30 bg-cyan-500/10 text-cyan-200">
+                编排：{scenarioPlanContext.name}
+              </span>
+              <span className="px-2 py-1 rounded border border-slate-300/30 bg-white/5 text-slate-200">
+                产线 {scenarioPlanContext.lineIds.length} 条
+              </span>
+              {scenarioPlanContext.expectedLoss != null && (
+                <span className="px-2 py-1 rounded border border-amber-300/30 bg-amber-500/10 text-amber-200">
+                  预期损失 ¥{scenarioPlanContext.expectedLoss.toLocaleString()}
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-2 shrink-0">
             <div className="flex bg-white/5 border border-white/10 rounded-xl p-1">
