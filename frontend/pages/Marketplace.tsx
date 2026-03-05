@@ -11,6 +11,9 @@ const CAPABILITIES: Capability[] = [
     price: '¥599/月',
     subscribed: false,
     iconName: 'Eye',
+    flowPosition: 'monitor',
+    typicalUsage: '发现不良并回传中枢',
+    entryPoints: ['Dashboard', 'Anomalies'],
   },
   {
     id: '2',
@@ -20,6 +23,9 @@ const CAPABILITIES: Capability[] = [
     price: '¥800/月',
     subscribed: false,
     iconName: 'Network',
+    flowPosition: 'analyze',
+    typicalUsage: '归因分析',
+    entryPoints: ['KnowledgeGraph'],
   },
   {
     id: '3',
@@ -29,6 +35,9 @@ const CAPABILITIES: Capability[] = [
     price: '¥1,200/月',
     subscribed: true,
     iconName: 'Cpu',
+    flowPosition: 'decide',
+    typicalUsage: '多目标决策与推荐方案',
+    entryPoints: ['Tianchou', 'Dashboard'],
   },
   {
     id: '4',
@@ -38,10 +47,22 @@ const CAPABILITIES: Capability[] = [
     price: '¥2,000/月',
     subscribed: false,
     iconName: 'LineChart',
+    flowPosition: 'simulate',
+    typicalUsage: '验证布局与物流方案',
+    entryPoints: ['Huntian'],
   },
 ]
 
+const FLOW_LABELS = {
+  monitor: { label: '监控', color: 'bg-blue-500' },
+  analyze: { label: '归因', color: 'bg-purple-500' },
+  decide: { label: '决策', color: 'bg-orange-500' },
+  simulate: { label: '仿真', color: 'bg-green-500' },
+}
+
 const Marketplace: React.FC = () => {
+  const subscribedCount = CAPABILITIES.filter((c) => c.subscribed).length
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-end mb-8">
@@ -51,7 +72,7 @@ const Marketplace: React.FC = () => {
         </div>
         <div className="flex gap-2 text-sm text-slate-600 bg-white px-3 py-1 rounded border border-slate-200">
           <span>当前已订阅：</span>
-          <span className="font-bold text-blue-600">1 项能力</span>
+          <span className="font-bold text-blue-600">{subscribedCount} 项能力</span>
         </div>
       </div>
 
@@ -65,6 +86,8 @@ const Marketplace: React.FC = () => {
                 : cap.category === 'Data'
                   ? Network
                   : LineChart
+          const flowInfo = FLOW_LABELS[cap.flowPosition]
+          
           return (
             <div
               key={cap.id}
@@ -76,17 +99,22 @@ const Marketplace: React.FC = () => {
                   <div className="p-3 bg-slate-50 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <Icon size={24} />
                   </div>
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    {cap.category}
+                  <span className={`text-xs font-semibold text-white px-2 py-1 rounded-full ${flowInfo.color}`}>
+                    {flowInfo.label}
                   </span>
                 </div>
 
                 <h3 className="text-lg font-bold text-slate-800 mb-2">{cap.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed mb-6 flex-1">
+                <p className="text-sm text-slate-500 leading-relaxed mb-3">
                   {cap.description}
                 </p>
+                
+                <div className="mb-4">
+                  <span className="text-xs text-slate-400">典型用法：</span>
+                  <span className="text-xs text-slate-600 ml-1">{cap.typicalUsage}</span>
+                </div>
 
-                <div className="border-t border-slate-100 pt-4 flex items-center justify-between">
+                <div className="border-t border-slate-100 pt-4 flex items-center justify-between mt-auto">
                   <span className="font-bold text-slate-900">{cap.price}</span>
                   {cap.subscribed ? (
                     <button
@@ -94,7 +122,7 @@ const Marketplace: React.FC = () => {
                       disabled
                       className="px-4 py-2 bg-green-50 text-green-700 text-sm font-medium rounded-lg flex items-center gap-2 cursor-default"
                     >
-                      <Check size={16} /> 已订阅{' '}
+                      <Check size={16} /> 已订阅
                     </button>
                   ) : (
                     <button
@@ -110,7 +138,6 @@ const Marketplace: React.FC = () => {
           )
         })}
 
-        {/* Placeholder for "Coming Soon" */}
         <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center opacity-60 hover:opacity-100 hover:border-blue-300 transition-all cursor-pointer">
           <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3">
             <span className="text-2xl text-slate-400">+</span>

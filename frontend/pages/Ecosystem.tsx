@@ -1,13 +1,18 @@
 import {
+  ArrowRight,
   BookOpen,
   Code2,
+  Cpu,
   Download,
   ExternalLink,
   FileCode,
+  Gauge,
   Github,
   Key,
   MessageSquare,
+  Network,
   Play,
+  Sparkles,
   Terminal,
   Zap,
 } from 'lucide-react'
@@ -280,6 +285,52 @@ const Ecosystem: React.FC = () => {
             <p className="text-sm text-slate-500">{tool.description}</p>
           </div>
         ))}
+      </div>
+
+      {/* 端到端业务流示例 */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-8 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles size={20} className="text-blue-400" />
+            <span className="text-blue-400 font-medium text-sm">端到端业务流示例</span>
+          </div>
+          <h2 className="text-xl font-bold mb-6">异常检测 → 归因 → 推荐方案与预期损失</h2>
+          
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
+              <Gauge size={18} className="text-blue-400" />
+              <span className="text-sm">洞微·视觉检测</span>
+              <span className="text-xs text-blue-300">(发现不良)</span>
+            </div>
+            
+            <ArrowRight size={18} className="text-slate-500" />
+            
+            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
+              <Network size={18} className="text-purple-400" />
+              <span className="text-sm">格物·知识图谱</span>
+              <span className="text-xs text-purple-300">(归因分析)</span>
+            </div>
+            
+            <ArrowRight size={18} className="text-slate-500" />
+            
+            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
+              <Cpu size={18} className="text-orange-400" />
+              <span className="text-sm">天筹·运筹优化</span>
+              <span className="text-xs text-orange-300">(推荐方案)</span>
+            </div>
+            
+            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
+              <span className="text-sm font-medium">预期损失: ¥12,500</span>
+            </div>
+          </div>
+          
+          <p className="mt-6 text-slate-400 text-sm">
+            订阅全部能力，完整打通「监控 → 归因 → 决策 → 仿真验证」业务闭环，便于对接业务闭环
+          </p>
+        </div>
       </div>
 
       {/* 快速开始 */}

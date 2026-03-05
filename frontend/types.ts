@@ -20,14 +20,20 @@ export interface Metric {
   trendLabel: string
 }
 
+export type CapabilityCategory = 'Vision' | 'Optimization' | 'Data' | 'Simulation'
+export type FlowPosition = 'monitor' | 'analyze' | 'decide' | 'simulate'
+
 export interface Capability {
   id: string
   title: string
   description: string
-  category: 'Vision' | 'Optimization' | 'Data' | 'Simulation'
+  category: CapabilityCategory
   price: string
   subscribed: boolean
   iconName: string
+  flowPosition: FlowPosition
+  typicalUsage: string
+  entryPoints: string[]
 }
 
 export interface Node {
