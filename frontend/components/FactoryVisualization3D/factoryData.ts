@@ -15,6 +15,19 @@ export interface Station {
   position: number
 }
 
+export type IntegrationStatus = 'connected' | 'unconnected' | 'abnormal'
+
+export interface StationConnectionDetails {
+  line_name: string
+  station_name: string
+  integration_status: IntegrationStatus
+  device_id: string | null
+  device_name: string | null
+  protocol: string | null
+  connectivity_status: string | null
+  last_communication_at: string | null
+}
+
 export interface WorkshopLine {
   id: string
   name: string

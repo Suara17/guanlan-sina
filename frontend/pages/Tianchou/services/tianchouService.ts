@@ -6,6 +6,7 @@ import type { AssetMode, SimulationComparisonPayload } from '../../../types'
 import type {
   AHPResult,
   AHPWeights,
+  AllSolutionsResponse,
   EvolutionData,
   LatestCompletedTaskResponse,
   OptimizationRequestParams,
@@ -205,7 +206,7 @@ export const tianchouService = {
    */
   async getAllSolutions(
     taskId: string
-  ): Promise<{ task_id: string; industry_type: string; solutions: any[]; total_count: number }> {
+  ): Promise<AllSolutionsResponse> {
     const response = await fetch(`${API_BASE}/tasks/${taskId}/all-solutions`)
 
     if (!response.ok) {

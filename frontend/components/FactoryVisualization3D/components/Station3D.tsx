@@ -2,13 +2,15 @@
 import { Box, Cylinder, Html } from '@react-three/drei'
 import type React from 'react'
 import { useState } from 'react'
-import type { Station, StatusType } from '../factoryData'
+import type { Station, StationConnectionDetails, StatusType } from '../factoryData'
 import { STATUS_COLORS } from '../utils/materials'
 
 interface Station3DProps {
   station: Station
   position?: [number, number, number]
   onClick?: () => void
+  connection: StationConnectionDetails
+  onSelectConnection?: (details: StationConnectionDetails) => void
 }
 
 const getStatusLabel = (status: 'running' | 'idle' | 'error'): string => {
@@ -28,6 +30,25 @@ const getMachineTypeLabel = (type: string): string => {
     Unloader: '下料设备',
   }
   return dict[type] || type
+}
+
+const INTEGRATION_COLORS: Record<StationConnectionDetails['integration_status'], string> = {
+  connected: '#22c55e',
+  unconnected: '#94a3b8',
+  abnormal: '#ef4444',
+}
+
+const getIntegrationLabel = (status: StationConnectionDetails['integration_status']) => {
+  if (status === 'connected') return '已接入'
+  if (status === 'abnormal') return '异常'
+  return '未接入'
+}
+
+const formatLastCommunication = (iso: string | null) => {
+  if (!iso) return '未上报'
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return '未上报'
+  return date.toLocaleTimeString('zh-CN', { hour12: false })
 }
 
 // Industrial Signal Tower (Andon Light)
@@ -130,7 +151,13 @@ const SafetyDoor = ({
   </group>
 )
 
-export const Station3D: React.FC<Station3DProps> = ({ station, position = [0, 0, 0], onClick }) => {
+export const Station3D: React.FC<Station3DProps> = ({
+  station,
+  position = [0, 0, 0],
+  onClick,
+  connection,
+  onSelectConnection,
+}) => {
   const [hovered, setHovered] = useState(false)
 
   const renderMachineGeometry = () => {
@@ -266,6 +293,7 @@ export const Station3D: React.FC<Station3DProps> = ({ station, position = [0, 0,
       onClick={(e) => {
         e.stopPropagation()
         onClick?.()
+        onSelectConnection?.(connection)
       }}
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
@@ -274,6 +302,16 @@ export const Station3D: React.FC<Station3DProps> = ({ station, position = [0, 0,
 
       {/* Signal Tower on every machine */}
       <SignalTower status={station.status} position={[0.4, 1.8, -0.4]} />
+
+      {/* Kernel integration marker */}
+      <mesh position={[-0.45, 1.85, -0.42]}>
+        <sphereGeometry args={[0.1, 18, 18]} />
+        <meshStandardMaterial
+          color={INTEGRATION_COLORS[connection.integration_status]}
+          emissive={INTEGRATION_COLORS[connection.integration_status]}
+          emissiveIntensity={1.5}
+        />
+      </mesh>
 
       {hovered && (
         <Html position={[0, 2.5, 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
@@ -288,6 +326,22 @@ export const Station3D: React.FC<Station3DProps> = ({ station, position = [0, 0,
               <span className="font-mono">{station.cycleTime.toFixed(1)}s</span>
               <span className="text-slate-400">类型:</span>
               <span>{getMachineTypeLabel(station.type)}</span>
+              <span className="text-slate-400">接入:</span>
+              <span
+                className={
+                  connection.integration_status === 'connected'
+                    ? 'text-green-400'
+                    : connection.integration_status === 'abnormal'
+                      ? 'text-red-400'
+                      : 'text-slate-300'
+                }
+              >
+                {getIntegrationLabel(connection.integration_status)}
+              </span>
+              <span className="text-slate-400">协议:</span>
+              <span>{connection.protocol || '未绑定'}</span>
+              <span className="text-slate-400">通信:</span>
+              <span>{formatLastCommunication(connection.last_communication_at)}</span>
             </div>
           </div>
         </Html>

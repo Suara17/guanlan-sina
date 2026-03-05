@@ -1,4 +1,8 @@
-import { client, readUsersApiV1UsersGet } from './src/client'
+import { client } from './src/client/client.gen'
+import {
+  loginAccessTokenApiV1LoginAccessTokenPost,
+  readUsersApiV1UsersGet,
+} from './src/client/sdk.gen'
 
 // 示例：获取用户列表
 const getUsers = async () => {
@@ -11,9 +15,6 @@ const getUsers = async () => {
     throw error
   }
 }
-
-// 示例：登录获取token
-import { loginAccessTokenApiV1LoginAccessTokenPost } from './src/client'
 
 const login = async (username: string, password: string) => {
   try {
@@ -29,7 +30,6 @@ const login = async (username: string, password: string) => {
     // 保存token到localStorage
     if (response.data?.access_token) {
       localStorage.setItem('access_token', response.data.access_token)
-      localStorage.setItem('refresh_token', response.data.refresh_token)
     }
 
     return response.data

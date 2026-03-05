@@ -1,7 +1,7 @@
 import { ArrowLeft, CheckCircle2, Clock, DollarSign, Play, RotateCcw, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import type { SolutionCostMatrix } from '../types'
+import type { SolutionCostMatrix } from '../../types'
 import { ExecutionProgress } from './components/ExecutionProgress'
 import { MachineDiagram } from './components/MachineDiagram'
 import { RealTimeLogs } from './components/RealTimeLogs'

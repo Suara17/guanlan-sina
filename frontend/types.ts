@@ -1,7 +1,7 @@
 export interface NavItem {
   id: string
   label: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>
   path: string
   group?: string // 功能分组
   isCoreFeature?: boolean // 是否为核心功能，显示「核心」角标
@@ -71,6 +71,46 @@ export interface SolutionOption {
   description: string
   duration: string
   risk: 'low' | 'medium' | 'high'
+}
+
+export interface SolutionCostMatrix {
+  repairCost: number
+  deliveryImpactCost: number
+  qualityRiskCost: number
+  downtimeCost: number
+  totalExpectedLoss: number
+}
+
+export interface SolutionWithCost extends SolutionOption {
+  repairCost?: number
+  deliveryImpactCost?: number
+  qualityRiskCost?: number
+  downtimeCost?: number
+  totalExpectedLoss?: number
+  implementationTimeHours?: number
+  successRate?: number
+  riskLevel?: 'low' | 'medium' | 'high'
+  costMatrix?: SolutionCostMatrix
+}
+
+export interface AnomalyCausationStep {
+  step: number
+  description: string
+  type: 'phenomenon' | 'direct_cause' | 'root_cause'
+}
+
+export interface AnomalyAnalysis {
+  id: string
+  lineId: string
+  stationId: string
+  defectType: string
+  severity: 'warning' | 'error' | 'critical'
+  detectedAt: string
+  status: string
+  rootCause: string
+  rootCauseConfidence: number
+  causationChain: AnomalyCausationStep[]
+  solutions: SolutionWithCost[]
 }
 
 // New Types for Tianchou Optimization
@@ -336,6 +376,7 @@ export interface ProductionPlan {
   progress_percent: number
   estimated_completion_time: string | null
   status: 'running' | 'paused' | 'completed'
+  process_flow?: ProcessStep[] // 当前工艺流程
 }
 
 // 工艺流程步骤

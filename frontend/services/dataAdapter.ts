@@ -134,7 +134,7 @@ export class KnowledgeGraphAdapter {
           // 假设异常ID范围在1-20之间，可根据实际情况调整
           for (let i = 1; i <= 20; i++) {
             try {
-              const anomaly = await Neo4jService.getAnomalyAnalysis(i.toString())
+              const anomaly = await Neo4jService.getAnomalyAnalysis(i)
               if (anomaly) {
                 allAnomalies.push({
                   sequence: anomaly.sequence,
