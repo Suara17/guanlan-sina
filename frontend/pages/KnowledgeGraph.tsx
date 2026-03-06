@@ -8,7 +8,7 @@ import { getAllKnowledgeGraphsMerged } from '../mockData'
 import { KnowledgeGraphAdapter } from '../services/dataAdapter'
 import type { KnowledgeGraph, KnowledgeNode } from '../types'
 
-const MAX_NODES = 100
+const MAX_NODES = 150
 
 const getEdgeNodeId = (node: string | { id: string }) => (typeof node === 'string' ? node : node.id)
 
@@ -262,6 +262,10 @@ const KnowledgeGraphPage: React.FC = () => {
       return
     }
 
+    // 每步添加约15%的剩余节点，确保动画在约6-7步内完成
+    const remaining = total - current.size
+    const nodesToAdd = Math.max(1, Math.ceil(remaining * 0.15))
+
     const bucket = new Map<string, string[]>()
     candidates.forEach((nodeId) => {
       const key = nodeClusterMap.get(nodeId) || nodeId
@@ -271,8 +275,19 @@ const KnowledgeGraphPage: React.FC = () => {
 
     const nextIds: string[] = []
     bucket.forEach((ids) => {
-      if (ids.length > 0) nextIds.push(ids[0])
+      // 每个聚类可以添加多个节点
+      const take = Math.ceil(nodesToAdd / bucket.size)
+      ids.slice(0, take).forEach((id) => nextIds.push(id))
     })
+
+    // 确保至少添加nodesToAdd个节点
+    const sortedCandidates = Array.from(candidates)
+    while (nextIds.length < nodesToAdd && sortedCandidates.length > 0) {
+      const nextId = sortedCandidates.shift()!
+      if (!nextIds.includes(nextId)) {
+        nextIds.push(nextId)
+      }
+    }
 
     const nextVisible = new Set(current)
     nextIds.forEach((id) => nextVisible.add(id))
@@ -357,7 +372,8 @@ const KnowledgeGraphPage: React.FC = () => {
 
   useEffect(() => {
     if (!graphData || isGrowthFinished) return
-    const timer = setInterval(growOneStep, 800)
+    // 每步约400ms，6-7步完成 = 约3秒
+    const timer = setInterval(growOneStep, 400)
     return () => clearInterval(timer)
   }, [graphData, isGrowthFinished, growOneStep])
 
@@ -507,9 +523,18 @@ const KnowledgeGraphPage: React.FC = () => {
               </span>
             </div>
 
-            <div className="bg-slate-100 border border-slate-200 text-slate-600 px-3 py-1 rounded-md text-xs">
-              自动生长: {visibleCount}/{totalNodes} ({growthPercent}%)
-              {isGrowthFinished ? ' 已完成' : ' 进行中'}
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    isGrowthFinished ? 'bg-green-500' : 'bg-blue-500'
+                  }`}
+                  style={{ width: `${growthPercent}%` }}
+                />
+              </div>
+              <span className="text-xs text-slate-600 min-w-[60px]">
+                {isGrowthFinished ? '已完成' : `${growthPercent}%`}
+              </span>
             </div>
 
             {isDefaultView && (

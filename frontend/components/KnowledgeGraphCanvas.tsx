@@ -140,15 +140,116 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
     const goldenAngle = Math.PI * (3 - Math.sqrt(5))
     const anchorMap = new Map<string, { x: number; y: number }>()
 
-    nodes.forEach((node, index) => {
-      const ratio = Math.sqrt((index + 0.5) / nodes.length)
-      const radius = ratio * maxRadius
-      const theta = index * goldenAngle
-      const x = centerX + Math.cos(theta) * radius
-      const y = centerY + Math.sin(theta) * radius
-      node.x = x
-      node.y = y
-      anchorMap.set(node.id, { x, y })
+    // 计算节点的拓扑层级（从现象节点开始BFS）
+    const nodeLayerMap = new Map<string, number>()
+    const adjacency = new Map<string, string[]>()
+    nodes.forEach((node) => adjacency.set(node.id, []))
+    edges.forEach((edge) => {
+      const sourceId = getNodeId(edge.source as string | SimNode)
+      const targetId = getNodeId(edge.target as string | SimNode)
+      adjacency.get(sourceId)?.push(targetId)
+      adjacency.get(targetId)?.push(sourceId)
+    })
+
+    // 从现象节点开始BFS，确定每个节点的层级
+    const queue: { id: string; layer: number }[] = []
+    const visited = new Set<string>()
+
+    // 先将所有现象节点放入队列（第0层）
+    nodes.forEach((node) => {
+      if (node.type === 'phenomenon') {
+        queue.push({ id: node.id, layer: 0 })
+        visited.add(node.id)
+        nodeLayerMap.set(node.id, 0)
+      }
+    })
+
+    // 如果没有现象节点，从第一个节点开始
+    if (queue.length === 0 && nodes.length > 0) {
+      queue.push({ id: nodes[0].id, layer: 0 })
+      visited.add(nodes[0].id)
+      nodeLayerMap.set(nodes[0].id, 0)
+    }
+
+    // BFS遍历确定层级
+    while (queue.length > 0) {
+      const { id, layer } = queue.shift()!
+      const neighbors = adjacency.get(id) || []
+      for (const neighborId of neighbors) {
+        if (!visited.has(neighborId)) {
+          visited.add(neighborId)
+          const newLayer = layer + 1
+          nodeLayerMap.set(neighborId, newLayer)
+          queue.push({ id: neighborId, layer: newLayer })
+        }
+      }
+    }
+
+    // 未访问的节点放到最外层
+    const maxLayer = Math.max(...Array.from(nodeLayerMap.values()), 0) + 1
+    nodes.forEach((node) => {
+      if (!nodeLayerMap.has(node.id)) {
+        nodeLayerMap.set(node.id, maxLayer)
+      }
+    })
+
+    // 按层级分组统计
+    const layerGroups = new Map<number, { nodes: SimNode[]; count: number }>()
+    nodes.forEach((node) => {
+      const layer = nodeLayerMap.get(node.id) || 0
+      if (!layerGroups.has(layer)) {
+        layerGroups.set(layer, { nodes: [], count: 0 })
+      }
+      const group = layerGroups.get(layer)!
+      group.nodes.push(node)
+      group.count++
+    })
+
+    // 根据层级分配位置：层级越小越靠近中心
+    const sortedLayers = Array.from(layerGroups.keys()).sort((a, b) => a - b)
+    let globalIndex = 0
+
+    // 计算每层的节点数量，用于动态调整半径
+    const totalNodes = nodes.length
+    let cumulativeNodes = 0
+
+    sortedLayers.forEach((layer) => {
+      const group = layerGroups.get(layer)!
+      const nodesInLayer = group.nodes
+      const nodesCountInLayer = nodesInLayer.length
+
+      // 使用累积节点比例来分配半径，中心更密集
+      // 前面的层（中心层）占更小的半径比例
+      const currentRatio = cumulativeNodes / totalNodes
+      const nextRatio = (cumulativeNodes + nodesCountInLayer) / totalNodes
+
+      // 使用平方根压缩中心，让中心区域节点更密集
+      // 平方根函数：y = sqrt(x)，x小的时候y增长快，x大的时候y增长慢
+      // 这样前50%的节点只占约70%的半径空间
+      const innerRadius = Math.sqrt(currentRatio) * maxRadius * 0.85
+      const outerRadius = Math.sqrt(nextRatio) * maxRadius * 0.85
+
+      // 该层的平均半径
+      const baseRadius = (innerRadius + outerRadius) / 2
+
+      nodesInLayer.forEach((node, indexInLayer) => {
+        // 在同一层内均匀分布
+        const theta = globalIndex * goldenAngle
+        // 同层节点有小的半径变化，避免完全重合
+        const radiusVariation = (indexInLayer % 3 - 1) * 6
+        // 中心层（layer 0）半径固定较小
+        const layerRadius = layer === 0 ? Math.min(baseRadius, 60) : baseRadius
+        const radius = Math.max(15, layerRadius + radiusVariation)
+
+        const x = centerX + Math.cos(theta) * radius
+        const y = centerY + Math.sin(theta) * radius
+        node.x = x
+        node.y = y
+        anchorMap.set(node.id, { x, y })
+        globalIndex++
+      })
+
+      cumulativeNodes += nodesCountInLayer
     })
 
     const simulation = d3
@@ -158,24 +259,24 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
         d3
           .forceLink<SimNode, SimEdge>(edges)
           .id((node) => node.id)
-          .distance(isCompactView ? 88 : 108)
-          .strength(0.12)
+          .distance(isCompactView ? 55 : 70)
+          .strength(0.25)
       )
-      .force('charge', d3.forceManyBody().strength(isCompactView ? -40 : -55))
-      .force('center', d3.forceCenter(centerX, centerY).strength(0.06))
-      .force('collide', d3.forceCollide().radius(isCompactView ? 48 : 58))
-      // 锚定到均匀圆盘位置，避免节点向边缘扎堆
+      .force('charge', d3.forceManyBody().strength(isCompactView ? -35 : -45))
+      .force('center', d3.forceCenter(centerX, centerY).strength(0.08))
+      .force('collide', d3.forceCollide().radius(isCompactView ? 38 : 45))
+      // 中等锚定力，保持层级分布同时允许微调
       .force(
         'anchorX',
         d3
           .forceX<SimNode>((node) => anchorMap.get(node.id)?.x ?? centerX)
-          .strength(0.16)
+          .strength(0.12)
       )
       .force(
         'anchorY',
         d3
           .forceY<SimNode>((node) => anchorMap.get(node.id)?.y ?? centerY)
-          .strength(0.16)
+          .strength(0.12)
       )
       .stop()
 
@@ -282,12 +383,24 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
         .attr('fill', '#94a3b8')
     }
 
-    const rootSelection = svg.select<SVGGElement>('g.graph-root')
-    const root = rootSelection.empty() ? svg.append('g').attr('class', 'graph-root') : rootSelection
+    // 创建分层结构：边层在下面，节点层在上面
+    let rootSelection = svg.select<SVGGElement>('g.graph-root')
+    if (rootSelection.empty()) {
+      const root = svg.append('g').attr('class', 'graph-root')
+      // 先创建边层（底层）
+      root.append('g').attr('class', 'links-layer')
+      // 再创建节点层（顶层）
+      root.append('g').attr('class', 'nodes-layer')
+      rootSelection = root
+    }
+
+    const linksLayer = rootSelection.select<SVGGElement>('g.links-layer')
+    const nodesLayer = rootSelection.select<SVGGElement>('g.nodes-layer')
 
     const nodeMap = new Map(visibleNodes.map((node) => [node.id, node]))
 
-    const linkJoin = root.selectAll<SVGGElement, SimEdge>('g.link').data(visibleEdges, (edge: any) => edge.id)
+    // 边的渲染 - 在 links-layer 中
+    const linkJoin = linksLayer.selectAll<SVGGElement, SimEdge>('g.link').data(visibleEdges, (edge: any) => edge.id)
     const linkEnter = linkJoin.enter().append('g').attr('class', 'link').attr('opacity', 0)
 
     linkEnter
@@ -350,7 +463,8 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
         return (source.y + target.y) / 2
       })
 
-    const nodeJoin = root
+    // 节点的渲染 - 在 nodes-layer 中
+    const nodeJoin = nodesLayer
       .selectAll<SVGGElement, PositionedNode>('g.node')
       .data(visibleNodes, (node: any) => node.id)
     const nodeEnter = nodeJoin.enter().append('g').attr('class', 'node').attr('cursor', 'pointer').attr('opacity', 0)
