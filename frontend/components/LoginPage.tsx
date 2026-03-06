@@ -3,7 +3,7 @@ import type React from 'react'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import TiangongLogo from './TiangongLogo'
+import YikongLogo from './YikongLogo'
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate()
@@ -100,11 +100,11 @@ const LoginPage: React.FC = () => {
         <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 p-8">
           {/* Logo/Icon */}
           <div className="flex justify-center mb-8">
-            <TiangongLogo size={64} animate={true} variant="light" />
+            <YikongLogo size={64} animate={true} variant="light" />
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-bold text-center text-slate-900 mb-2">登录天工·弈控</h1>
+          <h1 className="text-2xl font-bold text-center text-slate-900 mb-2">登录弈控经纬</h1>
           <p className="text-center text-slate-600 mb-8">请输入您的账号信息</p>
 
           {/* Error Message */}

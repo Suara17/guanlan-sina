@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai'
+﻿import { GoogleGenAI } from '@google/genai'
 
 const apiKey = process.env.API_KEY || ''
 const ai = new GoogleGenAI({ apiKey })
@@ -10,7 +10,7 @@ export const analyzeSystemHealth = async (metrics: Record<string, unknown>): Pro
 
   try {
     const prompt = `
-      你是一个工业操作系统“天工·弈控”的智能助手。
+      你是一个工业操作系统“弈控经纬”的智能助手。
       请根据以下产线数据生成一份简短的“体检报告”和优化建议：
       ${JSON.stringify(metrics)}
 

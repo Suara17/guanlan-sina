@@ -1,10 +1,10 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 项目概述
 
-**天工·弈控** 是一个面向离散制造业的"视-空协同"智适应操作系统,基于 1+N+X 生态架构:
+**弈控经纬** 是一个面向离散制造业的"视-空协同"智适应操作系统,基于 1+N+X 生态架构:
 - **1 (OS内核)**: 基础设施层 - 设备连接、数据采集、基础诊断
 - **N (原子能力)**: 服务组件层 - 视觉算法、知识图谱、优化引擎等模块化能力
 - **X (场景APP)**: 应用编排层 - 行业解决方案和低代码编排
@@ -199,7 +199,7 @@ frontend/
 
 ```bash
 # 项目配置
-PROJECT_NAME=天工·弈控
+PROJECT_NAME=弈控经纬
 ENVIRONMENT=local
 STACK_NAME=guanlan-sina
 DOMAIN=localhost.tiangolo.com
@@ -300,4 +300,4 @@ npm run lint                # Biome Check
 
 ---
 
-*本文档版本: 1.3 | 更新日期: 2026-02-22 | 项目: 天工·弈控*
+*本文档版本: 1.3 | 更新日期: 2026-02-22 | 项目: 弈控经纬*

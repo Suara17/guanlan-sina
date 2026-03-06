@@ -1,4 +1,4 @@
-import { MessageSquare, Sparkles, X } from 'lucide-react'
+﻿import { MessageSquare, Sparkles, X } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -18,7 +18,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ contextData }) => {
     {
       id: 'welcome',
       role: 'ai',
-      content: '您好！我是天工·弈控的智能助手。我可以帮您分析产线数据或推荐优化算法。',
+      content: '您好！我是弈控经纬的智能助手。我可以帮您分析产线数据或推荐优化算法。',
     },
   ])
 

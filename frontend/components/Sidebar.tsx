@@ -18,7 +18,7 @@ import type React from 'react'
 import { useState } from 'react'
 import type { NavGroup, NavItem } from '../types'
 import BusinessFlowBar from './BusinessFlowBar'
-import TiangongLogo from './TiangongLogo'
+import YikongLogo from './YikongLogo'
 
 interface SidebarProps {
   currentPath: string
@@ -135,11 +135,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
         {/* 折叠时仅显示LOGO图标(居中) */}
         {collapsed ? (
-          <TiangongLogo size={32} className="mx-auto" data-tour="logo" />
+          <YikongLogo size={32} className="mx-auto" data-tour="logo" />
         ) : (
           /* 展开时显示完整LOGO + 标题 + 工厂切换 */
           <div className="flex items-center flex-1 min-w-0">
-            <TiangongLogo size={32} className="mr-3 flex-shrink-0" data-tour="logo" />
+            <YikongLogo size={32} className="mr-3 flex-shrink-0" data-tour="logo" />
             <div className="flex-1 min-w-0 relative">
               <button
                 type="button"
@@ -148,7 +148,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate, isOpen }) =>
                 data-tour="factory-switch"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="font-bold text-sm tracking-wide truncate">天工·弈控</div>
+                  <div className="font-bold text-sm tracking-wide truncate">弈控经纬</div>
                   <div className="text-xs text-slate-400 truncate group-hover:text-blue-400 transition-colors">
                     {selectedFactory}
                   </div>

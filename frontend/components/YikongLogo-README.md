@@ -1,9 +1,9 @@
-# 天工·弈控 品牌LOGO设计文档 - 齿轮版
+# 弈控经纬 品牌LOGO设计文档 - 齿轮版
 
 ## 📐 设计理念
 
 ### 核心概念
-**天工·弈控** 是面向离散制造业的"视-空协同"智适应操作系统。齿轮LOGO设计体现:
+**弈控经纬** 是面向离散制造业的"视-空协同"智适应操作系统。齿轮LOGO设计体现:
 - **工业制造**: 齿轮象征精密机械、工业4.0
 - **精准控制**: 中心三角形代表"弈控"的精准决策
 - **持续运转**: 旋转动画象征系统不间断运行
@@ -137,22 +137,22 @@ light主题: #3B82F6 → #2563EB → #1D4ED8 (中→深→更深)
 ### 代码示例
 
 ```tsx
-import TiangongLogo from './TiangongLogo'
+import YikongLogo from './YikongLogo'
 
 // 标准用法(32px, 深色背景, 带旋转)
-<TiangongLogo size={32} />
+<YikongLogo size={32} />
 
 // 浅色背景(登录页、白色卡片)
-<TiangongLogo size={64} variant="light" />
+<YikongLogo size={64} variant="light" />
 
 // 深色背景(侧边栏、深色主题)
-<TiangongLogo size={32} variant="dark" />
+<YikongLogo size={32} variant="dark" />
 
 // 静态图标(无旋转)
-<TiangongLogo size={32} animate={false} />
+<YikongLogo size={32} animate={false} />
 
 // 完整配置
-<TiangongLogo
+<YikongLogo
   size={48}
   variant="light"
   animate={true}
@@ -259,7 +259,7 @@ import LoadingSpinner from './components/LoadingSpinner'
 **文件**: `frontend/components/LoginPage.tsx`
 
 **改动**:
-- ✅ 导入TiangongLogo组件
+- ✅ 导入YikongLogo组件
 - ✅ 替换原Cpu图标为64px齿轮LOGO
 - ✅ 使用light主题适配白色背景
 - ✅ 启用旋转动画(animate={true})
@@ -273,7 +273,7 @@ import LoadingSpinner from './components/LoadingSpinner'
 **文件**: `frontend/components/Sidebar.tsx`
 
 **改动**:
-- ✅ 导入TiangongLogo组件
+- ✅ 导入YikongLogo组件
 - ✅ 展开状态: 32px LOGO + 文字
 - ✅ 折叠状态: 32px LOGO居中
 - ✅ 启用旋转动画
@@ -292,8 +292,8 @@ import LoadingSpinner from './components/LoadingSpinner'
 <meta name="theme-color" content="#2563EB" />
 
 <!-- SEO优化 -->
-<title>天工·弈控 - 离散制造业智适应操作系统</title>
-<meta name="description" content="天工·弈控 - 面向离散制造业的视-空协同智适应操作系统" />
+<title>弈控经纬 - 离散制造业智适应操作系统</title>
+<meta name="description" content="弈控经纬 - 面向离散制造业的视-空协同智适应操作系统" />
 ```
 
 ### 6. ✅ PWA支持
@@ -310,11 +310,11 @@ import LoadingSpinner from './components/LoadingSpinner'
 ```
 frontend/
 ├── components/
-│   ├── TiangongLogo.tsx              # ✅ 齿轮LOGO组件
+│   ├── YikongLogo.tsx              # ✅ 齿轮LOGO组件
 │   ├── LoadingSpinner.tsx            # ✅ 加载动画组件
 │   ├── LoginPage.tsx                 # ✅ 已集成64px LOGO
 │   ├── Sidebar.tsx                   # ✅ 已集成32px LOGO
-│   └── TiangongLogo-README.md        # 📄 本文档
+│   └── YikongLogo-README.md        # 📄 本文档
 ├── public/
 │   ├── site.webmanifest              # ✅ PWA配置
 │   ├── favicon-16x16.png             # ⏳ 待生成
@@ -396,11 +396,11 @@ npm run dev
 ### Q3: 如何禁用旋转动画?
 **A**: 设置 `animate={false}` prop:
 ```tsx
-<TiangongLogo size={32} animate={false} />
+<YikongLogo size={32} animate={false} />
 ```
 
 ### Q4: 如何更改颜色?
-**A**: 修改 `TiangongLogo.tsx` 中的渐变定义,搜索 `<defs>` 部分。
+**A**: 修改 `YikongLogo.tsx` 中的渐变定义,搜索 `<defs>` 部分。
 
 ### Q5: 如何导出静态PNG?
 **A**: 使用 `favicon-generator.html` 工具,支持任意尺寸。

@@ -20,7 +20,7 @@ import {
 import type React from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import TiangongLogo from '../components/TiangongLogo'
+import YikongLogo from '../components/YikongLogo'
 
 interface CaseStudy {
   id: string
@@ -186,8 +186,8 @@ const CustomerCases: React.FC = () => {
             </button>
             <div className="w-px h-6 bg-white/20"></div>
             <div className="flex items-center gap-2">
-              <TiangongLogo size={28} variant="dark" animate={true} />
-              <span className="font-bold text-lg tracking-tight">天工·弈控</span>
+              <YikongLogo size={28} variant="dark" animate={true} />
+              <span className="font-bold text-lg tracking-tight">弈控经纬</span>
               <span className="text-slate-400 text-sm ml-2">| 客户成功案例</span>
             </div>
           </div>

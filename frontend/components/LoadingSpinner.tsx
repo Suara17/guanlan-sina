@@ -1,5 +1,5 @@
 import type React from 'react'
-import TiangongLogo from './TiangongLogo'
+import YikongLogo from './YikongLogo'
 
 interface LoadingSpinnerProps {
   size?: number
@@ -9,7 +9,7 @@ interface LoadingSpinnerProps {
 }
 
 /**
- * 天工·弈控 加载动画组件
+ * 弈控经纬 加载动画组件
  *
  * 特性:
  * - 使用品牌齿轮LOGO作为加载指示器
@@ -28,7 +28,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     <div className="flex flex-col items-center justify-center gap-4">
       {/* 齿轮旋转动画 */}
       <div className="relative">
-        <TiangongLogo size={size} animate={true} variant={variant} />
+        <YikongLogo size={size} animate={true} variant={variant} />
         {/* 外圈脉冲光环 */}
         <div
           className={`absolute inset-0 rounded-full border-2 animate-ping ${

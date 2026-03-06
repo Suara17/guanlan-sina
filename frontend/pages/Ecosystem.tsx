@@ -50,21 +50,21 @@ const SDK_PACKAGES = [
     name: 'Python SDK',
     version: 'v2.1.0',
     description: '适用于 Python 3.8+ 的官方 SDK',
-    command: 'pip install tiangong-sdk',
+    command: 'pip install yikong-sdk',
     icon: '🐍',
   },
   {
     name: 'Node.js SDK',
     version: 'v2.0.5',
     description: '适用于 Node.js 16+ 的官方 SDK',
-    command: 'npm install @tiangong/sdk',
+    command: 'npm install @yikong/sdk',
     icon: '📦',
   },
   {
     name: 'Java SDK',
     version: 'v1.9.2',
     description: '适用于 Java 11+ 的官方 SDK',
-    command: 'implementation "com.tiangong:sdk:1.9.2"',
+    command: 'implementation "com.yikong:sdk:1.9.2"',
     icon: '☕',
   },
 ]
@@ -104,7 +104,7 @@ const Ecosystem: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-800">开发者生态</h1>
           <p className="text-slate-500 mt-2">
-            OpenAPI 接口、SDK 工具包、开发者沙箱，助力快速集成天工·弈控能力
+            OpenAPI 接口、SDK 工具包、开发者沙箱，助力快速集成弈控经纬能力
           </p>
         </div>
         <div className="flex gap-3">
@@ -338,11 +338,11 @@ const Ecosystem: React.FC = () => {
         <h2 className="text-lg font-bold mb-4">快速开始</h2>
         <div className="bg-slate-950 rounded-lg p-4 font-mono text-sm overflow-x-auto">
           <div className="text-slate-500"># 安装 SDK</div>
-          <div className="text-green-400">pip install tiangong-sdk</div>
+          <div className="text-green-400">pip install yikong-sdk</div>
           <div className="mt-3 text-slate-500"># 初始化客户端</div>
           <div>
             <span className="text-blue-400">from</span>
-            <span className="text-white"> tiangong </span>
+            <span className="text-white"> yikong </span>
             <span className="text-blue-400">import</span>
             <span className="text-white"> Client</span>
           </div>

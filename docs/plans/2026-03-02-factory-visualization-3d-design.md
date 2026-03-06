@@ -1,4 +1,4 @@
-# FactoryVisualization 3D 升级设计文档
+﻿# FactoryVisualization 3D 升级设计文档
 
 ## 1. 现有 2D 组件设计说明
 
@@ -246,4 +246,4 @@ npm install -D @types/three
 
 ---
 
-*文档版本: 1.0 | 创建日期: 2026-03-02 | 项目: 天工·弈控*
+*文档版本: 1.0 | 创建日期: 2026-03-02 | 项目: 弈控经纬*

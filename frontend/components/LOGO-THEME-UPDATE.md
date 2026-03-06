@@ -1,4 +1,4 @@
-# 天工·弈控 LOGO主题适配更新说明
+# 弈控经纬 LOGO主题适配更新说明
 
 ## 🎨 问题解决
 
@@ -10,13 +10,13 @@
 
 ## ✅ 更新内容
 
-### 1. TiangongLogo组件 - 新增variant属性
+### 1. YikongLogo组件 - 新增variant属性
 
-**文件**: `frontend/components/TiangongLogo.tsx`
+**文件**: `frontend/components/YikongLogo.tsx`
 
 **新增功能**:
 ```tsx
-interface TiangongLogoProps {
+interface YikongLogoProps {
   size?: number
   className?: string
   animate?: boolean
@@ -44,12 +44,12 @@ interface TiangongLogoProps {
 
 **修改前**:
 ```tsx
-<TiangongLogo size={64} animate={true} />
+<YikongLogo size={64} animate={true} />
 ```
 
 **修改后**:
 ```tsx
-<TiangongLogo size={64} animate={true} variant="light" />
+<YikongLogo size={64} animate={true} variant="light" />
 ```
 
 **效果**:
@@ -99,16 +99,16 @@ interface LoadingSpinnerProps {
 ### 基础用法
 
 ```tsx
-import TiangongLogo from './components/TiangongLogo'
+import YikongLogo from './components/YikongLogo'
 
 // 深色背景(侧边栏、深色主题)
-<TiangongLogo size={32} variant="dark" />
+<YikongLogo size={32} variant="dark" />
 
 // 浅色背景(登录页、白色卡片)
-<TiangongLogo size={64} variant="light" />
+<YikongLogo size={64} variant="light" />
 
 // 默认(不指定variant,默认为dark)
-<TiangongLogo size={32} />
+<YikongLogo size={32} />
 ```
 
 ### LoadingSpinner用法
@@ -198,7 +198,7 @@ const colors = variant === 'light' ? {
 ## 📄 文档更新
 
 已更新以下文档:
-- ✅ `TiangongLogo-README.md` - 新增主题适配章节
+- ✅ `YikongLogo-README.md` - 新增主题适配章节
 - ✅ 代码示例包含variant用法
 - ✅ 使用场景表格更新
 
@@ -206,7 +206,7 @@ const colors = variant === 'light' ? {
 
 ## 🎉 总结
 
-通过添加主题支持,天工·弈控LOGO现在可以:
+通过添加主题支持,弈控经纬LOGO现在可以:
 
 1. ✅ **自适应背景**: 深色/浅色背景都有完美对比度
 2. ✅ **符合标准**: 满足WCAG AA无障碍对比度要求

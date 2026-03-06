@@ -24,7 +24,7 @@ import {
 import type React from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import TiangongLogo from '../components/TiangongLogo'
+import YikongLogo from '../components/YikongLogo'
 
 interface TimelineItem {
   year: string
@@ -54,7 +54,7 @@ const AboutUs: React.FC = () => {
     {
       year: '2025 Q1',
       title: '项目启动',
-      description: '天工·弈控项目正式启动，完成核心架构设计，确定"1+N+X"技术路线。',
+      description: '弈控经纬项目正式启动，完成核心架构设计，确定"1+N+X"技术路线。',
     },
     {
       year: '2025 Q2',
@@ -123,7 +123,7 @@ const AboutUs: React.FC = () => {
       icon: Target,
       summary: '打造国内领先的工业数字孪生操作系统',
       details:
-        '以"视-空协同"技术为核心，构建覆盖感知、建模、决策、验证全生命周期的智能操作系统。我们致力于成为离散制造业数字化转型的首选合作伙伴，通过数字孪生技术打通设备层、边缘层、平台层与应用层的数据壁垒，实现生产过程的透明化、可控化与智能化。在工业4.0时代背景下，天工·弈控将持续深耕离散制造领域，帮助汽配、电子、机械等行业的制造企业突破传统生产模式的效率瓶颈，实现降本增效、提质增能的核心目标。我们期望通过技术创新与场景落地，推动中国制造向中国智造的跨越式发展，为建设制造强国贡献一份力量。未来，我们将继续拓展行业边界，让数字孪生技术惠及更多制造企业，共同开启智能制造的新篇章。',
+        '以"视-空协同"技术为核心，构建覆盖感知、建模、决策、验证全生命周期的智能操作系统。我们致力于成为离散制造业数字化转型的首选合作伙伴，通过数字孪生技术打通设备层、边缘层、平台层与应用层的数据壁垒，实现生产过程的透明化、可控化与智能化。在工业4.0时代背景下，弈控经纬将持续深耕离散制造领域，帮助汽配、电子、机械等行业的制造企业突破传统生产模式的效率瓶颈，实现降本增效、提质增能的核心目标。我们期望通过技术创新与场景落地，推动中国制造向中国智造的跨越式发展，为建设制造强国贡献一份力量。未来，我们将继续拓展行业边界，让数字孪生技术惠及更多制造企业，共同开启智能制造的新篇章。',
     },
     {
       id: 'mission',
@@ -131,7 +131,7 @@ const AboutUs: React.FC = () => {
       icon: Rocket,
       summary: '打破工业数据孤岛，赋能智能制造',
       details:
-        '以"视-空协同"技术为核心，为离散制造企业提供从数据采集、知识沉淀、智能决策到仿真验证的全栈式解决方案。长期以来，制造企业面临着数据分散、系统割裂、决策滞后等痛点，生产线上的海量数据难以转化为有效的决策支撑。天工·弈控通过构建统一的数字孪生底座，打破工业数据孤岛，实现物理车间与数字世界的毫秒级虚实共生。我们的四大核心引擎——洞微感知引擎实现设备数据的实时采集与边缘处理，格物知识图谱引擎沉淀领域专家经验与工艺知识，天筹智能决策引擎提供排产调度的最优方案，浑天仿真验证引擎支持决策下发前的压力测试与推演预演。让每一次生产决策都有数据支撑，每一次工艺优化都有科学依据，真正实现从经验驱动到数据驱动的转型跨越。',
+        '以"视-空协同"技术为核心，为离散制造企业提供从数据采集、知识沉淀、智能决策到仿真验证的全栈式解决方案。长期以来，制造企业面临着数据分散、系统割裂、决策滞后等痛点，生产线上的海量数据难以转化为有效的决策支撑。弈控经纬通过构建统一的数字孪生底座，打破工业数据孤岛，实现物理车间与数字世界的毫秒级虚实共生。我们的四大核心引擎——洞微感知引擎实现设备数据的实时采集与边缘处理，格物知识图谱引擎沉淀领域专家经验与工艺知识，天筹智能决策引擎提供排产调度的最优方案，浑天仿真验证引擎支持决策下发前的压力测试与推演预演。让每一次生产决策都有数据支撑，每一次工艺优化都有科学依据，真正实现从经验驱动到数据驱动的转型跨越。',
     },
     {
       id: 'values',
@@ -185,8 +185,8 @@ const AboutUs: React.FC = () => {
             </button>
             <div className="w-px h-6 bg-white/20"></div>
             <div className="flex items-center gap-2">
-              <TiangongLogo size={28} variant="dark" animate={true} />
-              <span className="font-bold text-lg tracking-tight">天工·弈控</span>
+              <YikongLogo size={28} variant="dark" animate={true} />
+              <span className="font-bold text-lg tracking-tight">弈控经纬</span>
               <span className="text-slate-400 text-sm ml-2">| 关于我们</span>
             </div>
           </div>
@@ -225,7 +225,7 @@ const AboutUs: React.FC = () => {
               {/* 主标题 */}
               <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-4">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400">
-                  天工·弈控
+                  弈控经纬
                 </span>
               </h1>
 
@@ -235,7 +235,7 @@ const AboutUs: React.FC = () => {
               {/* 企业简介 */}
               <div className="text-base md:text-lg text-slate-300 leading-relaxed max-w-4xl mx-auto mb-12">
                 <p>
-                  天工·弈控是一家专注于工业数字孪生操作系统研发的科技企业。我们以
+                  弈控经纬是一家专注于工业数字孪生操作系统研发的科技企业。我们以
                   <span className="text-cyan-400 font-semibold">"视-空协同"</span>
                   技术为核心，
                 </p>
@@ -514,7 +514,7 @@ const AboutUs: React.FC = () => {
           <div className="max-w-6xl mx-auto px-6 py-6">
             <div className="flex items-center justify-between gap-8">
               <div className="flex items-center gap-3 whitespace-nowrap">
-                <span className="text-base font-bold text-white">天工·弈控</span>
+                <span className="text-base font-bold text-white">弈控经纬</span>
                 <span className="text-slate-600">|</span>
                 <span className="text-sm text-slate-400">赋能制造，智控未来</span>
               </div>
@@ -525,7 +525,7 @@ const AboutUs: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 text-slate-400 whitespace-nowrap">
                   <Mail size={14} className="text-emerald-400" />
-                  <span>admin@tiangongna.com</span>
+                  <span>admin@yikongjingwei.com</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-400 whitespace-nowrap">
                   <MapPin size={14} className="text-violet-400" />
@@ -548,7 +548,7 @@ const AboutUs: React.FC = () => {
               </div>
             </div>
             <div className="mt-5 pt-4 border-t border-white/5 text-center text-xs text-slate-500">
-              © 2025 天工·弈控 Tiangong·Yikong. All rights reserved.
+              © 2025 弈控经纬 Yikong Jingwei. All rights reserved.
             </div>
           </div>
         </footer>

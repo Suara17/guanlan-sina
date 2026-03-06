@@ -11,7 +11,7 @@ import TopBar from './components/TopBar'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 // 新手教程存储键
-const TUTORIAL_COMPLETED_KEY = 'tiangong_tutorial_completed'
+const TUTORIAL_COMPLETED_KEY = 'yikong_tutorial_completed'
 
 const AboutUs = lazy(() => import('./pages/AboutUs'))
 const CustomerCases = lazy(() => import('./pages/CustomerCases'))
@@ -69,7 +69,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       case '/app/settings':
         return '系统设置'
       default:
-        return '天工·弈控'
+        return '弈控经纬'
     }
   }
 

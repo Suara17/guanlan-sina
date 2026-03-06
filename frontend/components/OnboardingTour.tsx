@@ -1,4 +1,4 @@
-import {
+﻿import {
   AlertTriangle,
   ArrowRight,
   BarChart3,
@@ -49,7 +49,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
     target: '[data-tour="logo"]',
-    title: '欢迎使用天工·弈控',
+    title: '欢迎使用弈控经纬',
     description: '您的智能制造控制中心。让我们快速了解系统的主要功能和操作流程。',
     position: 'right',
     icon: <Factory className="w-5 h-5" />,

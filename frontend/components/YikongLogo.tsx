@@ -1,7 +1,7 @@
 import type React from 'react'
 import { useMemo } from 'react'
 
-interface TiangongLogoProps {
+interface YikongLogoProps {
   size?: number
   className?: string
   animate?: boolean // 是否启用旋转动画
@@ -9,7 +9,7 @@ interface TiangongLogoProps {
 }
 
 /**
- * 天工·弈控 品牌LOGO组件 - 齿轮版
+ * 弈控经纬 品牌LOGO组件 - 齿轮版
  *
  * 设计理念:
  * - 齿轮造型: 象征工业制造、精密控制
@@ -18,7 +18,7 @@ interface TiangongLogoProps {
  * - 旋转动画: 象征持续运转(可选,默认开启)
  * - 主题适配: dark(深色背景)/light(浅色背景)自动调整配色
  */
-const TiangongLogo: React.FC<TiangongLogoProps> = ({
+const YikongLogo: React.FC<YikongLogoProps> = ({
   size = 32,
   className = '',
   animate = true,
@@ -218,4 +218,4 @@ const TiangongLogo: React.FC<TiangongLogoProps> = ({
   )
 }
 
-export default TiangongLogo
+export default YikongLogo

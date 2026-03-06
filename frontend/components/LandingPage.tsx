@@ -24,7 +24,7 @@ import {
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import TiangongLogo from './TiangongLogo'
+import YikongLogo from './YikongLogo'
 
 // 行业数据类型定义
 interface IndustryData {
@@ -103,7 +103,7 @@ const LandingPage: React.FC = () => {
         },
         {
           name: '成都某汽配厂',
-          desc: '天工·弈控试点项目，瓶颈响应从30分钟缩短至45秒，ROI周期5.8个月',
+          desc: '弈控经纬试点项目，瓶颈响应从30分钟缩短至45秒，ROI周期5.8个月',
         },
       ],
     },
@@ -218,13 +218,13 @@ const LandingPage: React.FC = () => {
         }`}
       >
         <div className="flex items-center gap-2">
-          <TiangongLogo size={36} variant={scrolled ? 'light' : 'dark'} animate={true} />
+          <YikongLogo size={36} variant={scrolled ? 'light' : 'dark'} animate={true} />
           <span
             className={`font-bold text-xl tracking-tight uppercase italic transition-colors duration-500 ${
               scrolled ? 'text-slate-900' : 'text-white'
             }`}
           >
-            天工·弈控
+            弈控经纬
           </span>
         </div>
 
@@ -802,8 +802,8 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-10">
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <TiangongLogo size={28} variant="dark" animate={true} />
-              <span className="font-bold text-base tracking-tight uppercase">天工·弈控</span>
+              <YikongLogo size={28} variant="dark" animate={true} />
+              <span className="font-bold text-base tracking-tight uppercase">弈控经纬</span>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed">
               让每一次工业生产都成为一场精密的博弈，以算法之名，弈控未来生产。
@@ -866,13 +866,13 @@ const LandingPage: React.FC = () => {
               </p>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>400-223608838</li>
-                <li>admin@tiangongna.com</li>
+                <li>admin@yikongjingwei.com</li>
               </ul>
             </div>
           </div>
         </div>
         <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600 uppercase font-semibold tracking-wider">
-          <span>© 2025 天工·弈控 Tiangong·Yikong. All rights reserved.</span>
+          <span>© 2025 弈控经纬 Yikong Jingwei. All rights reserved.</span>
           <div className="flex gap-6">
             <a href="#" className="hover:text-slate-400 transition-colors">
               Privacy

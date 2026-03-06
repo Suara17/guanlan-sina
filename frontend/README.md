@@ -1,10 +1,10 @@
-# 天工·弈控 - 前端应用
+# 弈控经纬 - 前端应用
 
 面向离散制造业的"视-空协同"智适应操作系统前端应用。
 
 ## 项目概述
 
-天工·弈控是一个面向离散制造业的智能操作系统，基于 1+N+X 生态架构，提供全面的智能化解决方案。
+弈控经纬是一个面向离散制造业的智能操作系统，基于 1+N+X 生态架构，提供全面的智能化解决方案。
 
 ### 核心功能
 
@@ -60,7 +60,7 @@ frontend/
 │   ├── ProtectedRoute.tsx       # 路由保护
 │   ├── Sidebar.tsx              # 侧边栏
 │   ├── SinanAvatar.tsx          # 司南数字人
-│   ├── TiangongLogo.tsx         # 天工Logo
+│   ├── YikongLogo.tsx         # 天工Logo
 │   └── TopBar.tsx               # 顶部导航
 ├── pages/               # 页面组件
 │   ├── Dashboard.tsx            # 生产可视化仪表盘
@@ -294,4 +294,4 @@ function MyComponent() {
 
 ## 许可证
 
-Copyright © 2026 天工·弈控 智适应操作系统
+Copyright © 2026 弈控经纬 智适应操作系统
