@@ -34,9 +34,14 @@ interface TimelineItem {
 
 interface TeamMember {
   name: string
-  position: string
-  background: string
+  education: string
+  responsibility: string
   avatar: string
+}
+
+interface TeamGroup {
+  name: string
+  members: TeamMember[]
 }
 
 interface Honor {
@@ -73,30 +78,105 @@ const AboutUs: React.FC = () => {
     },
   ]
 
-  const team: TeamMember[] = [
+  const teamGroups: TeamGroup[] = [
     {
-      name: '刘同学',
-      position: '项目负责人 · 商业分析',
-      background: '经管学院，负责项目统筹与商业模式设计',
-      avatar: 'L',
+      name: '技术研发组',
+      members: [
+        {
+          name: '刘雨松',
+          education: '工业工程硕士',
+          responsibility: '项目总控、目标检测算法、时空函数开发',
+          avatar: '刘',
+        },
+        {
+          name: '张涛',
+          education: '电子信息硕士',
+          responsibility: '图像识别算法开发',
+          avatar: '张',
+        },
+        {
+          name: '陈浩然',
+          education: '博士',
+          responsibility: '设备结构设计',
+          avatar: '陈',
+        },
+        {
+          name: '孔繁祺',
+          education: '计算机硕士',
+          responsibility: '目标检测算法与系统安全',
+          avatar: '孔',
+        },
+        {
+          name: '杨亚舜',
+          education: '工业工程硕士',
+          responsibility: '多目标优化、双轨制算法开发',
+          avatar: '杨',
+        },
+        {
+          name: '张蕊',
+          education: '电子信息硕士',
+          responsibility: '产品系统、工业知识图谱开发',
+          avatar: '蕊',
+        },
+        {
+          name: '董佳乐',
+          education: '工业工程硕士',
+          responsibility: '多目标优化、双轨制算法开发',
+          avatar: '董',
+        },
+      ],
     },
     {
-      name: '陈同学',
-      position: '技术研发负责人',
-      background: '计算机学院，专注前端架构与算法实现',
-      avatar: 'C',
+      name: '产品与商业组',
+      members: [
+        {
+          name: '孙倩',
+          education: '工业工程硕士',
+          responsibility: '实地调研、成果落地转化',
+          avatar: '孙',
+        },
+        {
+          name: '徐畅然',
+          education: '电气工程及其自动化',
+          responsibility: '企业对接、合作意向',
+          avatar: '徐',
+        },
+        {
+          name: '江雨晨',
+          education: '信息管理本科',
+          responsibility: '市场、融资、财务',
+          avatar: '江',
+        },
+        {
+          name: '林小婷',
+          education: '法律硕士',
+          responsibility: '合同起草、合规审查',
+          avatar: '林',
+        },
+      ],
     },
     {
-      name: '张同学',
-      position: '技术研发',
-      background: '电子信息学院，负责后端开发与系统架构',
-      avatar: 'Z',
-    },
-    {
-      name: '王同学',
-      position: '美工设计',
-      background: '人文学院，负责UI设计与产品视觉呈现',
-      avatar: 'W',
+      name: '运营与支持组',
+      members: [
+        {
+          name: '马润原',
+          education: '数据科学本科',
+          responsibility: '数据收集、文档撰写',
+          avatar: '马',
+        },
+        {
+          name: '张华',
+          education: '网络新媒体',
+          responsibility: 'PPT美化、文书设计、页面设计',
+          avatar: '华',
+        },
+        {
+          name: '陈柯伊',
+          education: '广播电视编导',
+          responsibility: '先导片、广告片制作',
+          avatar: '柯',
+        },
+      ],
     },
   ]
 
@@ -435,7 +515,7 @@ const AboutUs: React.FC = () => {
 
         {/* 核心团队 */}
         <section className="px-6 lg:px-20 mb-24">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-6">
                 <Users size={16} className="text-emerald-400" />
@@ -451,19 +531,38 @@ const AboutUs: React.FC = () => {
               <p className="text-slate-400">技术驱动，专注产品研发与创新</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {team.map((member, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 hover:border-blue-500/30 transition-all group"
-                >
-                  {/* 头像 */}
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-2xl font-black text-white group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/30">
-                    {member.avatar}
+            <div className="space-y-12">
+              {teamGroups.map((group, groupIdx) => (
+                <div key={groupIdx}>
+                  {/* 分组标题 */}
+                  <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-sm font-bold">
+                      {groupIdx + 1}
+                    </span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+                      {group.name}
+                    </span>
+                  </h3>
+
+                  {/* 成员卡片 */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {group.members.map((member, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 text-center hover:bg-white/10 hover:border-blue-500/30 transition-all group"
+                      >
+                        {/* 头像 */}
+                        <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl font-black text-white group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/30">
+                          {member.avatar}
+                        </div>
+                        <h4 className="text-base font-bold text-white mb-1">{member.name}</h4>
+                        <p className="text-xs text-blue-400 mb-2">{member.education}</p>
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          {member.responsibility}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-1">{member.name}</h3>
-                  <p className="text-sm text-blue-400 mb-3">{member.position}</p>
-                  <p className="text-xs text-slate-400 leading-relaxed">{member.background}</p>
                 </div>
               ))}
             </div>
