@@ -1,5 +1,5 @@
 import type React from 'react'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState, useTransition } from 'react'
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import AiAssistant from './components/AiAssistant'
 import LandingPage from './components/LandingPage'
@@ -30,16 +30,57 @@ const SubscriptionValue = lazy(() => import('./pages/SubscriptionValue'))
 const Tianchou = lazy(() => import('./pages/Tianchou'))
 const Zhixing = lazy(() => import('./pages/Zhixing'))
 
+// 顶部加载进度条组件
+const LoadingBar: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    if (isLoading) {
+      setProgress(0)
+      const timer = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) return prev
+          return prev + 10
+        })
+      }, 100)
+      return () => clearInterval(timer)
+    } else {
+      setProgress(100)
+      const timer = setTimeout(() => setProgress(0), 200)
+      return () => clearTimeout(timer)
+    }
+  }, [isLoading])
+
+  if (progress === 0 && !isLoading) return null
+
+  return (
+    <div className="fixed top-0 left-0 right-0 h-1 bg-slate-200 z-[100]">
+      <div
+        className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 transition-all duration-200 ease-out"
+        style={{ width: `${progress}%` }}
+      />
+    </div>
+  )
+}
+
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { showTutorial, clearShowTutorial } = useAuth()
+  const [isPending, startTransition] = useTransition()
 
   // 完成教程
   const handleTutorialComplete = () => {
     localStorage.setItem(TUTORIAL_COMPLETED_KEY, 'true')
     clearShowTutorial()
+  }
+
+  const handleNavigate = (path: string) => {
+    startTransition(() => {
+      navigate(path)
+    })
+    setSidebarOpen(false)
   }
 
   const getTitle = (path: string) => {
@@ -91,12 +132,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* 顶部加载进度条 */}
+      <LoadingBar isLoading={isPending} />
+
       <Sidebar
         currentPath={location.pathname}
-        onNavigate={(path) => {
-          navigate(path)
-          setSidebarOpen(false)
-        }}
+        onNavigate={handleNavigate}
         isOpen={sidebarOpen}
       />
 
@@ -127,17 +168,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   )
 }
 
+// 首次加载的占位组件（保持简洁）
+const PageLoader: React.FC = () => (
+  <div className="flex h-screen bg-slate-50">
+    <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 animate-pulse z-50" />
+  </div>
+)
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <MemoryRouter>
-        <Suspense
-          fallback={
-            <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-500">
-              页面加载中...
-            </div>
-          }
-        >
+        <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
