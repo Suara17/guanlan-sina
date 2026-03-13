@@ -207,6 +207,10 @@ const LandingPage: React.FC = () => {
     navigate('/dashboard')
   }
 
+  const handleVideoClick = () => {
+    navigate('/video')
+  }
+
   return (
     <div className="bg-white text-slate-900 font-sans selection:bg-blue-100">
       {/* 1. Header - 简约高级悬浮导航 */}
@@ -338,13 +342,16 @@ const LandingPage: React.FC = () => {
             </div>
             <div className="flex flex-col sm:flex-row items-start gap-5">
               <button
-                onClick={handleDashboardClick}
+                onClick={handleLoginClick}
                 className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-bold text-base hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
               >
                 立即体验 Demo{' '}
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="group w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-xl font-bold text-base hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer">
+              <button
+                onClick={handleVideoClick}
+                className="group w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-xl font-bold text-base hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
+              >
                 <Play size={18} fill="currentColor" /> 观看宣传片
               </button>
             </div>

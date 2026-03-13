@@ -29,6 +29,7 @@ const SinanAnalysis = lazy(() => import('./pages/SinanAnalysis'))
 const SubscriptionValue = lazy(() => import('./pages/SubscriptionValue'))
 const Tianchou = lazy(() => import('./pages/Tianchou'))
 const Zhixing = lazy(() => import('./pages/Zhixing'))
+const VideoPlayer = lazy(() => import('./pages/VideoPlayer'))
 
 // 顶部加载进度条组件
 const LoadingBar: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
@@ -186,6 +187,7 @@ const App: React.FC = () => {
             <Route path="/monitoring-demo" element={<MonitoringDemo />} />
             <Route path="/customer-cases" element={<CustomerCases />} />
             <Route path="/about-us" element={<AboutUs />} />
+            <Route path="/video" element={<VideoPlayer />} />
             <Route
               path="/app/*"
               element={
