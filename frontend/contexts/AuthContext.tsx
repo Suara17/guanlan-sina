@@ -169,7 +169,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
       })
 
+      console.log('Login response:', response)
       const tokenData = response.data
+      console.log('Token data:', tokenData)
       if (!tokenData?.access_token) {
         throw new Error('Invalid login response')
       }

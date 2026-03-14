@@ -24,6 +24,7 @@ import {
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 import YikongLogo from './YikongLogo'
 
 // 行业数据类型定义
@@ -40,6 +41,7 @@ interface IndustryData {
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [activeEngine, setActiveEngine] = useState<number>(0)
   const [activeIndustry, setActiveIndustry] = useState<string | null>(null)
@@ -57,6 +59,8 @@ const LandingPage: React.FC = () => {
       sub: '工业感知引擎',
       icon: Eye,
       desc: '毫秒级数据采集，洞察设备细微波动。通过边缘计算实现数据初筛，构建工厂第一级感知网。',
+      route: '/dongwei',
+      isIntro: true,
     },
     {
       id: 1,
@@ -64,6 +68,7 @@ const LandingPage: React.FC = () => {
       sub: '知识图谱引擎',
       icon: Layers,
       desc: '构建工业知识图谱，沉淀领域专家经验。通过语义关联实现知识推理，为智能决策提供知识支撑。',
+      route: '/app/gewu',
     },
     {
       id: 2,
@@ -71,6 +76,7 @@ const LandingPage: React.FC = () => {
       sub: '智能决策引擎',
       icon: Cpu,
       desc: '基于 AI 强化学习算法，实现排产与调度的全局最优解。动态应对扰动，重构柔性制造逻辑。',
+      route: '/app/tianchou',
     },
     {
       id: 3,
@@ -78,6 +84,7 @@ const LandingPage: React.FC = () => {
       sub: '全局仿真引擎',
       icon: MonitorDot,
       desc: '超实时演练推演，预测未来生产趋势。在决策下发前进行压力测试，确保物理世界"零试错"。',
+      route: '/app/huntian',
     },
   ]
 
@@ -613,9 +620,22 @@ const LandingPage: React.FC = () => {
                     className={`mt-6 pt-6 border-t transition-all ${isActive ? 'border-white/20' : 'border-slate-200'}`}
                   >
                     <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (engine.route) {
+                          if ((engine as any).isIntro) {
+                            navigate(engine.route)
+                          } else if (isAuthenticated) {
+                            navigate(engine.route)
+                          } else {
+                            navigate('/login', { state: { from: engine.route } })
+                          }
+                        }
+                      }}
                       className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider group/btn transition-all ${isActive ? 'text-white' : 'text-blue-600'}`}
                     >
-                      <span>进入控制台</span>
+                      <span>{(engine as any).isIntro ? '了解更多' : '进入控制台'}</span>
                       <ArrowRight
                         size={14}
                         className="group-hover/btn:translate-x-1 transition-transform"

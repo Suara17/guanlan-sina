@@ -16,6 +16,7 @@ const TUTORIAL_COMPLETED_KEY = 'yikong_tutorial_completed'
 const AboutUs = lazy(() => import('./pages/AboutUs'))
 const CustomerCases = lazy(() => import('./pages/CustomerCases'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Dongwei = lazy(() => import('./pages/Dongwei'))
 const Ecosystem = lazy(() => import('./pages/Ecosystem'))
 const Huntian = lazy(() => import('./pages/Huntian'))
 const KernelConnect = lazy(() => import('./pages/KernelConnect'))
@@ -136,11 +137,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* 顶部加载进度条 */}
       <LoadingBar isLoading={isPending} />
 
-      <Sidebar
-        currentPath={location.pathname}
-        onNavigate={handleNavigate}
-        isOpen={sidebarOpen}
-      />
+      <Sidebar currentPath={location.pathname} onNavigate={handleNavigate} isOpen={sidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         <TopBar
@@ -184,6 +181,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/dongwei" element={<Dongwei />} />
             <Route path="/monitoring-demo" element={<MonitoringDemo />} />
             <Route path="/customer-cases" element={<CustomerCases />} />
             <Route path="/about-us" element={<AboutUs />} />
