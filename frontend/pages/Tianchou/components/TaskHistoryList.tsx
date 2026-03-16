@@ -188,8 +188,7 @@ export function TaskHistoryList({ onSelectTask, selectedTaskId }: Props) {
                 {task.recommended_solution_id && (
                   <div className="mt-3 px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                     <div className="text-base font-semibold text-blue-700 flex items-center gap-2">
-                      <Star size={16} className="fill-current" />
-                      ★ 推荐方案
+                      <Star size={16} className="fill-current" />★ 推荐方案
                     </div>
                     <div className="text-sm text-slate-600 mt-1">{task.recommended_reason}</div>
                     <div className="mt-3 grid grid-cols-4 gap-4 text-sm">

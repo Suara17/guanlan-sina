@@ -94,13 +94,13 @@ const DongweiPage: React.FC = () => {
             <Zap size={48} className="text-blue-400" />
             洞微
           </h1>
-          
+
           {/* 描述 + 指标整合 */}
           <div className="max-w-4xl mx-auto">
             <p className="text-lg text-slate-300 mb-8 leading-relaxed">
               毫秒级数据采集，洞察设备细微波动。通过边缘计算实现数据初筛，构建工厂第一级感知网。
             </p>
-            
+
             {/* 核心指标 - 横向排列 */}
             <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4">
               {metrics.map((metric, index) => (

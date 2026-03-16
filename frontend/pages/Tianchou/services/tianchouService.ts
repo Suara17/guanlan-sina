@@ -204,9 +204,7 @@ export const tianchouService = {
   /**
    * 获取所有解数据（用于帕累托前沿可视化）
    */
-  async getAllSolutions(
-    taskId: string
-  ): Promise<AllSolutionsResponse> {
+  async getAllSolutions(taskId: string): Promise<AllSolutionsResponse> {
     const response = await fetch(`${API_BASE}/tasks/${taskId}/all-solutions`)
 
     if (!response.ok) {

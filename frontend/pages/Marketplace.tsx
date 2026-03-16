@@ -87,7 +87,7 @@ const Marketplace: React.FC = () => {
                   ? Network
                   : LineChart
           const flowInfo = FLOW_LABELS[cap.flowPosition]
-          
+
           return (
             <div
               key={cap.id}
@@ -99,16 +99,16 @@ const Marketplace: React.FC = () => {
                   <div className="p-3 bg-slate-50 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <Icon size={24} />
                   </div>
-                  <span className={`text-xs font-semibold text-white px-2 py-1 rounded-full ${flowInfo.color}`}>
+                  <span
+                    className={`text-xs font-semibold text-white px-2 py-1 rounded-full ${flowInfo.color}`}
+                  >
                     {flowInfo.label}
                   </span>
                 </div>
 
                 <h3 className="text-lg font-bold text-slate-800 mb-2">{cap.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed mb-3">
-                  {cap.description}
-                </p>
-                
+                <p className="text-sm text-slate-500 leading-relaxed mb-3">{cap.description}</p>
+
                 <div className="mb-4">
                   <span className="text-xs text-slate-400">典型用法：</span>
                   <span className="text-xs text-slate-600 ml-1">{cap.typicalUsage}</span>

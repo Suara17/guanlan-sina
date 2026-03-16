@@ -11,9 +11,9 @@ import {
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  type KernelVisualizationSnapshot,
   KERNEL_VISUALIZATION_SNAPSHOT_STORAGE_KEY,
   KERNEL_VISUALIZATION_UPDATED_EVENT,
+  type KernelVisualizationSnapshot,
 } from '../../src/api/kernelConnectApi'
 import { FactoryScene } from './FactoryScene'
 import type { StationConnectionDetails } from './factoryData'
@@ -114,7 +114,10 @@ export const FactoryVisualization3D: React.FC<FactoryVisualization3DProps> = ({ 
         last_communication_at: device.last_communication_at,
       }
       const current = map.get(key)
-      if (!current || statusWeight[nextValue.integration_status] >= statusWeight[current.integration_status]) {
+      if (
+        !current ||
+        statusWeight[nextValue.integration_status] >= statusWeight[current.integration_status]
+      ) {
         map.set(key, nextValue)
       }
     })
@@ -261,14 +264,18 @@ export const FactoryVisualization3D: React.FC<FactoryVisualization3DProps> = ({ 
               <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
               <span className="text-slate-600">已接入</span>
             </div>
-            <span className="text-xs font-semibold text-emerald-700">{integrationStats.connected}</span>
+            <span className="text-xs font-semibold text-emerald-700">
+              {integrationStats.connected}
+            </span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-slate-400"></div>
               <span className="text-slate-600">未接入</span>
             </div>
-            <span className="text-xs font-semibold text-slate-600">{integrationStats.unconnected}</span>
+            <span className="text-xs font-semibold text-slate-600">
+              {integrationStats.unconnected}
+            </span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -310,11 +317,15 @@ export const FactoryVisualization3D: React.FC<FactoryVisualization3DProps> = ({ 
             <span className="text-slate-500">工位</span>
             <span className="text-slate-700">{selectedStationConnection.station_name}</span>
             <span className="text-slate-500">设备</span>
-            <span className="text-slate-700">{selectedStationConnection.device_name || '未绑定设备'}</span>
+            <span className="text-slate-700">
+              {selectedStationConnection.device_name || '未绑定设备'}
+            </span>
             <span className="text-slate-500">协议</span>
             <span className="text-slate-700">{selectedStationConnection.protocol || '未配置'}</span>
             <span className="text-slate-500">通信状态</span>
-            <span className="text-slate-700">{selectedStationConnection.connectivity_status || '未知'}</span>
+            <span className="text-slate-700">
+              {selectedStationConnection.connectivity_status || '未知'}
+            </span>
             <span className="text-slate-500">最后通信</span>
             <span className="text-slate-700">
               {formatDateTimeLabel(selectedStationConnection.last_communication_at)}

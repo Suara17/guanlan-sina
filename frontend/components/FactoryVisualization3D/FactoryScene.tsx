@@ -5,10 +5,10 @@ import type React from 'react'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
-import type { StationConnectionDetails } from './factoryData'
 import { FactoryBuilding3D } from './components/FactoryBuilding3D'
 import { Floor3D } from './components/Floor3D'
 import { Workshop3D } from './components/Workshop3D'
+import type { StationConnectionDetails } from './factoryData'
 import { useFactoryStore } from './store'
 
 interface FactorySceneProps {

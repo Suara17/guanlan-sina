@@ -49,17 +49,16 @@ export const ProductionLine3D: React.FC<ProductionLine3DProps> = ({
 
       {/* Stations */}
       {line.stations.map((station, index) => {
-        const connection =
-          resolveStationConnection?.(line.name, station.name) || {
-            line_name: line.name,
-            station_name: station.name,
-            integration_status: 'unconnected' as const,
-            device_id: null,
-            device_name: null,
-            protocol: null,
-            connectivity_status: null,
-            last_communication_at: null,
-          }
+        const connection = resolveStationConnection?.(line.name, station.name) || {
+          line_name: line.name,
+          station_name: station.name,
+          integration_status: 'unconnected' as const,
+          device_id: null,
+          device_name: null,
+          protocol: null,
+          connectivity_status: null,
+          last_communication_at: null,
+        }
 
         return (
           <Station3D

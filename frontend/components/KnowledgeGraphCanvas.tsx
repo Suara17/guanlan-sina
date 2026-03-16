@@ -23,7 +23,8 @@ interface PositionedNode extends SimNode {
   y: number
 }
 
-const getNodeId = (value: string | SimNode): string => (typeof value === 'string' ? value : value.id)
+const getNodeId = (value: string | SimNode): string =>
+  typeof value === 'string' ? value : value.id
 
 const getEdgeLabel = (edge: KnowledgeEdge): string => {
   switch (edge.type) {
@@ -49,7 +50,8 @@ const getSelectedStroke = (type: KnowledgeNode['type']): string => {
   }
 }
 
-const truncateLabel = (label: string): string => (label.length > 10 ? `${label.slice(0, 8)}...` : label)
+const truncateLabel = (label: string): string =>
+  label.length > 10 ? `${label.slice(0, 8)}...` : label
 
 const getIntersection = (node: PositionedNode, angle: number, isTarget: boolean) => {
   const padding = isTarget ? 10 : 8
@@ -119,7 +121,9 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
 
     const graphSignature = `${graphData.nodes.map((node) => node.id).join('|')}::${graphData.edges
       .map((edge) => edge.id)
-      .join('|')}::${dimensions.width}x${dimensions.height}::${isCompactView ? 'compact' : 'normal'}`
+      .join(
+        '|'
+      )}::${dimensions.width}x${dimensions.height}::${isCompactView ? 'compact' : 'normal'}`
 
     if (graphSignatureRef.current === graphSignature) return
     graphSignatureRef.current = graphSignature
@@ -236,7 +240,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
         // 在同一层内均匀分布
         const theta = globalIndex * goldenAngle
         // 同层节点有小的半径变化，避免完全重合
-        const radiusVariation = (indexInLayer % 3 - 1) * 6
+        const radiusVariation = ((indexInLayer % 3) - 1) * 6
         // 中心层（layer 0）半径固定较小
         const layerRadius = layer === 0 ? Math.min(baseRadius, 60) : baseRadius
         const radius = Math.max(15, layerRadius + radiusVariation)
@@ -268,15 +272,11 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
       // 中等锚定力，保持层级分布同时允许微调
       .force(
         'anchorX',
-        d3
-          .forceX<SimNode>((node) => anchorMap.get(node.id)?.x ?? centerX)
-          .strength(0.12)
+        d3.forceX<SimNode>((node) => anchorMap.get(node.id)?.x ?? centerX).strength(0.12)
       )
       .force(
         'anchorY',
-        d3
-          .forceY<SimNode>((node) => anchorMap.get(node.id)?.y ?? centerY)
-          .strength(0.12)
+        d3.forceY<SimNode>((node) => anchorMap.get(node.id)?.y ?? centerY).strength(0.12)
       )
       .stop()
 
@@ -400,7 +400,9 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
     const nodeMap = new Map(visibleNodes.map((node) => [node.id, node]))
 
     // 边的渲染 - 在 links-layer 中
-    const linkJoin = linksLayer.selectAll<SVGGElement, SimEdge>('g.link').data(visibleEdges, (edge: any) => edge.id)
+    const linkJoin = linksLayer
+      .selectAll<SVGGElement, SimEdge>('g.link')
+      .data(visibleEdges, (edge: any) => edge.id)
     const linkEnter = linkJoin.enter().append('g').attr('class', 'link').attr('opacity', 0)
 
     linkEnter
@@ -467,13 +469,22 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
     const nodeJoin = nodesLayer
       .selectAll<SVGGElement, PositionedNode>('g.node')
       .data(visibleNodes, (node: any) => node.id)
-    const nodeEnter = nodeJoin.enter().append('g').attr('class', 'node').attr('cursor', 'pointer').attr('opacity', 0)
+    const nodeEnter = nodeJoin
+      .enter()
+      .append('g')
+      .attr('class', 'node')
+      .attr('cursor', 'pointer')
+      .attr('opacity', 0)
 
     nodeEnter.each(function (node) {
       const group = d3.select(this)
 
       if (node.type === 'phenomenon') {
-        group.append('circle').attr('class', 'node-shape').attr('r', 30).attr('fill', 'url(#grad-phenom)')
+        group
+          .append('circle')
+          .attr('class', 'node-shape')
+          .attr('r', 30)
+          .attr('fill', 'url(#grad-phenom)')
       } else if (node.type === 'cause') {
         group
           .append('rect')

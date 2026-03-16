@@ -116,7 +116,10 @@ export const kernelConnectApi = {
     return response.data
   },
 
-  async batchBindDevices(scanJobId: string, bindings: KernelBindingItem[]): Promise<BatchBindingResponse> {
+  async batchBindDevices(
+    scanJobId: string,
+    bindings: KernelBindingItem[]
+  ): Promise<BatchBindingResponse> {
     const response = await apiClient.post('/api/v1/kernel/bindings:batch', {
       scan_job_id: scanJobId,
       bindings,

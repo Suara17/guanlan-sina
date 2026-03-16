@@ -29,10 +29,10 @@ import type {
   DashboardMetrics,
   NextPlan,
   OptimizationParams,
-  ProductionPlan,
   ProductChangeWarning,
   ProductionData,
   ProductionLine,
+  ProductionPlan,
 } from '../types'
 
 // Mock Data

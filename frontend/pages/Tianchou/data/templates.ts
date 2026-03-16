@@ -25,7 +25,7 @@ export const lightIndustryTemplates: TaskTemplate[] = [
     constraints: {
       priority: TaskPriority.NORMAL,
       production_lines: ['生产线A', '生产线B', '生产线C'],
-      line_capacity: { '生产线A': 1000, '生产线B': 800, '生产线C': 600 },
+      line_capacity: { 生产线A: 1000, 生产线B: 800, 生产线C: 600 },
       batch_count: 3,
       changeover_time: 30,
     },
@@ -50,7 +50,7 @@ export const lightIndustryTemplates: TaskTemplate[] = [
     constraints: {
       priority: TaskPriority.HIGH,
       production_lines: ['生产线A', '生产线B', '生产线C', '生产线D', '生产线E'],
-      line_capacity: { '生产线A': 1200, '生产线B': 1000, '生产线C': 900, '生产线D': 800, '生产线E': 600 },
+      line_capacity: { 生产线A: 1200, 生产线B: 1000, 生产线C: 900, 生产线D: 800, 生产线E: 600 },
       batch_count: 5,
       changeover_time: 45,
       max_cycle_time: 480,
@@ -76,7 +76,7 @@ export const lightIndustryTemplates: TaskTemplate[] = [
     constraints: {
       priority: TaskPriority.HIGH,
       production_lines: ['SMT线', '装配线', '测试线'],
-      line_capacity: { 'SMT线': 5000, '装配线': 3000, '测试线': 2500 },
+      line_capacity: { SMT线: 5000, 装配线: 3000, 测试线: 2500 },
       batch_count: 8,
       changeover_time: 15,
       max_cycle_time: 360,
@@ -146,7 +146,7 @@ export const heavyIndustryTemplates: TaskTemplate[] = [
     constraints: {
       priority: TaskPriority.HIGH,
       production_lines: ['产线1', '产线2', '产线3'],
-      line_capacity: { '产线1': 200, '产线2': 180, '产线3': 150 },
+      line_capacity: { 产线1: 200, 产线2: 180, 产线3: 150 },
       batch_count: 6,
       changeover_time: 30,
       max_cycle_time: 480,
@@ -154,10 +154,7 @@ export const heavyIndustryTemplates: TaskTemplate[] = [
   },
 ]
 
-export const allTemplates: TaskTemplate[] = [
-  ...lightIndustryTemplates,
-  ...heavyIndustryTemplates,
-]
+export const allTemplates: TaskTemplate[] = [...lightIndustryTemplates, ...heavyIndustryTemplates]
 
 export function getTemplatesByIndustry(industry: IndustryType): TaskTemplate[] {
   return industry === IndustryType.LIGHT ? lightIndustryTemplates : heavyIndustryTemplates
