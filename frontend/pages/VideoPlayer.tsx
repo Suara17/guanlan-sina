@@ -6,10 +6,15 @@ import { useNavigate } from 'react-router-dom'
 const VideoPlayer: React.FC = () => {
   const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null)
+  const bgVideoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showControls, setShowControls] = useState(true)
+  const [isVertical, setIsVertical] = useState(false)
+  const [videoLoaded, setVideoLoaded] = useState(false)
+  const [hasStarted, setHasStarted] = useState(false)
+  const [canPlay, setCanPlay] = useState(false)
 
   // 处理全屏变化
   useEffect(() => {
@@ -20,14 +25,59 @@ const VideoPlayer: React.FC = () => {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
   }, [])
 
-  const handlePlay = () => {
-    if (videoRef.current) {
+  // 同步背景视频
+  useEffect(() => {
+    if (bgVideoRef.current && videoRef.current) {
       if (isPlaying) {
-        videoRef.current.pause()
+        bgVideoRef.current.play().catch(() => {})
       } else {
-        videoRef.current.play()
+        bgVideoRef.current.pause()
       }
-      setIsPlaying(!isPlaying)
+    }
+  }, [isPlaying])
+
+  // 同步播放时间
+  useEffect(() => {
+    if (bgVideoRef.current && videoRef.current && isPlaying) {
+      const syncTime = () => {
+        if (bgVideoRef.current && videoRef.current) {
+          bgVideoRef.current.currentTime = videoRef.current.currentTime
+        }
+      }
+      const interval = setInterval(syncTime, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [isPlaying])
+
+  const handlePlay = async () => {
+    console.log('handlePlay called, isPlaying:', isPlaying, 'canPlay:', canPlay)
+    if (videoRef.current) {
+      try {
+        if (isPlaying) {
+          await videoRef.current.pause()
+        } else {
+          setHasStarted(true)
+          console.log('Attempting to play video...')
+          if (videoRef.current.readyState < 2) {
+            console.log('Video not ready, waiting...')
+            await new Promise((resolve) => {
+              const handler = () => {
+                videoRef.current?.removeEventListener('canplay', handler)
+                resolve(undefined)
+              }
+              videoRef.current?.addEventListener('canplay', handler)
+              setTimeout(resolve, 3000)
+            })
+          }
+          await videoRef.current.play()
+          console.log('Video playing started')
+        }
+        setIsPlaying(!isPlaying)
+      } catch (error) {
+        console.error('播放失败:', error)
+      }
+    } else {
+      console.error('videoRef.current is null')
     }
   }
 
@@ -58,6 +108,15 @@ const VideoPlayer: React.FC = () => {
     }
     return () => clearTimeout(timeout)
   }, [isPlaying, isFullscreen])
+
+  // 检测视频是否为竖版
+  const handleVideoLoaded = () => {
+    if (videoRef.current) {
+      const { videoWidth, videoHeight } = videoRef.current
+      setIsVertical(videoHeight > videoWidth)
+      setVideoLoaded(true)
+    }
+  }
 
   const handleMouseMove = () => {
     setShowControls(true)
@@ -93,15 +152,36 @@ const VideoPlayer: React.FC = () => {
       </nav>
 
       {/* 视频播放区域 - 几乎全屏 */}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center relative">
+        {/* 竖版视频的模糊背景 */}
+        {isVertical && videoLoaded && (
+          <div className="absolute inset-0 overflow-hidden">
+            <video
+              ref={bgVideoRef}
+              className="w-full h-full object-cover blur-3xl scale-110"
+              muted
+              loop
+              playsInline
+            >
+              <source src="/demo-video.mp4" type="video/mp4" />
+              <source src="/demo-video.webm" type="video/webm" />
+            </video>
+            <div className="absolute inset-0 bg-black/40" />
+          </div>
+        )}
+
         <video
           ref={videoRef}
-          className="w-full h-full object-contain"
-          controls
-          preload="metadata"
-          poster="/video-poster.png"
+          className={`relative z-10 ${isVertical ? 'max-h-[85vh] max-w-[90vw] w-auto h-auto' : 'w-full h-full object-contain'}`}
+          controls={hasStarted || isPlaying}
+          preload="auto"
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          onLoadedMetadata={handleVideoLoaded}
+          onCanPlay={() => {
+            console.log('Video can play')
+            setCanPlay(true)
+          }}
         >
           <source src="/demo-video.mp4" type="video/mp4" />
           <source src="/demo-video.webm" type="video/webm" />
@@ -112,7 +192,7 @@ const VideoPlayer: React.FC = () => {
         {!isPlaying && (
           <button
             onClick={handlePlay}
-            className="absolute inset-0 flex items-center justify-center bg-black/30 transition-all hover:bg-black/40 z-10"
+            className="absolute inset-0 flex items-center justify-center bg-black/30 transition-all hover:bg-black/40 z-20"
           >
             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 hover:scale-110 transition-transform">
               <Play size={50} className="text-white ml-1" fill="currentColor" />
@@ -127,9 +207,7 @@ const VideoPlayer: React.FC = () => {
           isFullscreen && !showControls ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
-        <p className="text-center text-white/60 text-sm">
-          弈控经纬 — 新一代工业数字孪生操作系统
-        </p>
+        <p className="text-center text-white/60 text-sm">弈控经纬 — 新一代工业数字孪生操作系统</p>
       </div>
     </div>
   )
