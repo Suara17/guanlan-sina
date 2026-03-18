@@ -16,7 +16,6 @@ const VideoPlayer: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false)
   const [canPlay, setCanPlay] = useState(false)
 
-  // 处理全屏变化
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement)
@@ -25,7 +24,31 @@ const VideoPlayer: React.FC = () => {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
   }, [])
 
-  // 同步背景视频
+  // 组件挂载后延迟检测视频尺寸，确保视频已加载
+  useEffect(() => {
+    const checkAfterMount = () => {
+      const tryCheck = (attempt: number) => {
+        if (attempt > 10) return // 最多尝试10次
+        if (videoRef.current) {
+          const { videoWidth, videoHeight } = videoRef.current
+          if (videoWidth > 0 && videoHeight > 0) {
+            console.log('Video dimensions (mount check):', videoWidth, 'x', videoHeight)
+            setIsVertical(videoHeight > videoWidth)
+            setVideoLoaded(true)
+          } else {
+            // 尺寸还没获取到，延迟后重试
+            setTimeout(() => tryCheck(attempt + 1), 200)
+          }
+        }
+      }
+      tryCheck(0)
+    }
+
+    // 延迟执行，等待视频元素完全渲染
+    const timer = setTimeout(checkAfterMount, 100)
+    return () => clearTimeout(timer)
+  }, [])
+
   useEffect(() => {
     if (bgVideoRef.current && videoRef.current) {
       if (isPlaying) {
@@ -36,7 +59,6 @@ const VideoPlayer: React.FC = () => {
     }
   }, [isPlaying])
 
-  // 同步播放时间
   useEffect(() => {
     if (bgVideoRef.current && videoRef.current && isPlaying) {
       const syncTime = () => {
@@ -49,9 +71,27 @@ const VideoPlayer: React.FC = () => {
     }
   }, [isPlaying])
 
+  const checkVideoOrientation = () => {
+    if (videoRef.current) {
+      const { videoWidth, videoHeight } = videoRef.current
+      console.log('Video dimensions:', videoWidth, 'x', videoHeight)
+      if (videoWidth > 0 && videoHeight > 0) {
+        const wasVertical = isVertical
+        const nowVertical = videoHeight > videoWidth
+        setIsVertical(nowVertical)
+        setVideoLoaded(true)
+        if (wasVertical !== nowVertical) {
+          console.log('Video orientation changed:', nowVertical ? 'vertical' : 'horizontal')
+        }
+      }
+    }
+  }
+
   const handlePlay = async () => {
     console.log('handlePlay called, isPlaying:', isPlaying, 'canPlay:', canPlay)
     if (videoRef.current) {
+      checkVideoOrientation()
+
       try {
         if (isPlaying) {
           await videoRef.current.pause()
@@ -98,7 +138,6 @@ const VideoPlayer: React.FC = () => {
     }
   }
 
-  // 自动隐藏控制栏
   useEffect(() => {
     let timeout: NodeJS.Timeout
     if (isPlaying && isFullscreen) {
@@ -109,13 +148,8 @@ const VideoPlayer: React.FC = () => {
     return () => clearTimeout(timeout)
   }, [isPlaying, isFullscreen])
 
-  // 检测视频是否为竖版
   const handleVideoLoaded = () => {
-    if (videoRef.current) {
-      const { videoWidth, videoHeight } = videoRef.current
-      setIsVertical(videoHeight > videoWidth)
-      setVideoLoaded(true)
-    }
+    checkVideoOrientation()
   }
 
   const handleMouseMove = () => {
@@ -128,7 +162,6 @@ const VideoPlayer: React.FC = () => {
       className="min-h-screen bg-black flex flex-col relative"
       onMouseMove={handleMouseMove}
     >
-      {/* 顶部导航 - 全屏时可隐藏 */}
       <nav
         className={`flex items-center justify-between px-6 py-4 bg-gradient-to-b from-black/80 to-transparent absolute top-0 left-0 right-0 z-20 transition-opacity duration-300 ${
           isFullscreen && !showControls ? 'opacity-0 pointer-events-none' : 'opacity-100'
@@ -151,9 +184,7 @@ const VideoPlayer: React.FC = () => {
         </button>
       </nav>
 
-      {/* 视频播放区域 - 几乎全屏 */}
       <div className="flex-1 flex items-center justify-center relative">
-        {/* 竖版视频的模糊背景 */}
         {isVertical && videoLoaded && (
           <div className="absolute inset-0 overflow-hidden">
             <video
@@ -175,12 +206,16 @@ const VideoPlayer: React.FC = () => {
           className={`relative z-10 ${isVertical ? 'max-h-[85vh] max-w-[90vw] w-auto h-auto' : 'w-full h-full object-contain'}`}
           controls={hasStarted || isPlaying}
           preload="auto"
-          onPlay={() => setIsPlaying(true)}
+          onPlay={() => {
+            setIsPlaying(true)
+            checkVideoOrientation()
+          }}
           onPause={() => setIsPlaying(false)}
           onLoadedMetadata={handleVideoLoaded}
           onCanPlay={() => {
             console.log('Video can play')
             setCanPlay(true)
+            checkVideoOrientation()
           }}
         >
           <source src="/demo-video.mp4" type="video/mp4" />
@@ -188,7 +223,6 @@ const VideoPlayer: React.FC = () => {
           您的浏览器不支持视频播放
         </video>
 
-        {/* 自定义播放按钮覆盖层 */}
         {!isPlaying && (
           <button
             onClick={handlePlay}
@@ -201,7 +235,6 @@ const VideoPlayer: React.FC = () => {
         )}
       </div>
 
-      {/* 底部信息 - 全屏时可隐藏 */}
       <div
         className={`px-6 py-4 bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 right-0 z-20 transition-opacity duration-300 ${
           isFullscreen && !showControls ? 'opacity-0 pointer-events-none' : 'opacity-100'
