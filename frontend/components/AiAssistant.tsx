@@ -1,8 +1,19 @@
 import axios from 'axios'
-import { AlertTriangle, FileText, Network, Send, Sparkles, X } from 'lucide-react'
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Network,
+  Radar,
+  Search,
+  Send,
+  Sparkles,
+  X,
+} from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { knowledgeQaApi, type KnowledgeQaCitation } from '../src/api/knowledgeQaApi'
+import { type KnowledgeQaCitation, knowledgeQaApi } from '../src/api/knowledgeQaApi'
 
 interface CitationCard {
   id: string
@@ -10,6 +21,8 @@ interface CitationCard {
   title: string
   snippet: string
   score?: number | null
+  retriever: 'graph' | 'keyword' | 'vector' | 'document'
+  metadata: Record<string, unknown>
 }
 
 interface AssistantMessage {
@@ -62,6 +75,14 @@ const mapCitation = (citation: KnowledgeQaCitation, index: number): CitationCard
   title: citation.title,
   snippet: citation.snippet,
   score: citation.score,
+  retriever:
+    typeof citation.metadata?.retriever === 'string' &&
+    ['graph', 'keyword', 'vector', 'document'].includes(citation.metadata.retriever)
+      ? (citation.metadata.retriever as CitationCard['retriever'])
+      : citation.source_type === 'graph'
+        ? 'graph'
+        : 'document',
+  metadata: citation.metadata,
 })
 
 const getLineType = (contextData: Record<string, unknown>): string | undefined => {
@@ -90,6 +111,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({
   const [loading, setLoading] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [messages, setMessages] = useState<AssistantMessage[]>([])
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     setMessages([
@@ -113,8 +135,18 @@ const AiAssistant: React.FC<AiAssistantProps> = ({
     if (typeof contextData.line_type === 'string') items.push(`产线: ${contextData.line_type}`)
     if (typeof contextData.anomalyId === 'string') items.push(`异常: ${contextData.anomalyId}`)
     if (typeof contextData.sequence === 'number') items.push(`序号: ${contextData.sequence}`)
+    if (typeof contextData.selectedNodeLabel === 'string') {
+      items.push(`节点: ${contextData.selectedNodeLabel}`)
+    }
     return items.slice(0, 3)
   }, [contextData])
+
+  const toggleGroup = (groupKey: string) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [groupKey]: !prev[groupKey],
+    }))
+  }
 
   const handleSend = async (question: string) => {
     const trimmed = question.trim()
@@ -232,27 +264,101 @@ const AiAssistant: React.FC<AiAssistantProps> = ({
                 )}
                 {msg.citations && msg.citations.length > 0 && (
                   <div className="mt-3 space-y-2">
-                    {msg.citations.map((citation) => (
-                      <div
-                        key={citation.id}
-                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600"
-                      >
-                        <div className="mb-1 flex items-center gap-1 font-medium text-slate-700">
-                          {citation.sourceType === 'graph' ? (
-                            <Network size={12} className="text-blue-500" />
-                          ) : (
-                            <FileText size={12} className="text-amber-500" />
-                          )}
-                          <span>{citation.title}</span>
-                        </div>
-                        <p>{citation.snippet}</p>
-                        {typeof citation.score === 'number' && (
-                          <p className="mt-1 text-[11px] text-slate-400">
-                            匹配度 {citation.score.toFixed(2)}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                    {[
+                      {
+                        key: 'graph',
+                        title: '图谱事实',
+                        icon: Network,
+                        iconClass: 'text-blue-500',
+                        items: msg.citations.filter((citation) => citation.retriever === 'graph'),
+                      },
+                      {
+                        key: 'keyword',
+                        title: '关键词补充',
+                        icon: Search,
+                        iconClass: 'text-amber-500',
+                        items: msg.citations.filter((citation) => citation.retriever === 'keyword'),
+                      },
+                      {
+                        key: 'vector',
+                        title: '向量召回',
+                        icon: Radar,
+                        iconClass: 'text-cyan-500',
+                        items: msg.citations.filter((citation) => citation.retriever === 'vector'),
+                      },
+                      {
+                        key: 'document',
+                        title: '其他文本',
+                        icon: FileText,
+                        iconClass: 'text-slate-500',
+                        items: msg.citations.filter(
+                          (citation) => citation.retriever === 'document'
+                        ),
+                      },
+                    ]
+                      .filter((group) => group.items.length > 0)
+                      .map((group) => {
+                        const groupKey = `${msg.id}-${group.key}`
+                        const isExpanded = expandedGroups[groupKey] ?? group.key === 'graph'
+                        const Icon = group.icon
+                        const visibleItems = isExpanded ? group.items : group.items.slice(0, 1)
+
+                        return (
+                          <div
+                            key={groupKey}
+                            className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => toggleGroup(groupKey)}
+                              className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-100"
+                            >
+                              <span className="flex items-center gap-2">
+                                <Icon size={12} className={group.iconClass} />
+                                <span>{group.title}</span>
+                                <span className="rounded-full bg-white px-2 py-0.5 text-[11px] text-slate-500">
+                                  {group.items.length}
+                                </span>
+                              </span>
+                              {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                            </button>
+
+                            <div className="space-y-2 border-t border-slate-200 px-3 py-2 text-xs text-slate-600">
+                              {visibleItems.map((citation) => (
+                                <div
+                                  key={citation.id}
+                                  className="rounded-lg border border-white bg-white px-3 py-2"
+                                >
+                                  <div className="mb-1 flex flex-wrap items-center gap-1 font-medium text-slate-700">
+                                    <span>{citation.title}</span>
+                                    {typeof citation.metadata.sequence === 'number' && (
+                                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
+                                        序号 {citation.metadata.sequence}
+                                      </span>
+                                    )}
+                                    {typeof citation.metadata.line_type === 'string' && (
+                                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
+                                        {citation.metadata.line_type}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p>{citation.snippet}</p>
+                                  {typeof citation.score === 'number' && (
+                                    <p className="mt-2 text-[11px] text-slate-400">
+                                      匹配度 {citation.score.toFixed(2)}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                              {!isExpanded && group.items.length > 1 && (
+                                <p className="text-[11px] text-slate-400">
+                                  还有 {group.items.length - 1} 条，展开后查看
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
                   </div>
                 )}
               </div>

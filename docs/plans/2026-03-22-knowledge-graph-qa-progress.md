@@ -68,6 +68,14 @@
   - `QAFusionService` 已输出 `graph / keyword / vector / document` 分组
   - `QAAnswerService` 模板回答已按分组展示文本补充
   - `LangChainService` 已接收分组上下文并写入 prompt
+- ✅ 已补并行超时控制与失败隔离：
+  - `KnowledgeQAService` 已支持三路检索并行执行
+  - 已新增 per-retriever timeout / max workers 配置
+  - 超时与异常会单独降级，不阻塞主链路返回
+- ✅ 已补更严格的回答引用约束：
+  - `LangChainService` 已要求固定输出结构：`结论 / 依据 / 建议 / 风险/备注`
+  - `依据` 段需显式使用来源标签，如 `[G1]`、`[K1]`、`[V1]`
+  - `QAAnswerService` 模板回答也已对齐来源标签输出
 
 ### 前端：司南问答入口骨架（第一阶段）
 - ✅ 已新增前端设计与拆解文档：
@@ -107,20 +115,40 @@
     - 根据页面上下文透传 `line_type` / `sequence`
 - ✅ 已移除 Dashboard 页面内旧的局部悬浮司南入口，避免与全局入口重复：
   - `frontend/pages/Dashboard.tsx`
+- ✅ 已完成引用来源分组与展开渲染：
+  - `frontend/components/AiAssistant.tsx`
+  - 已按 `graph / keyword / vector / document` 分组展示引用
+  - 已支持分组展开/收起与基础元数据标签展示
+- ✅ 已完成 `KernelConnect` 第二阶段轻量问答入口接入：
+  - `frontend/App.tsx`
+  - `KernelConnect` 页面已显示统一“问司南”入口
+- ✅ 已补多页面上下文注入增强：
+  - `frontend/App.tsx`
+  - 已为 `SinanAnalysis` / `KnowledgeGraph` / `KernelConnect` 补充异常摘要、推荐方案、接入状态等上下文字段
+- ✅ 已补 `KnowledgeGraph` 页面内选中节点的问答上下文注入：
+  - `frontend/contexts/SinanQaContext.tsx`
+  - `frontend/App.tsx`
+  - `frontend/pages/KnowledgeGraph.tsx`
+  - 当前在格物页面切换选中节点后，司南问答可直接拿到 `selectedNodeId / selectedNodeLabel / selectedNodeType / selectedNodeDescription`
+- ✅ 已补知识图谱画布重渲染收敛：
+  - `frontend/components/KnowledgeGraphCanvas.tsx`
+  - `frontend/pages/KnowledgeGraph.tsx`
+  - 已将 `KnowledgeGraphCanvas` 做 `memo` 包装，并将节点点击回调改为稳定引用，减少问答上下文变化时的图谱重复重排
+- ✅ 已取消引用“跳转定位”交互，回退为只读引用展示：
+  - `frontend/components/AiAssistant.tsx`
+  - 原因：当前跳转路径会干扰格物页图谱体验，先保留引用分组、摘要与匹配度展示，不再提供跳转入口
 
 ## 未完成
 ### 后端待完善
-- ⏳ LangChain 已接入多路检索上下文，但仍缺少更严格的回答约束和引用控制
-- ⏳ 图谱 + 关键词 + 向量 三路已接入，尚未做并行超时控制与失败隔离
 - ⏳ 还未做更细粒度异常分类与结果质量评估
 - ⏳ 文档更新说明（Task 4）尚未补写
 - ⏳ 尚未形成非结构化文档接入规范、切片规范与向量化流程
 - ⏳ 向量检索当前仍基于结构化异常文本，尚未接入真实非结构化文档语料
 
 ### 前端：待完成项
-- ⏳ `KernelConnect` 尚未进入第二阶段悬浮入口接入
-- ⏳ 引用来源目前仅做基础卡片渲染，尚未增加跳转、展开和分组排序
-- ⏳ 还未实现多页面上下文精细化注入（例如 `KnowledgeGraph` 当前选中节点、`SinanAnalysis` 当前方案摘要）
+- ⏳ 引用来源当前已支持分组与展开，跳转能力已暂时移除，后续若重做需要避免触发格物页重载或重排
+- ⏳ 引用来源的更细粒度排序策略尚未补齐
+- ⏳ 图谱页虽然已收敛一轮画布重渲染，但仍需继续观察问答面板交互下的布局稳定性
 
 ## 测试状态
 - `uv run pytest backend/tests/services/test_qa_router.py backend/tests/services/test_knowledge_qa_service.py backend/tests/services/test_langchain_service.py backend/tests/services/test_graph_retriever.py backend/tests/services/test_keyword_retriever.py backend/tests/services/test_vector_retriever.py backend/tests/services/test_qa_fusion_service.py backend/tests/api/routes/test_knowledge_qa.py` 未通过（权限问题，已停止）
@@ -128,6 +156,10 @@
 - `npm run lint` 未通过（前端依赖未安装，已停止）
   - 错误：`'biome' is not recognized as an internal or external command`
   - 原因：`frontend/node_modules` 不存在，当前环境未安装前端依赖
+- `npx biome check frontend/components/AiAssistant.tsx` 已通过
+- `npx biome check frontend/App.tsx frontend/components/AiAssistant.tsx frontend/contexts/SinanQaContext.tsx` 已通过
+- `npx biome check frontend/components/KnowledgeGraphCanvas.tsx frontend/pages/KnowledgeGraph.tsx` 未通过
+  - 原因：这两个文件存在项目内既有 Biome 问题（如 `noExplicitAny`、`noNonNullAssertion`、`useButtonType` 等），不属于本轮新增逻辑直接引入的问题
 - `python -m compileall ...` 未通过（工作区 `__pycache__` 写入权限问题，已停止）
   - 错误：`PermissionError: [WinError 5] 拒绝访问`
 
@@ -135,6 +167,6 @@
 - 已清理工具产物目录（`.codex`）与误加入的计划文件，避免污染变更集。
 - 当前路线已明确切换为 LangChain。
 - 后续优先建议：
-  1. 增加并行超时控制与失败隔离
-  2. 为 LangChain 输出增加更严格的引用约束
-  3. 完成非结构化文档接入规范后再把向量召回切到真实文档语料
+  1. 做结果质量评估与更细粒度异常分类
+  2. 完成非结构化文档接入规范后再把向量召回切到真实文档语料
+  3. 补 Task 4 的文档更新说明
