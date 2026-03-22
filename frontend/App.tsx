@@ -41,7 +41,7 @@ const Dongwei = lazy(() => import('./pages/Dongwei'))
 const Ecosystem = lazy(() => import('./pages/Ecosystem'))
 const Huntian = lazy(() => import('./pages/Huntian'))
 const KernelConnect = lazy(() => import('./pages/KernelConnect'))
-const KnowledgeGraph = lazy(() => import('./pages/KnowledgeGraph'))
+const KnowledgeGraph3DDemo = lazy(() => import('./pages/KnowledgeGraph3DDemo'))
 const Marketplace = lazy(() => import('./pages/Marketplace'))
 const MonitoringDemo = lazy(() => import('./pages/MonitoringDemo'))
 const ScenarioBuilder = lazy(() => import('./pages/ScenarioBuilder'))
@@ -524,7 +524,7 @@ const App: React.FC = () => {
                       <Route path="/sinan" element={<SinanAnalysis />} />
                       <Route path="/zhixing" element={<Zhixing />} />
                       <Route path="/subscription-value" element={<SubscriptionValue />} />
-                      <Route path="/gewu" element={<KnowledgeGraph />} />
+                      <Route path="/gewu" element={<KnowledgeGraph3DDemo />} />
                       <Route path="/huntian" element={<Huntian />} />
                       <Route path="/tianchou" element={<Tianchou />} />
                       <Route path="/simulation" element={<Simulation />} />
