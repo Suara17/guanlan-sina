@@ -95,6 +95,21 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
+    # 知识问答 / LangChain 配置
+    KNOWLEDGE_QA_ENABLED: bool = True
+    LANGCHAIN_ENABLED: bool = False
+    LLM_PROVIDER: str = "openai"
+    LLM_MODEL: str = "gpt-4o-mini"
+    LLM_TEMPERATURE: float = 0.1
+    OPENAI_API_KEY: str = ""
+    OPENAI_BASE_URL: str | None = None
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def langchain_llm_configured(self) -> bool:
+        return bool(self.OPENAI_API_KEY)
+
     # Neo4j 配置
     NEO4J_URI: str = "bolt://localhost:7687"
     NEO4J_USER: str = "neo4j"

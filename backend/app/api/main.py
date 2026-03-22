@@ -6,6 +6,7 @@ from app.api.routes import (
     items,
     kernel,
     knowledge_graph,
+    knowledge_qa,
     login,
     private,
     production,
@@ -40,6 +41,13 @@ if settings.neo4j_enabled:
         knowledge_graph.router,
         prefix="/knowledge-graph",
         tags=["knowledge-graph"],
+    )
+
+if settings.KNOWLEDGE_QA_ENABLED:
+    api_router.include_router(
+        knowledge_qa.router,
+        prefix="/knowledge-qa",
+        tags=["knowledge-qa"],
     )
 
 if settings.ENVIRONMENT == "local":

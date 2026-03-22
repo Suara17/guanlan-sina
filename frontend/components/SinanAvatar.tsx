@@ -4,14 +4,35 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface SinanAvatarProps {
-  mode: 'idle' | 'alert'
+  mode: 'idle' | 'alert' | 'qa'
   alertMessage?: string
+  previewMessage?: string
+  showBubble?: boolean
+  onOpen?: () => void
+  disabled?: boolean
   className?: string
 }
 
-const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className }) => {
+const SinanAvatar: React.FC<SinanAvatarProps> = ({
+  mode,
+  alertMessage,
+  previewMessage,
+  showBubble = true,
+  onOpen,
+  disabled = false,
+  className,
+}) => {
   const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
+  const bubbleVisible = showBubble && !disabled && (mode === 'alert' || mode === 'qa' || isHovered)
+  const handleOpen = () => {
+    if (disabled) return
+    if (onOpen) {
+      onOpen()
+      return
+    }
+    navigate('/app/sinan')
+  }
 
   // CSS for simple robot animation
   const robotStyle = `
@@ -29,13 +50,16 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
       <button
         type="button"
         tabIndex={0}
+        disabled={disabled}
         className={`absolute bottom-28 w-64 bg-white p-4 rounded-2xl rounded-br-none shadow-xl border border-blue-100 transition-all duration-300 transform origin-bottom-right cursor-pointer
-        ${mode === 'alert' ? 'opacity-100 scale-100' : isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}`}
-        onClick={() => navigate('/app/sinan')}
+        ${bubbleVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'} ${
+          disabled ? 'opacity-60' : ''
+        }`}
+        onClick={handleOpen}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
-            navigate('/app/sinan')
+            handleOpen()
           }
         }}
       >
@@ -44,6 +68,10 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
             <div className="p-1.5 bg-red-100 text-red-600 rounded-full shrink-0 animate-pulse">
               <AlertCircle size={16} />
             </div>
+          ) : mode === 'qa' ? (
+            <div className="p-1.5 bg-blue-100 text-blue-600 rounded-full shrink-0">
+              <MessageCircle size={16} />
+            </div>
           ) : (
             <div className="p-1.5 bg-blue-100 text-blue-600 rounded-full shrink-0">
               <MessageCircle size={16} />
@@ -51,12 +79,18 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
           )}
           <div>
             <h4
-              className={`font-bold text-sm mb-1 ${mode === 'alert' ? 'text-red-600' : 'text-slate-700'}`}
+              className={`font-bold text-sm mb-1 ${
+                mode === 'alert' ? 'text-red-600' : 'text-slate-700'
+              }`}
             >
-              {mode === 'alert' ? '检测到异常！' : '司南在线'}
+              {mode === 'alert' ? '检测到异常！' : mode === 'qa' ? '司南待命' : '司南在线'}
             </h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              {mode === 'alert' ? alertMessage : '产线运行平稳，今日产量已达标 85% ~'}
+              {mode === 'alert'
+                ? alertMessage
+                : mode === 'qa'
+                  ? previewMessage || '问我异常原因、处理步骤或SOP依据'
+                  : previewMessage || '产线运行平稳，今日产量已达标 85% ~'}
             </p>
             {mode === 'alert' && (
               <div className="mt-2 text-xs font-semibold text-blue-600 flex items-center">
@@ -64,9 +98,9 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
                 <ChevronRight size={12} />
               </div>
             )}
-            {mode === 'idle' && (
+            {mode !== 'alert' && (
               <div className="mt-2 text-xs font-semibold text-blue-600 flex items-center">
-                点击打开司南智控
+                {onOpen ? '点击打开司南问答' : '点击打开司南智控'}
                 <ChevronRight size={12} />
               </div>
             )}
@@ -78,14 +112,17 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
       <button
         type="button"
         tabIndex={0}
-        className="relative w-32 h-32 animate-float cursor-pointer group"
+        disabled={disabled}
+        className={`relative w-32 h-32 animate-float cursor-pointer group ${
+          disabled ? 'opacity-60 cursor-not-allowed' : ''
+        }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => navigate('/app/sinan')}
+        onClick={handleOpen}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
-            navigate('/app/sinan')
+            handleOpen()
           }
         }}
       >
@@ -94,27 +131,47 @@ const SinanAvatar: React.FC<SinanAvatarProps> = ({ mode, alertMessage, className
           {/* Screen/Face */}
           <div
             className={`w-24 h-16 rounded-xl flex items-center justify-center gap-4 transition-colors duration-500
-                ${mode === 'alert' ? 'bg-red-50' : 'bg-slate-900'}`}
+                ${mode === 'alert' ? 'bg-red-50' : mode === 'qa' ? 'bg-blue-50' : 'bg-slate-900'}`}
           >
             {/* Eyes */}
             <div
-              className={`w-3 h-8 rounded-full animate-blink ${mode === 'alert' ? 'bg-red-500 rotate-12' : 'bg-blue-400'}`}
+              className={`w-3 h-8 rounded-full animate-blink ${
+                mode === 'alert'
+                  ? 'bg-red-500 rotate-12'
+                  : mode === 'qa'
+                    ? 'bg-blue-500'
+                    : 'bg-blue-400'
+              }`}
             ></div>
             <div
-              className={`w-3 h-8 rounded-full animate-blink ${mode === 'alert' ? 'bg-red-500 -rotate-12' : 'bg-blue-400'}`}
+              className={`w-3 h-8 rounded-full animate-blink ${
+                mode === 'alert'
+                  ? 'bg-red-500 -rotate-12'
+                  : mode === 'qa'
+                    ? 'bg-blue-500'
+                    : 'bg-blue-400'
+              }`}
             ></div>
           </div>
 
           {/* Mouth (Simple line) */}
           <div
-            className={`mt-2 w-4 h-1 rounded-full ${mode === 'alert' ? 'bg-red-400 w-8' : 'bg-slate-300'}`}
+            className={`mt-2 w-4 h-1 rounded-full ${
+              mode === 'alert' ? 'bg-red-400 w-8' : mode === 'qa' ? 'bg-blue-300 w-6' : 'bg-slate-300'
+            }`}
           ></div>
         </div>
 
         {/* Antenna */}
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-1 h-4 bg-slate-300"></div>
         <div
-          className={`absolute -top-6 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${mode === 'alert' ? 'bg-red-500 animate-ping' : 'bg-blue-400'}`}
+          className={`absolute -top-6 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${
+            mode === 'alert'
+              ? 'bg-red-500 animate-ping'
+              : mode === 'qa'
+                ? 'bg-blue-500 animate-pulse'
+                : 'bg-blue-400'
+          }`}
         ></div>
 
         {/* Shadow */}
