@@ -1,8 +1,11 @@
+from time import sleep
+
 from app.services.knowledge_qa_models import QARequest
 from app.services.knowledge_qa_service import KnowledgeQAService
 from app.services.qa_answer_service import QAAnswerService
 from app.services.qa_fusion_service import QAFusionService
 from app.services.qa_router import QARouter
+from app.services.retrievers.base import RetrievalResult
 from app.services.retrievers import GraphRetriever, KeywordRetriever, VectorRetriever
 
 
@@ -65,6 +68,25 @@ class StubLangChainService:
         return f"LangChain grounded answer for: {question}"
 
 
+class SlowKeywordRetriever:
+    name = "keyword"
+    is_available = True
+
+    def retrieve(self, request: QARequest):
+        _ = request
+        sleep(0.05)
+        return RetrievalResult()
+
+
+class FailingVectorRetriever:
+    name = "vector"
+    is_available = True
+
+    def retrieve(self, request: QARequest):
+        _ = request
+        raise RuntimeError("boom")
+
+
 def test_knowledge_qa_service_returns_hybrid_response():
     service = KnowledgeQAService(
         qa_router=QARouter(),
@@ -114,8 +136,9 @@ def test_knowledge_qa_service_returns_template_answer_without_langchain():
     assert response.route.mode == "hybrid"
     assert len(response.graph_hits) == 1
     assert len(response.document_hits) >= 2
-    assert "关键词检索补充" in response.answer
-    assert "向量召回补充" in response.answer
+    assert "依据：" in response.answer
+    assert "[K1]" in response.answer
+    assert "[V1]" in response.answer
 
 
 def test_knowledge_qa_service_falls_back_to_graph_when_document_unavailable():
@@ -157,3 +180,27 @@ def test_knowledge_qa_service_returns_graph_summary_when_no_specific_hit():
     assert response.citations[0].source_type == "graph"
     assert response.debug is not None
     assert response.debug.graph_hit_count == 1
+
+
+def test_knowledge_qa_service_isolates_retriever_timeout_and_failure(monkeypatch):
+    monkeypatch.setattr("app.services.knowledge_qa_service.settings.QA_RETRIEVER_TIMEOUT_MS", 10)
+    monkeypatch.setattr("app.services.knowledge_qa_service.settings.QA_RETRIEVER_MAX_WORKERS", 3)
+
+    service = KnowledgeQAService(
+        qa_router=QARouter(),
+        answer_service=QAAnswerService(),
+        fusion_service=QAFusionService(),
+        graph_retriever=GraphRetriever(StubNeo4jService()),
+        keyword_retriever=SlowKeywordRetriever(),
+        vector_retriever=FailingVectorRetriever(),
+    )
+
+    response = service.ask(
+        QARequest(question="SMT异常3需要按照SOP怎么处理？", line_type="SMT", sequence=3)
+    )
+
+    assert len(response.graph_hits) == 1
+    assert any("关键词检索超时" in warning for warning in response.warnings)
+    assert any("向量检索失败" in warning for warning in response.warnings)
+    assert response.debug is not None
+    assert response.debug.timing_ms["keyword_retrieval"] == 10

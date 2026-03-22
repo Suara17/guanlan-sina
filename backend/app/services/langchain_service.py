@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Sequence
+from typing import Literal
 
 from app.core.config import settings
 from app.services.knowledge_qa_models import QACitation, QARouteDecision
@@ -58,8 +59,10 @@ class LangChainService:
             logger.warning("Unsupported LLM provider for LangChain service: %s", self.provider)
             return None
 
-        graph_context = self._format_citation_context(graph_citations[:5])
-        document_context = self._format_citation_context(document_citations[:5])
+        graph_context = self._format_citation_context(graph_citations[:5], group_name="graph")
+        document_context = self._format_citation_context(
+            document_citations[:5], group_name="document"
+        )
         grouped_context = self._format_grouped_context(citation_groups)
         warning_context = "\n".join(f"- {warning}" for warning in warnings)
 
@@ -69,6 +72,9 @@ class LangChainService:
                     "system",
                     "你是工业知识问答助手。只能基于提供的图谱事实和检索片段作答，不允许编造。"
                     "如果文档检索为空，要明确说明当前没有可引用的 SOP/手册内容。"
+                    "输出必须严格包含四段：`结论`、`依据`、`建议`、`风险/备注`。"
+                    "`依据` 段中的每个要点都必须带来源标签，例如 `[G1]`、`[K1]`、`[V1]`。"
+                    "若某条结论没有来源支撑，就不要写。"
                     "优先引用高分结果，先给结论，再给依据和建议。"
                     "输出简洁、可执行、面向工程人员。",
                 ),
@@ -104,9 +110,13 @@ class LangChainService:
         )
 
     @staticmethod
-    def _format_citation_context(citations: Sequence[QACitation]) -> str:
+    def _format_citation_context(
+        citations: Sequence[QACitation],
+        *,
+        group_name: Literal["graph", "document", "keyword", "vector"],
+    ) -> str:
         lines: list[str] = []
-        for citation in citations:
+        for index, citation in enumerate(citations, start=1):
             metadata = citation.metadata or {}
             extras: list[str] = []
             if metadata.get("sequence") is not None:
@@ -120,8 +130,13 @@ class LangChainService:
             if citation.score is not None:
                 extras.append(f"score={citation.score}")
 
+            source_label = LangChainService._source_label(
+                citation, index=index, fallback_group=group_name
+            )
             extra_text = f" ({'; '.join(extras)})" if extras else ""
-            lines.append(f"- {citation.title}{extra_text}: {citation.snippet}")
+            lines.append(
+                f"- [{source_label}] {citation.title}{extra_text}: {citation.snippet}"
+            )
 
         return "\n".join(lines)
 
@@ -144,6 +159,25 @@ class LangChainService:
             if not citations:
                 continue
             sections.append(
-                f"[{section_titles[group_name]}]\n{cls._format_citation_context(citations)}"
+                f"[{section_titles[group_name]}]\n"
+                f"{cls._format_citation_context(citations, group_name=group_name)}"
             )
         return "\n\n".join(sections)
+
+    @staticmethod
+    def _source_label(
+        citation: QACitation,
+        *,
+        index: int,
+        fallback_group: Literal["graph", "document", "keyword", "vector"],
+    ) -> str:
+        metadata = citation.metadata or {}
+        retriever = str(metadata.get("retriever") or fallback_group)
+        prefix_map = {
+            "graph": "G",
+            "keyword": "K",
+            "vector": "V",
+            "document": "D",
+        }
+        prefix = prefix_map.get(retriever, "D")
+        return f"{prefix}{index}"

@@ -45,9 +45,11 @@ def test_langchain_service_formats_citation_context_with_metadata():
                     "matched_terms": ["贴片偏移", "吸嘴"],
                 },
             )
-        ]
+        ],
+        group_name="keyword",
     )
 
+    assert "[K1]" in formatted
     assert "sequence=3" in formatted
     assert "line_type=SMT" in formatted
     assert "matched_terms=贴片偏移,吸嘴" in formatted
@@ -79,3 +81,5 @@ def test_langchain_service_formats_grouped_context():
 
     assert "[图谱事实]" in grouped
     assert "[关键词补充]" in grouped
+    assert "[G1]" in grouped
+    assert "[K1]" in grouped

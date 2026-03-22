@@ -1,4 +1,5 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor, wait
 from time import perf_counter
 from typing import Any
 
@@ -13,7 +14,13 @@ from app.services.knowledge_qa_models import (
 from app.services.qa_answer_service import QAAnswerService
 from app.services.qa_fusion_service import QAFusionService
 from app.services.qa_router import QARouter
-from app.services.retrievers import GraphRetriever, KeywordRetriever, VectorRetriever
+from app.services.retrievers import (
+    BaseRetriever,
+    GraphRetriever,
+    KeywordRetriever,
+    RetrievalResult,
+    VectorRetriever,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -59,52 +66,26 @@ class KnowledgeQAService:
             request.question[:80],
         )
 
-        if "graph" in executed_modes:
-            if not self.graph_retriever.is_available:
-                warnings.append("图谱检索未启用，已跳过结构化检索。")
-            else:
-                graph_start = perf_counter()
-                try:
-                    graph_result = self.graph_retriever.retrieve(request)
-                    graph_hits = graph_result.hits
-                    graph_citations = graph_result.citations
-                    if not graph_citations:
-                        warnings.append("图谱检索未命中相关事实。")
-                except Exception:
-                    logger.exception("knowledge_qa graph retrieval failed")
-                    warnings.append("图谱检索失败，已降级为其他可用来源。")
-                finally:
-                    timing_ms["graph_retrieval"] = self._elapsed_ms(graph_start)
+        retriever_results = self._run_retrievers(executed_modes, request)
+        timing_ms.update(retriever_results["timing_ms"])
+        warnings.extend(retriever_results["warnings"])
 
-        if "keyword" in executed_modes:
-            keyword_start = perf_counter()
-            try:
-                keyword_result = self.keyword_retriever.retrieve(request)
-                document_hits.extend(keyword_result.hits)
-                document_citations.extend(keyword_result.citations)
-                if not keyword_result.citations:
-                    warnings.append("关键词检索未命中相关文本事实。")
-            except Exception:
-                logger.exception("knowledge_qa keyword retrieval failed")
-                warnings.append("关键词检索失败，当前仅返回其他可用来源。")
-            finally:
-                timing_ms["keyword_retrieval"] = self._elapsed_ms(keyword_start)
+        graph_result = retriever_results["results"].get("graph", RetrievalResult())
+        graph_hits = graph_result.hits
+        graph_citations = graph_result.citations
 
-        if "vector" in executed_modes:
-            vector_start = perf_counter()
-            try:
-                vector_result = self.vector_retriever.retrieve(request)
-                document_hits.extend(vector_result.hits)
-                document_citations.extend(vector_result.citations)
-                if not vector_result.citations:
-                    warnings.append("向量检索未命中相关语义片段。")
-            except Exception:
-                logger.exception("knowledge_qa vector retrieval failed")
-                warnings.append("向量检索失败，当前仅返回其他可用来源。")
-            finally:
-                timing_ms["vector_retrieval"] = self._elapsed_ms(vector_start)
+        keyword_result = retriever_results["results"].get("keyword", RetrievalResult())
+        vector_result = retriever_results["results"].get("vector", RetrievalResult())
+        document_hits.extend(keyword_result.hits)
+        document_hits.extend(vector_result.hits)
+        document_citations.extend(keyword_result.citations)
+        document_citations.extend(vector_result.citations)
 
-        if route.mode in {"document", "hybrid"} and "keyword" not in executed_modes and "vector" not in executed_modes:
+        if (
+            route.mode in {"document", "hybrid"}
+            and "keyword" not in executed_modes
+            and "vector" not in executed_modes
+        ):
             warnings.append("文本检索尚未接入，已自动退回知识图谱检索。")
 
         graph_hits = self.fusion_service.trim_hits(graph_hits, top_k=request.top_k)
@@ -193,6 +174,113 @@ class KnowledgeQAService:
                 modes.append("vector")
             return modes
         return []
+
+    def _run_retrievers(
+        self, executed_modes: list[str], request: QARequest
+    ) -> dict[str, Any]:
+        results: dict[str, RetrievalResult] = {}
+        warnings: list[str] = []
+        timing_ms: dict[str, float] = {}
+
+        retriever_specs = self._build_retriever_specs(executed_modes)
+        available_specs = [spec for spec in retriever_specs if spec["retriever"].is_available]
+
+        for spec in retriever_specs:
+            if not spec["retriever"].is_available:
+                warnings.append(spec["unavailable_warning"])
+
+        if not available_specs:
+            return {"results": results, "warnings": warnings, "timing_ms": timing_ms}
+
+        max_workers = min(
+            max(settings.QA_RETRIEVER_MAX_WORKERS, 1),
+            len(available_specs),
+        )
+        timeout_seconds = max(settings.QA_RETRIEVER_TIMEOUT_MS, 1) / 1000
+
+        executor = ThreadPoolExecutor(max_workers=max_workers)
+        try:
+            future_map = {
+                executor.submit(self._execute_retriever, spec["retriever"], request): spec
+                for spec in available_specs
+            }
+            done, not_done = wait(future_map, timeout=timeout_seconds)
+
+            for future in done:
+                spec = future_map[future]
+                name = spec["name"]
+                try:
+                    payload = future.result()
+                except Exception:
+                    logger.exception("knowledge_qa %s retrieval failed", name)
+                    warnings.append(spec["failure_warning"])
+                    continue
+
+                timing_ms[f"{name}_retrieval"] = payload["elapsed_ms"]
+                result = payload["result"]
+                results[name] = result
+                if not result.citations:
+                    warnings.append(spec["empty_warning"])
+
+            for future in not_done:
+                spec = future_map[future]
+                future.cancel()
+                timing_ms[f"{spec['name']}_retrieval"] = round(
+                    settings.QA_RETRIEVER_TIMEOUT_MS, 2
+                )
+                warnings.append(spec["timeout_warning"])
+        finally:
+            executor.shutdown(wait=False, cancel_futures=True)
+
+        return {"results": results, "warnings": warnings, "timing_ms": timing_ms}
+
+    def _build_retriever_specs(self, executed_modes: list[str]) -> list[dict[str, Any]]:
+        retrievers: list[dict[str, Any]] = []
+        if "graph" in executed_modes:
+            retrievers.append(
+                {
+                    "name": "graph",
+                    "retriever": self.graph_retriever,
+                    "unavailable_warning": "图谱检索未启用，已跳过结构化检索。",
+                    "empty_warning": "图谱检索未命中相关事实。",
+                    "failure_warning": "图谱检索失败，已降级为其他可用来源。",
+                    "timeout_warning": "图谱检索超时，已跳过该来源。",
+                }
+            )
+        if "keyword" in executed_modes:
+            retrievers.append(
+                {
+                    "name": "keyword",
+                    "retriever": self.keyword_retriever,
+                    "unavailable_warning": "关键词检索未启用，已跳过文本匹配检索。",
+                    "empty_warning": "关键词检索未命中相关文本事实。",
+                    "failure_warning": "关键词检索失败，当前仅返回其他可用来源。",
+                    "timeout_warning": "关键词检索超时，已跳过该来源。",
+                }
+            )
+        if "vector" in executed_modes:
+            retrievers.append(
+                {
+                    "name": "vector",
+                    "retriever": self.vector_retriever,
+                    "unavailable_warning": "向量检索未启用，已跳过语义召回。",
+                    "empty_warning": "向量检索未命中相关语义片段。",
+                    "failure_warning": "向量检索失败，当前仅返回其他可用来源。",
+                    "timeout_warning": "向量检索超时，已跳过该来源。",
+                }
+            )
+        return retrievers
+
+    @staticmethod
+    def _execute_retriever(
+        retriever: BaseRetriever, request: QARequest
+    ) -> dict[str, Any]:
+        started_at = perf_counter()
+        result = retriever.retrieve(request)
+        return {
+            "result": result,
+            "elapsed_ms": round((perf_counter() - started_at) * 1000, 2),
+        }
 
     @staticmethod
     def _elapsed_ms(start: float) -> float:

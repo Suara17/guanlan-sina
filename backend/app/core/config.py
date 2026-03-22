@@ -104,6 +104,8 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_BASE_URL: str | None = None
     EMBEDDING_MODEL: str = "text-embedding-3-small"
+    QA_RETRIEVER_TIMEOUT_MS: int = 1500
+    QA_RETRIEVER_MAX_WORKERS: int = 3
 
     @computed_field  # type: ignore[prop-decorator]
     @property
