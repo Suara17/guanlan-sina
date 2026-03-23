@@ -5,6 +5,7 @@ from typing import Any
 from app.services.document_index_service import DocumentIndexService
 from app.services.embedding_service import EmbeddingService
 from app.services.knowledge_qa_models import QACitation, QARequest
+from app.services.query_expansion import QueryExpansion
 from app.services.retrievers.base import BaseRetriever, RetrievalResult
 
 
@@ -24,6 +25,8 @@ class VectorRetriever(BaseRetriever):
 
         query_text = self._build_query_text(request)
         query_terms = self._extract_terms(query_text)
+        positive_terms = QueryExpansion.positive_terms_for(request.question)
+        negative_terms = QueryExpansion.negative_terms_for(request.question)
         chunks = self.document_index_service.get_chunks()
         embedding_map = self._get_embedding_map()
         scored_items: list[tuple[float, dict[str, Any]]] = []
@@ -50,6 +53,12 @@ class VectorRetriever(BaseRetriever):
                 score += 0.25
             if request.line_type and self._matches_line_type(chunk, request.line_type):
                 score += 0.05
+            positive_hit_count = sum(1 for term in positive_terms if term in candidate_text.lower())
+            negative_hit_count = sum(1 for term in negative_terms if term in candidate_text.lower())
+            if positive_hit_count:
+                score += positive_hit_count * 0.08
+            if negative_hit_count:
+                score -= negative_hit_count * 0.1
             if score <= 0:
                 continue
             scored_items.append((round(score, 4), chunk))
@@ -124,12 +133,11 @@ class VectorRetriever(BaseRetriever):
 
     @staticmethod
     def _build_query_text(request: QARequest) -> str:
-        parts = [request.question]
-        if request.line_type:
-            parts.append(request.line_type)
-        if request.sequence is not None:
-            parts.append(f"异常 {request.sequence}")
-        return " ".join(parts)
+        return QueryExpansion.build_query_text(
+            request.question,
+            line_type=request.line_type,
+            sequence=request.sequence,
+        )
 
     @staticmethod
     def _build_candidate_text(chunk: dict[str, Any]) -> str:

@@ -6,7 +6,7 @@
 
 ## 总览
 - 目标：实现方案 B（Neo4j 图谱问答 + LangChain LLM + 后续 RAG 扩展）
-- 状态：后端已切换到 LangChain 路线，统一问答 API 已打通 `graph + keyword + vector + fusion + grouped prompt` 主链路；文档 RAG 已接入真实 PDF 语料，已完成本地 embedding 索引与首轮回归，并开始切换到轻量多语言 embedding 模型；前端已接入真实 API
+- 状态：后端已切换到 LangChain 路线，统一问答 API 已打通 `graph + keyword + vector + fusion + grouped prompt` 主链路；文档 RAG 已接入真实 PDF 语料，已完成 `jinaai/jina-embeddings-v2-small-en` 本地索引重建、查询英文化扩展和新一轮回归收口；前端已接入真实 API
 
 ## 已完成
 ### Task 1：LangChain 配置与回答器
@@ -94,26 +94,34 @@
   - 已支持读取 `embeddings.jsonl`
   - 已通过 `EmbeddingService` 统一接 OpenAI / Voyage / 本地 Hugging Face provider
   - 当前默认 provider 已切为本地 `huggingface_local`
-  - 当前默认模型已切为 `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`（轻量多语言）
+  - 当前默认模型已切为 `jinaai/jina-embeddings-v2-small-en`（轻量英文 embedding）
 - ✅ 已完成 embedding 模型切换准备：
-  - 已将默认本地 embedding 模型从中文专用 `BAAI/bge-small-zh-v1.5` 切到轻量多语言 `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
+  - 已将默认本地 embedding 模型从中文专用 `BAAI/bge-small-zh-v1.5` 切到 `jinaai/jina-embeddings-v2-small-en`
   - `build_knowledge_qa_index.py` 生成的 `manifest.json` 已补充 `embedding_provider / embedding_model`
-  - 当前适配目标是“英文 PDF 语料 + 中文问题”的跨语言检索场景
+  - 已为 `jinaai/jina-embeddings-v2-*` 本地加载补充 `trust_remote_code` 支持
+  - 当前切换目标优先考虑“英文 PDF 语料 + 更快模型下载与索引构建”
+- ✅ 已完成 `jinaai/jina-embeddings-v2-small-en` 本地索引重建：
+  - 已验证本地模型可正常加载，向量维度为 `512`
+  - 已重建 `backend/app/data/knowledge_qa/embeddings.jsonl`
+  - 当前 `manifest.json` 已记录 `embedding_model = jinaai/jina-embeddings-v2-small-en`
 - ✅ 已完成本地 BAAI embedding 索引构建：
   - 已解决 Hugging Face 缓存离线加载问题，绕开工作区内错误代理配置
   - 已成功生成 `backend/app/data/knowledge_qa/embeddings.jsonl`
   - 当前 `manifest.json` 状态为 `embeddings_enabled=true`
+- ✅ 已完成查询英文化扩展与 placement intent 加权：
+  - 新增 `backend/app/services/query_expansion.py`
+  - `KeywordRetriever` / `VectorRetriever` 已接入中文问题到英文检索术语的扩展
+  - 已针对 `placement offset` 增加意图级正负权重，提升 `placement accuracy / fiducial / z-height / nozzle / feeder`，压制 `stencil misalignment / printing process`
 - ✅ 已补 document/vector 典型问题手工回归：
   - 新增 `backend/app/scripts/evaluate_knowledge_qa.py`
   - 已生成 `backend/app/data/knowledge_qa/evaluation_report.json`
   - 已补结果记录：`docs/plans/2026-03-23-knowledge-qa-regression-report.md`
-  - 当前回归结论：
-    - `keyword`：`4 pass / 0 partial / 1 fail`
-    - `vector`：`3 pass / 0 partial / 2 fail`
-    - `fusion`：`3 pass / 1 partial / 1 fail`
-  - 当前明确短板：
-    - `虚焊排故` 会被弱相关 `vector` 结果带偏
-    - `贴片偏移/placement offset` 仍未形成稳定命中
+  - 最新回归结论：
+    - `keyword`：`5 pass / 0 partial / 0 fail`
+    - `vector`：`4 pass / 1 partial / 0 fail`
+    - `fusion`：`5 pass / 0 partial / 0 fail`
+  - 当前剩余观察：
+    - `SPI设备手册` 的 `vector` 仍为 `partial`，但 `fusion` 已为 `pass`
 
 ### 前端：司南问答入口骨架（第一阶段）
 - ✅ 已新增前端设计与拆解文档：
@@ -191,9 +199,8 @@
 - ⏳ 还未做更细粒度异常分类与结果质量评估
 - ⏳ 文档更新说明（Task 4）尚未补写
 - ⏳ 仍需继续优化文档筛选、chunk 清洗和召回排序权重
-- ⏳ 真实向量已接通，但对“贴片偏移/placement offset”这类问题仍会命中泛化工艺文档，尚未完成效果收口
-- ⏳ 仍需继续压制学术/泛检测类弱相关 `vector` 误召回，并优化 `fusion` 权重，避免高价值 `keyword` 结果被反超
-- ⏳ 轻量多语言模型正在下载，尚未完成基于 `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` 的 `embeddings.jsonl` 重建与回归验证
+- ⏳ 仍需继续优化 `SPI设备手册` 类问题的向量 Top1 命中稳定性
+- ⏳ 仍需继续压制学术/泛检测类弱相关 `vector` 误召回，尤其在非手册型问题上的抢位现象
 
 ### 前端：待完成项
 - ⏳ 引用来源当前已支持分组与展开，跳转能力已暂时移除，后续若重做需要避免触发格物页重载或重排
@@ -207,14 +214,16 @@
   - 结果：`6 passed`
 - `.\.venv\Scripts\python.exe -c "from sentence_transformers import SentenceTransformer; ..."` 已通过
   - 结果：本地 `BAAI/bge-small-zh-v1.5` 可正常加载并返回 `512` 维向量
-- `.\.venv\Scripts\python.exe -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'); ..."` 进行中
-  - 状态：模型下载中，尚未完成
+- `.\.venv\Scripts\python.exe -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True); ..."` 已通过
+  - 结果：本地 `jinaai/jina-embeddings-v2-small-en` 可正常加载并返回 `512` 维向量
 - `.\.venv\Scripts\python.exe app/scripts/build_knowledge_qa_index.py --with-embeddings` 已通过
   - 结果：成功生成 `61` 份文档、`3007` 个 chunks、`3007` 条 embeddings
 - `.\.venv\Scripts\python.exe app/scripts/evaluate_knowledge_qa.py --top-k 3` 已通过
   - 结果：成功生成 `backend/app/data/knowledge_qa/evaluation_report.json`
 - `.\.venv\Scripts\python.exe -m pytest tests/services/test_evaluate_knowledge_qa.py` 已通过
   - 结果：`1 passed`
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_keyword_retriever.py tests/services/test_vector_retriever.py tests/services/test_evaluate_knowledge_qa.py tests/services/test_knowledge_qa_service.py` 已通过
+  - 结果：`11 passed`
 - `npm run lint` 未通过（前端依赖未安装，已停止）
   - 错误：`'biome' is not recognized as an internal or external command`
   - 原因：`frontend/node_modules` 不存在，当前环境未安装前端依赖
@@ -234,9 +243,9 @@
   - `HTTP_PROXY / HTTPS_PROXY / ALL_PROXY = http://127.0.0.1:9`
   - 已在 embedding 加载层通过本地缓存路径 + `local_files_only=True` 绕开该问题
 - 曾尝试接入 `Voyage` 作为免费 embedding provider，但未绑支付方式账号会被限制到 `3 RPM / 10K TPM`，不适合当前全量索引构建；当前已回退为本地 BAAI 方案
-- 当前已确认英文 PDF + 中文问题场景不适合继续依赖中文专用 embedding 模型，已切换到轻量多语言模型配置；待模型下载完成后需重建 embeddings 并复测
+- 当前已确认英文 PDF + 中文问题场景不适合继续依赖中文专用 embedding 模型；当前已切到更轻量的英文 embedding 模型配置，并通过查询英文化扩展进行补偿
 - 后续优先建议：
   1. 做 document/vector 结果质量评估与更细粒度问题分类
-  2. 针对“贴片偏移/placement offset”类问题继续补语料和调排序
-  3. 完成轻量多语言 embeddings 重建与回归验证
+  2. 针对 `SPI设备手册` 类问题继续调优向量 Top1 命中
+  3. 继续补 query 扩展词表与排序规则，减少泛化工艺文档抢位
   4. 补 Task 4 的文档更新说明

@@ -149,13 +149,18 @@ class EmbeddingService:
             model = SentenceTransformer(
                 str(model_path or settings.EMBEDDING_MODEL),
                 device=settings.EMBEDDING_DEVICE,
-                trust_remote_code=False,
+                trust_remote_code=cls._should_trust_remote_code(settings.EMBEDDING_MODEL),
                 local_files_only=model_path is not None,
             )
         except Exception:
             return None
         cls._local_model_cache[cache_key] = cast(object, model)
         return cls._local_model_cache[cache_key]
+
+    @staticmethod
+    def _should_trust_remote_code(model_name: str) -> bool:
+        normalized = model_name.lower().strip()
+        return normalized.startswith("jinaai/jina-embeddings-v2")
 
     @staticmethod
     def _resolve_local_model_path(model_name: str) -> Path | None:

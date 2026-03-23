@@ -3,6 +3,7 @@ from typing import Any
 
 from app.services.document_index_service import DocumentIndexService
 from app.services.knowledge_qa_models import QACitation, QARequest
+from app.services.query_expansion import QueryExpansion
 from app.services.retrievers.base import BaseRetriever, RetrievalResult
 
 
@@ -20,7 +21,10 @@ class KeywordRetriever(BaseRetriever):
         if not self.is_available:
             return RetrievalResult()
 
-        keywords = self._extract_keywords(request.question)
+        keywords = self._extract_keywords(request.question, line_type=request.line_type)
+        detected_intents = QueryExpansion.detect_intents(request.question)
+        positive_terms = QueryExpansion.positive_terms_for(request.question)
+        negative_terms = QueryExpansion.negative_terms_for(request.question)
         if request.line_type:
             normalized_line_type = request.line_type.lower().strip()
             keywords = [keyword for keyword in keywords if keyword != normalized_line_type]
@@ -48,6 +52,50 @@ class KeywordRetriever(BaseRetriever):
                         score += 1.2
                     if keyword in {str(item).lower() for item in chunk.get("keywords", [])}:
                         score += 1.0
+
+            for term in positive_terms:
+                if term in searchable_text:
+                    matched_terms.append(term)
+                    score += 2.4
+
+            negative_hit_count = 0
+            for term in negative_terms:
+                if term in searchable_text:
+                    negative_hit_count += 1
+            if negative_hit_count:
+                score -= negative_hit_count * 2.2
+
+            if "placement_offset" in detected_intents:
+                strong_positive_terms = (
+                    "placement accuracy",
+                    "placement inaccuracy",
+                    "component placement",
+                    "placement pressure",
+                    "fiducial",
+                    "re-teach fiducials",
+                    "z-height",
+                    "component shifted",
+                    "pick and place",
+                )
+                strong_negative_terms = (
+                    "stencil misalignment",
+                    "stencil design",
+                    "paste deposit",
+                    "printing process",
+                    "solder paste printing",
+                )
+                strong_positive_hit_count = sum(
+                    1 for term in strong_positive_terms if term in searchable_text
+                )
+                strong_negative_hit_count = sum(
+                    1 for term in strong_negative_terms if term in searchable_text
+                )
+                if strong_positive_hit_count:
+                    score += strong_positive_hit_count * 4.5
+                if strong_negative_hit_count:
+                    score -= strong_negative_hit_count * 7.5
+                    if strong_positive_hit_count == 0:
+                        score -= 10.0
 
             if request.sequence is not None and request.sequence == self._extract_sequence(chunk):
                 matched_sequence = True
@@ -127,7 +175,7 @@ class KeywordRetriever(BaseRetriever):
         return normalized
 
     @staticmethod
-    def _extract_keywords(question: str) -> list[str]:
+    def _extract_keywords(question: str, *, line_type: str | None = None) -> list[str]:
         normalized = question.lower()
         removable_phrases = (
             "最近都有哪些",
@@ -179,6 +227,7 @@ class KeywordRetriever(BaseRetriever):
                         for index in range(0, len(cleaned) - size + 1)
                     )
 
+        keywords.extend(QueryExpansion.expand_terms(question, line_type=line_type))
         return KeywordRetriever._unique_non_empty(keywords)
 
     @staticmethod

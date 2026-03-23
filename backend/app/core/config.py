@@ -105,7 +105,7 @@ class Settings(BaseSettings):
     OPENAI_BASE_URL: str | None = None
     VOYAGE_API_KEY: str = ""
     EMBEDDING_PROVIDER: str = "huggingface_local"
-    EMBEDDING_MODEL: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    EMBEDDING_MODEL: str = "jinaai/jina-embeddings-v2-small-en"
     EMBEDDING_DEVICE: str = "cpu"
     EMBEDDING_BATCH_SIZE: int = 64
     EMBEDDING_REQUEST_INTERVAL_SECONDS: float = 0.0
