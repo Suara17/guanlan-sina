@@ -26,9 +26,12 @@ dependencies = [
     "neo4j>=5.15.0",
     "openpyxl>=3.1.0",
     "langchain>=0.3.27,<0.4.0",
+    "langchain-chroma>=0.2.5,<0.3.0",
     "langchain-community>=0.3.27,<0.4.0",
+    "langchain-huggingface>=0.3.1,<0.4.0",
     "langchain-openai>=0.3.28,<0.4.0",
     "langchain-voyageai>=0.1.4,<0.2.0",
+    "chromadb>=1.0.20,<2.0.0",
     "sentence-transformers>=3.4.1,<4.0.0",
     # 天筹算法依赖
     "deap==1.4.3",

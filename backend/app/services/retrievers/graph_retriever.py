@@ -20,6 +20,14 @@ class GraphRetriever(BaseRetriever):
         if self.neo4j_service is None:
             return RetrievalResult()
 
+        selected_node_text = self._selected_node_text(request)
+        if selected_node_text:
+            results = self.neo4j_service.search_related_knowledge(
+                selected_node_text, limit=request.top_k
+            )
+            if results:
+                return self._build_related_hits(results)
+
         if request.sequence is not None or self._contains_any(
             request.question, ("异常", "原因", "根因", "编号", "序号")
         ):
@@ -46,6 +54,75 @@ class GraphRetriever(BaseRetriever):
 
         results = self.neo4j_service.get_all_anomalies()[: request.top_k]
         return self._build_all_anomaly_hits(results)
+
+    def _build_related_hits(self, results: list[dict[str, Any]]) -> RetrievalResult:
+        grouped_hits: dict[int, dict[str, Any]] = {}
+        sequence_order: list[int] = []
+
+        for result in results:
+            anomaly = result.get("a")
+            if not anomaly:
+                continue
+
+            sequence = anomaly.get("sequence")
+            if not isinstance(sequence, int):
+                continue
+
+            if sequence not in grouped_hits:
+                grouped_hits[sequence] = {
+                    "sequence": sequence,
+                    "name": anomaly.get("name"),
+                    "line_type": anomaly.get("line_type"),
+                    "phenomenon": anomaly.get("phenomenon"),
+                    "severity": anomaly.get("severity"),
+                    "causes": [],
+                    "solutions": [],
+                    "match_score": float(result.get("match_score") or 0),
+                }
+                sequence_order.append(sequence)
+
+            cause = result.get("c")
+            if cause:
+                description = cause.get("description")
+                if description:
+                    grouped_hits[sequence]["causes"].append(description)
+
+            solution = result.get("s")
+            if solution:
+                method = solution.get("method")
+                if method:
+                    grouped_hits[sequence]["solutions"].append(method)
+
+            grouped_hits[sequence]["match_score"] = max(
+                grouped_hits[sequence]["match_score"],
+                float(result.get("match_score") or 0),
+            )
+
+        hits: list[dict[str, Any]] = []
+        citations: list[QACitation] = []
+        for sequence in sequence_order:
+            hit = grouped_hits[sequence]
+            hit["causes"] = self._unique_non_empty(hit["causes"])
+            hit["solutions"] = self._unique_non_empty(hit["solutions"])
+            hits.append(hit)
+
+            snippet_parts = [f"异常{sequence}现象：{hit.get('phenomenon', '未提供')}"]
+            if hit["causes"]:
+                snippet_parts.append(f"相关原因：{'；'.join(hit['causes'][:3])}")
+            if hit["solutions"]:
+                snippet_parts.append(f"相关处理：{'；'.join(hit['solutions'][:3])}")
+
+            citations.append(
+                QACitation(
+                    source_type="graph",
+                    title=f"{hit.get('line_type', '未知产线')} 异常 {sequence}",
+                    snippet="。".join(snippet_parts),
+                    score=round(min(hit["match_score"] / 3, 1.0), 2),
+                    metadata=hit,
+                )
+            )
+
+        return RetrievalResult(hits=hits, citations=citations)
 
     def _build_anomaly_hits(
         self, results: list[dict[str, Any]], sequence: int
@@ -202,6 +279,15 @@ class GraphRetriever(BaseRetriever):
         if len(normalized) <= limit:
             return normalized
         return f"{normalized[: limit - 3]}..."
+
+    @staticmethod
+    def _selected_node_text(request: QARequest) -> str | None:
+        for value in (request.selected_node_description, request.selected_node_label):
+            if value:
+                normalized = " ".join(value.split()).strip()
+                if normalized:
+                    return normalized
+        return None
 
     @staticmethod
     def _unique_non_empty(values: list[str]) -> list[str]:

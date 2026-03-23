@@ -101,6 +101,17 @@ const getSequence = (contextData: Record<string, unknown>): number | undefined =
   return undefined
 }
 
+const getSelectedNodeLabel = (contextData: Record<string, unknown>): string | undefined =>
+  typeof contextData.selectedNodeLabel === 'string' ? contextData.selectedNodeLabel : undefined
+
+const getSelectedNodeDescription = (contextData: Record<string, unknown>): string | undefined =>
+  typeof contextData.selectedNodeDescription === 'string'
+    ? contextData.selectedNodeDescription
+    : undefined
+
+const getSelectedNodeType = (contextData: Record<string, unknown>): string | undefined =>
+  typeof contextData.selectedNodeType === 'string' ? contextData.selectedNodeType : undefined
+
 const AiAssistant: React.FC<AiAssistantProps> = ({
   open,
   onClose,
@@ -166,6 +177,9 @@ const AiAssistant: React.FC<AiAssistantProps> = ({
         question: trimmed,
         line_type: getLineType(contextData),
         sequence: getSequence(contextData),
+        selected_node_label: getSelectedNodeLabel(contextData),
+        selected_node_description: getSelectedNodeDescription(contextData),
+        selected_node_type: getSelectedNodeType(contextData),
         top_k: 5,
       })
 

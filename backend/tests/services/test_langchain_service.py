@@ -1,13 +1,23 @@
+from app.services.knowledge_qa_models import (
+    QACitation,
+    QARouteDecision,
+    QAStructuredAnswer,
+)
+from app.services.langchain_rag_service import LangChainRAGService
 from app.services.langchain_service import LangChainService
-from app.services.knowledge_qa_models import QACitation, QARouteDecision
 
 
-def test_langchain_service_returns_none_when_package_missing_or_unavailable():
+def test_langchain_service_returns_none_when_package_missing_or_unavailable(monkeypatch):
     service = LangChainService(
         provider="openai",
         model="gpt-4o-mini",
         temperature=0.1,
         api_key="test-key",
+    )
+    monkeypatch.setattr(
+        service,
+        "generate_structured_answer",
+        lambda **kwargs: None,
     )
 
     response = service.generate_grounded_answer(
@@ -83,3 +93,119 @@ def test_langchain_service_formats_grouped_context():
     assert "[关键词补充]" in grouped
     assert "[G1]" in grouped
     assert "[K1]" in grouped
+
+
+def test_langchain_service_generate_grounded_answer_delegates_to_rag_service(monkeypatch):
+    service = LangChainService(
+        provider="openai",
+        model="gpt-4o-mini",
+        temperature=0.1,
+        api_key="test-key",
+    )
+    expected = QAStructuredAnswer(conclusion=["来自文档链的结论"])
+
+    monkeypatch.setattr(
+        LangChainRAGService,
+        "generate_grounded_answer",
+        lambda self, **kwargs: expected,
+    )
+
+    response = service.generate_grounded_answer(
+        question="SPI设备手册里的 setup check 怎么做？",
+        route=QARouteDecision(mode="document", reasons=["test"]),
+        executed_modes=["vector"],
+        graph_citations=[],
+        document_citations=[],
+        citation_groups=None,
+        warnings=[],
+        document_retriever="stub-retriever",
+    )
+
+    assert response == expected
+
+
+def test_langchain_service_generate_document_rag_answer_delegates_to_rag_service(monkeypatch):
+    service = LangChainService(
+        provider="openai",
+        model="gpt-4o-mini",
+        temperature=0.1,
+        api_key="test-key",
+    )
+
+    monkeypatch.setattr(
+        LangChainRAGService,
+        "generate_document_rag_answer",
+        lambda self, **kwargs: QAStructuredAnswer(
+            conclusion=["先做 setup check。"],
+            evidence=["[D1] 用户手册要求先检查钢网对位。"],
+            suggestions=["复核 conveyor calibration。"],
+            risks=["当前仅基于手册片段。"],
+        ),
+    )
+
+    response = service.generate_document_rag_answer(
+        question="SPI设备手册里的 setup check 怎么做？",
+        route=QARouteDecision(mode="document", reasons=["test"]),
+        executed_modes=["vector"],
+        warnings=[],
+        retriever="stub-retriever",
+    )
+
+    assert response is not None
+    assert response.conclusion == ["先做 setup check。"]
+    assert response.evidence == ["[D1] 用户手册要求先检查钢网对位。"]
+
+
+def test_langchain_service_extracts_json_payload_from_fenced_block():
+    payload = LangChainService._extract_json_payload(
+        """```json
+        {"conclusion":["OK"],"evidence":[],"suggestions":[],"risks":[]}
+        ```"""
+    )
+
+    assert payload is not None
+    assert payload["conclusion"] == ["OK"]
+
+
+def test_langchain_service_normalizes_single_string_fields():
+    answer = LangChainService._normalize_structured_answer(
+        {
+            "conclusion": "OK",
+            "evidence": "[D1] 证据",
+            "suggestions": [],
+            "risks": "注意风险",
+            "confidence": 0.5,
+            "used_sources": "D1",
+            "missing_information": "缺少参数",
+        }
+    )
+
+    assert answer is not None
+    assert answer.conclusion == ["OK"]
+    assert answer.evidence == ["[D1] 证据"]
+    assert answer.risks == ["注意风险"]
+    assert answer.used_sources == ["D1"]
+    assert answer.missing_information == ["缺少参数"]
+
+
+def test_langchain_service_from_settings_uses_new_llm_fields(monkeypatch):
+    monkeypatch.setattr("app.services.langchain_service.settings.LANGCHAIN_ENABLED", True)
+    monkeypatch.setattr("app.services.langchain_service.settings.LLM_PROVIDER", "openai")
+    monkeypatch.setattr("app.services.langchain_service.settings.LLM_MODEL", "test-llm")
+    monkeypatch.setattr("app.services.langchain_service.settings.LLM_TEMPERATURE", 0.2)
+    monkeypatch.setattr("app.services.langchain_service.settings.LLM_API_KEY", "new-llm-key")
+    monkeypatch.setattr(
+        "app.services.langchain_service.settings.LLM_BASE_URL",
+        "https://llm.example/v1",
+    )
+    monkeypatch.setattr("app.services.langchain_service.settings.OPENAI_API_KEY", "old-llm-key")
+    monkeypatch.setattr(
+        "app.services.langchain_service.settings.OPENAI_BASE_URL",
+        "https://old-llm.example/v1",
+    )
+
+    service = LangChainService.from_settings()
+
+    assert service is not None
+    assert service.api_key == "new-llm-key"
+    assert service.base_url == "https://llm.example/v1"

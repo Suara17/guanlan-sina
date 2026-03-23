@@ -2,12 +2,18 @@ from pathlib import Path
 
 from app.core.config import settings
 from app.scripts.build_knowledge_qa_index import (
+    build_manifest_payload,
     chunk_to_record,
     collect_source_files,
+    load_document_pages,
+    maybe_write_chroma,
     maybe_write_embeddings,
     slugify_document_id,
 )
 from app.services.document_chunker import DocumentChunk
+from app.services.langchain_document_ingestion_service import (
+    LangChainDocumentIngestionService,
+)
 
 
 def test_collect_source_files_filters_supported_extensions(tmp_path: Path):
@@ -101,3 +107,99 @@ def test_maybe_write_embeddings_uses_embedding_service(tmp_path: Path, monkeypat
     lines = output_path.read_text(encoding="utf-8").strip().splitlines()
     assert len(lines) == 2
     assert '"embedding_model"' in lines[0]
+
+
+def test_maybe_write_chroma_uses_vector_store_service(monkeypatch):
+    chunk_records = [
+        {
+            "chunk_id": "doc:p1:c01",
+            "document_id": "doc",
+            "text": "贴片偏移与吸嘴磨损有关",
+        }
+    ]
+    calls: dict[str, object] = {}
+
+    class StubChromaVectorStoreService:
+        def __init__(self, *, persist_directory: str, collection_name: str):
+            calls["persist_directory"] = persist_directory
+            calls["collection_name"] = collection_name
+            self.is_available = True
+
+        def reset_collection(self) -> bool:
+            calls["reset"] = True
+            return True
+
+        def upsert_chunks(self, records):
+            calls["records"] = list(records)
+            return True
+
+    monkeypatch.setattr(
+        "app.scripts.build_knowledge_qa_index.ChromaVectorStoreService",
+        StubChromaVectorStoreService,
+    )
+
+    enabled = maybe_write_chroma(
+        chunk_records=chunk_records,
+        persist_dir="app/data/knowledge_qa/chroma",
+        collection_name="knowledge_qa_chunks",
+        reset_collection=True,
+    )
+
+    assert enabled is True
+    assert calls["persist_directory"] == "app/data/knowledge_qa/chroma"
+    assert calls["collection_name"] == "knowledge_qa_chunks"
+    assert calls["reset"] is True
+    assert calls["records"] == chunk_records
+
+
+def test_load_document_pages_uses_langchain_ingestion_service(tmp_path: Path):
+    source_root = tmp_path / "docs"
+    source_root.mkdir()
+    file_path = source_root / "example.txt"
+    file_path.write_text("Setup Check\n\nVerify alignment and calibration.", encoding="utf-8")
+
+    service = LangChainDocumentIngestionService()
+    pages = load_document_pages(
+        file_path=file_path,
+        ingestion_service=service,
+        source_dir=source_root,
+        min_page_chars=10,
+    )
+
+    assert len(pages) == 1
+    assert pages[0].page == 1
+    assert "Verify alignment" in pages[0].text
+    assert pages[0].section == "Setup Check"
+
+
+def test_build_manifest_payload_includes_ingestion_metadata(tmp_path: Path):
+    source_dir = tmp_path / "docs"
+    output_dir = tmp_path / "out"
+    processed_files = [
+        {
+            "document_id": "example",
+            "source_file": "downloads/example.txt",
+            "file_type": "txt",
+            "document_hash": "abc123",
+            "chunk_count": 2,
+            "page_count": 1,
+        }
+    ]
+
+    manifest = build_manifest_payload(
+        source_dir=source_dir,
+        output_dir=output_dir,
+        processed_files=processed_files,
+        embeddings_enabled=True,
+        chroma_enabled=True,
+        collection_name="knowledge_qa_chunks",
+        persist_dir="C:\\temp\\knowledge-qa-chroma",
+        build_started_at="2026-03-23T00:00:00+00:00",
+        build_finished_at="2026-03-23T00:01:00+00:00",
+    )
+
+    assert manifest["ingestion_version"] == LangChainDocumentIngestionService.INGESTION_VERSION
+    assert manifest["build_started_at"] == "2026-03-23T00:00:00+00:00"
+    assert manifest["build_finished_at"] == "2026-03-23T00:01:00+00:00"
+    assert manifest["document_hashes"] == {"example": "abc123"}
+    assert manifest["chunk_count"] == 2

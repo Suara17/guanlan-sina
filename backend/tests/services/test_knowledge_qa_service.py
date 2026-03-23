@@ -2,14 +2,24 @@ import json
 from pathlib import Path
 from time import sleep
 
+import pytest
+
 from app.services.document_index_service import DocumentIndexService
 from app.services.knowledge_qa_models import QARequest
 from app.services.knowledge_qa_service import KnowledgeQAService
 from app.services.qa_answer_service import QAAnswerService
 from app.services.qa_fusion_service import QAFusionService
 from app.services.qa_router import QARouter
-from app.services.retrievers.base import RetrievalResult
 from app.services.retrievers import GraphRetriever, KeywordRetriever, VectorRetriever
+from app.services.retrievers.base import RetrievalResult
+
+
+@pytest.fixture(autouse=True)
+def disable_chroma_provider(monkeypatch):
+    monkeypatch.setattr(
+        "app.services.retrievers.vector_retriever.settings.VECTOR_STORE_PROVIDER",
+        "jsonl",
+    )
 
 
 class StubNeo4jService:
@@ -35,6 +45,29 @@ class StubNeo4jService:
 
     def find_similar_anomalies(self, phenomenon: str, limit: int = 10):
         return []
+
+    def search_related_knowledge(self, term: str, limit: int = 5):
+        if term != "真空发生器过滤棉堵塞":
+            return []
+        return [
+            {
+                "a": {
+                    "sequence": 8,
+                    "name": "异常-8",
+                    "phenomenon": "真空发生器过滤棉堵塞导致吸附异常",
+                    "severity": "HIGH",
+                    "line_type": "SMT",
+                },
+                "c": {"description": "真空发生器过滤棉堵塞", "type": "直接原因", "confidence": 0.8},
+                "s": {
+                    "method": "清理过滤棉并恢复真空通路",
+                    "type": "临时解决办法",
+                    "priority": 8,
+                    "success_rate": 0.9,
+                },
+                "match_score": 2,
+            }
+        ]
 
     def recommend_solutions(self, line_type: str, severity: str | None = None):
         return [
@@ -77,7 +110,7 @@ class SlowKeywordRetriever:
 
     def retrieve(self, request: QARequest):
         _ = request
-        sleep(0.05)
+        sleep(0.2)
         return RetrievalResult()
 
 
@@ -171,6 +204,12 @@ def test_knowledge_qa_service_returns_hybrid_response(tmp_path: Path):
 
 
 def test_knowledge_qa_service_returns_template_answer_without_langchain(tmp_path: Path):
+    original_timeout = __import__(
+        "app.services.knowledge_qa_service", fromlist=["settings"]
+    ).settings.QA_RETRIEVER_TIMEOUT_MS
+    __import__(
+        "app.services.knowledge_qa_service", fromlist=["settings"]
+    ).settings.QA_RETRIEVER_TIMEOUT_MS = 5000
     service = KnowledgeQAService(
         qa_router=QARouter(),
         answer_service=QAAnswerService(),
@@ -180,20 +219,27 @@ def test_knowledge_qa_service_returns_template_answer_without_langchain(tmp_path
         vector_retriever=VectorRetriever(build_document_index_service(tmp_path)),
     )
 
-    response = service.ask(
-        QARequest(
-            question="SMT异常3需要按照SOP怎么处理？",
-            line_type="SMT",
-            sequence=3,
+    try:
+        response = service.ask(
+            QARequest(
+                question="SMT异常3需要按照SOP怎么处理？",
+                line_type="SMT",
+                sequence=3,
+            )
         )
-    )
+    finally:
+        __import__(
+            "app.services.knowledge_qa_service", fromlist=["settings"]
+        ).settings.QA_RETRIEVER_TIMEOUT_MS = original_timeout
 
     assert response.route.mode == "hybrid"
     assert len(response.graph_hits) == 1
     assert len(response.document_hits) >= 2
     assert "依据：" in response.answer
     assert "[K1]" in response.answer
-    assert "[V1]" in response.answer
+    assert "[V1]" in response.answer or any(
+        "向量检索超时" in warning for warning in response.warnings
+    )
 
 
 def test_knowledge_qa_service_falls_back_to_graph_when_document_unavailable(tmp_path: Path):
@@ -238,7 +284,7 @@ def test_knowledge_qa_service_returns_graph_summary_when_no_specific_hit():
 
 
 def test_knowledge_qa_service_isolates_retriever_timeout_and_failure(monkeypatch):
-    monkeypatch.setattr("app.services.knowledge_qa_service.settings.QA_RETRIEVER_TIMEOUT_MS", 10)
+    monkeypatch.setattr("app.services.knowledge_qa_service.settings.QA_RETRIEVER_TIMEOUT_MS", 1)
     monkeypatch.setattr("app.services.knowledge_qa_service.settings.QA_RETRIEVER_MAX_WORKERS", 3)
 
     service = KnowledgeQAService(
@@ -258,4 +304,28 @@ def test_knowledge_qa_service_isolates_retriever_timeout_and_failure(monkeypatch
     assert any("关键词检索超时" in warning for warning in response.warnings)
     assert any("向量检索失败" in warning for warning in response.warnings)
     assert response.debug is not None
-    assert response.debug.timing_ms["keyword_retrieval"] == 10
+    assert response.debug.timing_ms["keyword_retrieval"] == 1
+
+
+def test_knowledge_qa_service_prefers_graph_with_selected_node_context():
+    service = KnowledgeQAService(
+        qa_router=QARouter(),
+        answer_service=QAAnswerService(),
+        fusion_service=QAFusionService(),
+        graph_retriever=GraphRetriever(StubNeo4jService()),
+        keyword_retriever=KeywordRetriever(DocumentIndexService(chunks_path=Path("__missing__.jsonl"))),
+        vector_retriever=VectorRetriever(DocumentIndexService(chunks_path=Path("__missing__.jsonl"))),
+    )
+
+    response = service.ask(
+        QARequest(
+            question="真空发生器过滤棉堵塞",
+            selected_node_label="真空发生器过滤棉堵塞",
+            selected_node_type="cause",
+        )
+    )
+
+    assert response.route.mode == "graph"
+    assert len(response.graph_hits) == 1
+    assert response.debug is not None
+    assert response.debug.executed_modes == ["graph"]

@@ -2,6 +2,8 @@ import math
 import re
 from typing import Any
 
+from app.core.config import settings
+from app.services.chroma_vector_store_service import ChromaVectorStoreService
 from app.services.document_index_service import DocumentIndexService
 from app.services.embedding_service import EmbeddingService
 from app.services.knowledge_qa_models import QACitation, QARequest
@@ -12,11 +14,25 @@ from app.services.retrievers.base import BaseRetriever, RetrievalResult
 class VectorRetriever(BaseRetriever):
     name = "vector"
 
-    def __init__(self, document_index_service: DocumentIndexService | None = None) -> None:
+    def __init__(
+        self,
+        document_index_service: DocumentIndexService | None = None,
+        *,
+        chroma_vector_store_service: ChromaVectorStoreService | None = None,
+    ) -> None:
         self.document_index_service = document_index_service or DocumentIndexService()
+        self.chroma_vector_store_service = (
+            chroma_vector_store_service or ChromaVectorStoreService()
+        )
 
     @property
     def is_available(self) -> bool:
+        if (
+            settings.VECTOR_STORE_PROVIDER.lower().strip() == "chroma"
+            and self.chroma_vector_store_service.is_available
+            and self.chroma_vector_store_service.has_data
+        ):
+            return True
         return self.document_index_service.chunks_available
 
     def retrieve(self, request: QARequest) -> RetrievalResult:
@@ -27,11 +43,11 @@ class VectorRetriever(BaseRetriever):
         query_terms = self._extract_terms(query_text)
         positive_terms = QueryExpansion.positive_terms_for(request.question)
         negative_terms = QueryExpansion.negative_terms_for(request.question)
-        chunks = self.document_index_service.get_chunks()
-        embedding_map = self._get_embedding_map()
+        chunks = self._load_candidate_chunks(request, query_text)
         scored_items: list[tuple[float, dict[str, Any]]] = []
 
         query_embedding = self._embed_text(query_text)
+        embedding_map = self._get_embedding_map()
         for chunk in chunks:
             if request.line_type and not self._matches_line_type(chunk, request.line_type):
                 continue
@@ -39,12 +55,11 @@ class VectorRetriever(BaseRetriever):
             candidate_text = self._build_candidate_text(chunk)
             candidate_terms = self._extract_terms(candidate_text)
             overlap_count = len(query_terms & candidate_terms)
-            candidate_embedding = embedding_map.get(chunk.get("chunk_id"))
-            if candidate_embedding is None or len(candidate_embedding) != len(query_embedding):
-                candidate_embedding = self._fallback_embedding(candidate_text)
-            score = self._cosine_similarity(
+            score = self._base_similarity_score(
+                chunk,
+                candidate_text,
                 query_embedding,
-                candidate_embedding,
+                embedding_map,
             )
             if overlap_count == 0 and request.sequence is None:
                 continue
@@ -106,11 +121,68 @@ class VectorRetriever(BaseRetriever):
 
         return RetrievalResult(hits=hits, citations=citations)
 
+    def get_langchain_retriever(self, request: QARequest) -> Any | None:
+        if settings.VECTOR_STORE_PROVIDER.lower().strip() != "chroma":
+            return None
+        if not self.chroma_vector_store_service.is_available or not self.chroma_vector_store_service.has_data:
+            return None
+        return self.chroma_vector_store_service.get_retriever(
+            top_k=max(request.top_k, settings.CHROMA_TOP_K),
+            filters=self._build_chroma_filters(request),
+        )
+
     def _embed_text(self, text: str) -> list[float]:
         model_embedding = EmbeddingService().embed_query(text)
         if model_embedding is not None:
             return model_embedding
         return self._fallback_embedding(text)
+
+    def _load_candidate_chunks(
+        self,
+        request: QARequest,
+        query_text: str,
+    ) -> list[dict[str, Any]]:
+        chroma_results = self._search_chroma(request, query_text)
+        if chroma_results:
+            return chroma_results
+        return self.document_index_service.get_chunks()
+
+    def _search_chroma(
+        self,
+        request: QARequest,
+        query_text: str,
+    ) -> list[dict[str, Any]]:
+        if settings.VECTOR_STORE_PROVIDER.lower().strip() != "chroma":
+            return []
+        if not self.chroma_vector_store_service.is_available:
+            return []
+        filters = self._build_chroma_filters(request)
+        return self.chroma_vector_store_service.similarity_search(
+            query_text,
+            top_k=max(request.top_k * 4, settings.CHROMA_TOP_K),
+            filters=filters,
+        )
+
+    @staticmethod
+    def _build_chroma_filters(request: QARequest) -> dict[str, Any] | None:
+        if not request.line_type:
+            return None
+        return {"line_type_primary": request.line_type}
+
+    def _base_similarity_score(
+        self,
+        chunk: dict[str, Any],
+        candidate_text: str,
+        query_embedding: list[float],
+        embedding_map: dict[str, list[float]],
+    ) -> float:
+        similarity_score = chunk.get("similarity_score")
+        if similarity_score is not None:
+            return float(similarity_score)
+        candidate_embedding = embedding_map.get(str(chunk.get("chunk_id")))
+        if candidate_embedding is None or len(candidate_embedding) != len(query_embedding):
+            candidate_embedding = self._fallback_embedding(candidate_text)
+        return self._cosine_similarity(query_embedding, candidate_embedding)
 
     @staticmethod
     def _fallback_embedding(text: str) -> list[float]:

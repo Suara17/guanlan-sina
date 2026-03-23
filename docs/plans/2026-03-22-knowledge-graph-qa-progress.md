@@ -6,7 +6,7 @@
 
 ## 总览
 - 目标：实现方案 B（Neo4j 图谱问答 + LangChain LLM + 后续 RAG 扩展）
-- 状态：后端已切换到 LangChain 路线，统一问答 API 已打通 `graph + keyword + vector + fusion + grouped prompt` 主链路；文档 RAG 已接入真实 PDF 语料，已完成 `jinaai/jina-embeddings-v2-small-en` 本地索引重建、查询英文化扩展和新一轮回归收口；前端已接入真实 API
+- 状态：后端已切换到 LangChain 路线，统一问答 API 已打通 `graph + keyword + vector + fusion + grouped prompt` 主链路；文档 RAG 已接入真实 PDF 语料，已完成 `jinaai/jina-embeddings-v2-small-en` 本地索引重建、查询英文化扩展、`Chroma` 向量库接入、全 LangChain ingestion / RAG 主干收口，以及 OpenAI 兼容 LLM 的原始 `httpx` 调用改造；前端已接入真实 API
 
 ## 已完成
 ### Task 1：LangChain 配置与回答器
@@ -122,12 +122,40 @@
     - `fusion`：`5 pass / 0 partial / 0 fail`
   - 当前剩余观察：
     - `SPI设备手册` 的 `vector` 仍为 `partial`，但 `fusion` 已为 `pass`
+- ✅ 已完成 `Chroma` 向量库接入：
+  - 新增 `backend/app/services/chroma_vector_store_service.py`
+  - `build_knowledge_qa_index.py` 已支持 `--with-chroma / --reset-chroma`
+  - `VectorRetriever` 已支持 `Chroma` 优先、`jsonl` 回退
+  - 当前已完成本地 `Chroma` 全量索引构建，索引规模为 `61` 份文档、`3007` 个 chunks
+- ✅ 已完成全 LangChain ingestion / RAG 主干收口：
+  - 新增 `backend/app/services/langchain_document_ingestion_service.py`
+  - 新增 `backend/app/services/langchain_rag_service.py`
+  - `LangChainService` 已收敛为 OpenAI 兼容 LLM 薄适配层
+  - `QAAnswerService` 已改为统一格式化结构化答案输出
+  - `knowledge_qa_models.py` 已补充 `confidence / used_sources / missing_information`
+- ✅ 已完成 LLM / embedding 配置拆分：
+  - `backend/app/core/config.py` 已支持 `LLM_API_KEY / LLM_BASE_URL / LLM_MODEL`
+  - `backend/app/core/config.py` 已支持 `EMBEDDING_API_KEY / EMBEDDING_BASE_URL / EMBEDDING_MODEL`
+  - 当前 `.env` 已切换为 `LLM_MODEL=gpt-5.2`
+- ✅ 已完成 OpenAI 兼容 LLM 适配改造：
+  - 已确认当前供应商接口对 `openai` / `langchain_openai` SDK 兼容性不稳定
+  - `backend/app/services/langchain_service.py` 已改为基于原始 `httpx` 的 `/v1/chat/completions` 调用
+  - 已显式使用 `trust_env=False` 绕开本地错误代理环境变量
+  - 当前真实接口已可返回结构化问答内容，不再依赖 `ChatOpenAI`
+- ✅ 已完成启动预热与本地联调稳定性修正：
+  - `backend/app/main.py` 已将知识问答依赖预热切到后台线程，避免阻塞 `uvicorn` 启动
+  - `backend/app/api/deps.py` 已收缩启动阶段预热范围，不再在 startup 阶段同步触发重型本地模型加载
+- ✅ 已完成 API 级结构化结果回归：
+  - `backend/tests/api/routes/test_knowledge_qa.py`
+  - `backend/tests/services/test_langchain_service.py`
+  - `backend/tests/services/test_langchain_rag_service.py`
+  - `backend/tests/services/test_qa_answer_service.py`
+  - 当前已验证真实接口返回中可见：`结论 / 使用来源 / 缺失信息 / 置信度`
 
 ### 前端：司南问答入口骨架（第一阶段）
-- ✅ 已新增前端设计与拆解文档：
-  - `docs/plans/2026-03-22-knowledge-graph-qa-implementation.md`
-  - `docs/plans/2026-03-22-sinan-qa-entry-design.md`
-  - `docs/plans/2026-03-22-sinan-qa-frontend-breakdown.md`
+- ✅ 已完成前端入口方案收口：
+  - 前端入口与旧计划文档已合并整理到 `docs/plans/2026-03-23-knowledge-qa-docs-consolidation.md`
+  - 当前实现状态统一以本进度文档为准
 - ✅ 已完成全局问答入口状态管理：
   - `frontend/App.tsx`
   - 新增统一状态：`open/source/context/draftQuestion`
@@ -201,6 +229,8 @@
 - ⏳ 仍需继续优化文档筛选、chunk 清洗和召回排序权重
 - ⏳ 仍需继续优化 `SPI设备手册` 类问题的向量 Top1 命中稳定性
 - ⏳ 仍需继续压制学术/泛检测类弱相关 `vector` 误召回，尤其在非手册型问题上的抢位现象
+- ⏳ `hybrid` 问答当前虽已可走真实 LLM 结构化输出，但仍会混入明显不相关的图谱事实（例如 `SMT/SPI` 手册问题串入 `PCB` 异常）
+- ⏳ 当前 OpenAI 兼容 LLM 已绕开 SDK 直接可用，但尚未补更细的降级策略（如原始 HTTP 正常、结构化字段不规范时的二次修正与更强 fallback）
 
 ### 前端：待完成项
 - ⏳ 引用来源当前已支持分组与展开，跳转能力已暂时移除，后续若重做需要避免触发格物页重载或重排
@@ -224,6 +254,12 @@
   - 结果：`1 passed`
 - `.\.venv\Scripts\python.exe -m pytest tests/services/test_keyword_retriever.py tests/services/test_vector_retriever.py tests/services/test_evaluate_knowledge_qa.py tests/services/test_knowledge_qa_service.py` 已通过
   - 结果：`11 passed`
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_chroma_vector_store_service.py tests/services/test_langchain_service.py tests/services/test_langchain_rag_service.py tests/services/test_qa_answer_service.py tests/api/routes/test_knowledge_qa.py` 已通过
+  - 结果：`17 passed`
+- `.\.venv\Scripts\ruff.exe check app/services/langchain_service.py app/services/langchain_rag_service.py app/api/deps.py app/main.py tests/services/test_langchain_service.py tests/services/test_langchain_rag_service.py tests/api/routes/test_knowledge_qa.py` 已通过
+- 本地真实接口验证已通过：
+  - `GET /api/v1/utils/health-check/` 返回 `200`
+  - `POST /api/v1/knowledge-qa/ask` 已可返回 LLM 生成的结构化结果文本（含 `结论 / 使用来源 / 缺失信息 / 置信度`）
 - `npm run lint` 未通过（前端依赖未安装，已停止）
   - 错误：`'biome' is not recognized as an internal or external command`
   - 原因：`frontend/node_modules` 不存在，当前环境未安装前端依赖
@@ -242,10 +278,13 @@
 - 当前本地环境存在错误代理配置：
   - `HTTP_PROXY / HTTPS_PROXY / ALL_PROXY = http://127.0.0.1:9`
   - 已在 embedding 加载层通过本地缓存路径 + `local_files_only=True` 绕开该问题
+  - 当前后端启动命令已显式清空这三个环境变量，否则 OpenAI 兼容 LLM 请求会先死在本机坏代理上
 - 曾尝试接入 `Voyage` 作为免费 embedding provider，但未绑支付方式账号会被限制到 `3 RPM / 10K TPM`，不适合当前全量索引构建；当前已回退为本地 BAAI 方案
 - 当前已确认英文 PDF + 中文问题场景不适合继续依赖中文专用 embedding 模型；当前已切到更轻量的英文 embedding 模型配置，并通过查询英文化扩展进行补偿
+- 当前已确认 `https://newapi.zhenhaoji.qzz.io/v1` 可通过原始 HTTP `POST /chat/completions` 正常访问并返回 `gpt-5.2` 响应，但对 `openai` / `langchain_openai` SDK 兼容性不稳定，已改为原始 `httpx` 适配方案
 - 后续优先建议：
-  1. 做 document/vector 结果质量评估与更细粒度问题分类
+  1. 先收 `hybrid` 的图谱误召回，避免 `SMT/SPI` 手册问题混入 `PCB` 图谱事实
   2. 针对 `SPI设备手册` 类问题继续调优向量 Top1 命中
   3. 继续补 query 扩展词表与排序规则，减少泛化工艺文档抢位
-  4. 补 Task 4 的文档更新说明
+  4. 做 document/vector 结果质量评估与更细粒度问题分类
+  5. 补 Task 4 的文档更新说明

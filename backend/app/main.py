@@ -1,9 +1,15 @@
+import logging
+import threading
+
 import sentry_sdk
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
+from app.api.deps import warm_knowledge_qa_dependencies
 from app.api.main import api_router
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
@@ -24,3 +30,18 @@ if settings.all_cors_origins:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+@app.on_event("startup")
+def warm_startup_dependencies() -> None:
+    def warm_in_background() -> None:
+        try:
+            warm_knowledge_qa_dependencies()
+        except Exception:
+            logger.exception("Failed to warm knowledge QA dependencies during startup")
+
+    threading.Thread(
+        target=warm_in_background,
+        name="knowledge-qa-warmup",
+        daemon=True,
+    ).start()

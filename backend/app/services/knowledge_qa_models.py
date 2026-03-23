@@ -7,6 +7,9 @@ class QARequest(BaseModel):
     question: str = Field(min_length=1)
     line_type: str | None = None
     sequence: int | None = None
+    selected_node_label: str | None = None
+    selected_node_description: str | None = None
+    selected_node_type: str | None = None
     top_k: int = Field(default=5, ge=1, le=10)
 
 
@@ -21,6 +24,16 @@ class QACitation(BaseModel):
     snippet: str
     score: float | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class QAStructuredAnswer(BaseModel):
+    conclusion: list[str] = Field(default_factory=list)
+    evidence: list[str] = Field(default_factory=list)
+    suggestions: list[str] = Field(default_factory=list)
+    risks: list[str] = Field(default_factory=list)
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+    used_sources: list[str] = Field(default_factory=list)
+    missing_information: list[str] = Field(default_factory=list)
 
 
 class QADebugInfo(BaseModel):

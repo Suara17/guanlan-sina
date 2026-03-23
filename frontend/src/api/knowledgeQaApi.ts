@@ -4,6 +4,9 @@ export interface KnowledgeQaRequest {
   question: string
   line_type?: string
   sequence?: number
+  selected_node_label?: string
+  selected_node_description?: string
+  selected_node_type?: string
   top_k?: number
 }
 

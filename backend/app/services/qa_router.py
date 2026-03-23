@@ -38,6 +38,9 @@ class QARouter:
         *,
         line_type: str | None = None,
         sequence: int | None = None,
+        selected_node_label: str | None = None,
+        selected_node_description: str | None = None,
+        selected_node_type: str | None = None,
     ) -> RouteDecision:
         normalized_question = question.lower()
         graph_hits = [
@@ -47,17 +50,29 @@ class QARouter:
             keyword for keyword in DOCUMENT_KEYWORDS if keyword in normalized_question
         ]
         reasons: list[str] = []
+        has_selected_node_context = any(
+            value
+            for value in (
+                selected_node_label,
+                selected_node_description,
+                selected_node_type,
+            )
+        )
 
         if sequence is not None:
             reasons.append("sequence parameter provided")
         if line_type:
             reasons.append("line_type parameter provided")
+        if has_selected_node_context:
+            reasons.append("selected node context provided")
         if graph_hits:
             reasons.append(f"graph keywords matched: {', '.join(graph_hits)}")
         if document_hits:
             reasons.append(f"document keywords matched: {', '.join(document_hits)}")
 
-        has_structured_context = sequence is not None or bool(line_type)
+        has_structured_context = (
+            sequence is not None or bool(line_type) or has_selected_node_context
+        )
         if (graph_hits and document_hits) or (document_hits and has_structured_context):
             return RouteDecision(mode="hybrid", reasons=reasons or ["mixed signals"])
         if graph_hits or has_structured_context:

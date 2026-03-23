@@ -1,8 +1,14 @@
+"""Build the knowledge QA document index."""
+
+# ruff: noqa: E402, I001
+
 import argparse
+import logging
 import json
 import re
 import sys
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from time import sleep
 from typing import Any
@@ -12,8 +18,15 @@ project_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(project_root))
 
 from app.core.config import settings
+from app.services.chroma_vector_store_service import ChromaVectorStoreService
 from app.services.document_chunker import DocumentChunk, DocumentChunker, DocumentPage
 from app.services.embedding_service import EmbeddingService
+from app.services.langchain_document_ingestion_service import (
+    LangChainDocumentIngestionService,
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".md"}
@@ -79,6 +92,26 @@ def parse_args() -> argparse.Namespace:
         help="Generate embeddings.jsonl if embedding config is available",
     )
     parser.add_argument(
+        "--with-chroma",
+        action="store_true",
+        help="Write chunk texts into Chroma persistent vector store",
+    )
+    parser.add_argument(
+        "--reset-chroma",
+        action="store_true",
+        help="Reset Chroma collection before writing new chunks",
+    )
+    parser.add_argument(
+        "--collection-name",
+        default=settings.CHROMA_COLLECTION_NAME,
+        help="Chroma collection name",
+    )
+    parser.add_argument(
+        "--persist-dir",
+        default=settings.CHROMA_PERSIST_DIR,
+        help="Chroma persist directory",
+    )
+    parser.add_argument(
         "--include-keywords",
         nargs="*",
         default=DEFAULT_INCLUDE_KEYWORDS,
@@ -103,13 +136,15 @@ def main() -> int:
     args = parse_args()
     source_dir = Path(args.source_dir).resolve()
     output_dir = Path(args.output_dir).resolve()
+    build_started_at = datetime.now(timezone.utc).isoformat()
 
     if not source_dir.exists():
-        print(f"Source directory does not exist: {source_dir}")
+        logger.error("Source directory does not exist: %s", source_dir)
         return 1
 
     output_dir.mkdir(parents=True, exist_ok=True)
     chunker = DocumentChunker()
+    ingestion_service = LangChainDocumentIngestionService(chunker=chunker)
     files = collect_source_files(
         source_dir=source_dir,
         include_pattern=args.include_pattern,
@@ -118,7 +153,7 @@ def main() -> int:
         exclude_keywords=args.exclude_keywords,
     )
     if not files:
-        print("No supported documents found.")
+        logger.warning("No supported documents found.")
         return 1
 
     all_chunk_records: list[dict[str, Any]] = []
@@ -128,17 +163,19 @@ def main() -> int:
         try:
             pages = load_document_pages(
                 file_path=file_path,
-                chunker=chunker,
+                ingestion_service=ingestion_service,
+                source_dir=source_dir,
                 min_page_chars=args.min_page_chars,
             )
             if not pages:
-                print(f"Skipped {file_path.name}: no usable text pages")
+                logger.warning("Skipped %s: no usable text pages", file_path.name)
                 continue
             document_id = slugify_document_id(file_path)
             chunks = chunker.chunk_pages(document_id=document_id, pages=pages)
             if not chunks:
-                print(f"Skipped {file_path.name}: no chunks generated")
+                logger.warning("Skipped %s: no chunks generated", file_path.name)
                 continue
+            document_hash = ingestion_service.document_hash(file_path)
             chunk_records = [
                 chunk_to_record(chunk=chunk, file_path=file_path, source_dir=source_dir)
                 for chunk in chunks
@@ -149,13 +186,14 @@ def main() -> int:
                     "document_id": document_id,
                     "source_file": file_path.relative_to(source_dir.parent).as_posix(),
                     "file_type": file_path.suffix.lstrip(".").lower(),
+                    "document_hash": document_hash,
                     "chunk_count": len(chunk_records),
                     "page_count": len(pages),
                 }
             )
-            print(f"Indexed {file_path.name}: {len(chunk_records)} chunks")
+            logger.info("Indexed %s: %s chunks", file_path.name, len(chunk_records))
         except Exception as exc:
-            print(f"Failed to index {file_path.name}: {exc}")
+            logger.exception("Failed to index %s: %s", file_path.name, exc)
 
     write_jsonl(output_dir / "chunks.jsonl", all_chunk_records)
 
@@ -167,21 +205,35 @@ def main() -> int:
             chunk_records=all_chunk_records,
         )
 
-    manifest = {
-        "source_dir": str(source_dir),
-        "output_dir": str(output_dir),
-        "document_count": len(processed_files),
-        "chunk_count": len(all_chunk_records),
-        "embeddings_enabled": embeddings_enabled,
-        "embedding_provider": settings.EMBEDDING_PROVIDER,
-        "embedding_model": settings.EMBEDDING_MODEL,
-        "files": processed_files,
-    }
+    chroma_enabled = False
+    if args.with_chroma:
+        chroma_enabled = maybe_write_chroma(
+            chunk_records=all_chunk_records,
+            persist_dir=args.persist_dir,
+            collection_name=args.collection_name,
+            reset_collection=args.reset_chroma,
+        )
+
+    build_finished_at = datetime.now(timezone.utc).isoformat()
+    manifest = build_manifest_payload(
+        source_dir=source_dir,
+        output_dir=output_dir,
+        processed_files=processed_files,
+        embeddings_enabled=embeddings_enabled,
+        chroma_enabled=chroma_enabled,
+        collection_name=args.collection_name,
+        persist_dir=args.persist_dir,
+        build_started_at=build_started_at,
+        build_finished_at=build_finished_at,
+    )
     write_json(output_dir / "manifest.json", manifest)
 
-    print(
-        f"Completed index build: documents={manifest['document_count']} "
-        f"chunks={manifest['chunk_count']} embeddings={manifest['embeddings_enabled']}"
+    logger.info(
+        "Completed index build: documents=%s chunks=%s embeddings=%s chroma=%s",
+        manifest["document_count"],
+        manifest["chunk_count"],
+        manifest["embeddings_enabled"],
+        manifest["chroma_enabled"],
     )
     return 0
 
@@ -219,18 +271,15 @@ def collect_source_files(
 def load_document_pages(
     *,
     file_path: Path,
-    chunker: DocumentChunker,
+    ingestion_service: LangChainDocumentIngestionService,
+    source_dir: Path,
     min_page_chars: int,
 ) -> list[DocumentPage]:
-    suffix = file_path.suffix.lower()
-    if suffix == ".pdf":
-        pages = chunker.load_pdf_pages(file_path)
-        return normalize_pdf_pages(pages, chunker=chunker, min_page_chars=min_page_chars)
-    text = file_path.read_text(encoding="utf-8")
-    cleaned_text = chunker.clean_text(text)
-    if len(cleaned_text) < min_page_chars:
-        return []
-    return [DocumentPage(page=1, text=cleaned_text, section=extract_title_hint(file_path, cleaned_text))]
+    return ingestion_service.load_pages(
+        file_path,
+        min_page_chars=min_page_chars,
+        source_dir=source_dir,
+    )
 
 
 def extract_title_hint(file_path: Path, text: str) -> str | None:
@@ -418,6 +467,61 @@ def maybe_write_embeddings(
 
     write_jsonl(output_path, embedding_records)
     return True
+
+
+def maybe_write_chroma(
+    *,
+    chunk_records: list[dict[str, Any]],
+    persist_dir: str,
+    collection_name: str,
+    reset_collection: bool,
+) -> bool:
+    vector_store = ChromaVectorStoreService(
+        persist_directory=persist_dir,
+        collection_name=collection_name,
+    )
+    if not vector_store.is_available:
+        return False
+    if reset_collection:
+        vector_store.reset_collection()
+    return vector_store.upsert_chunks(chunk_records)
+
+
+def build_manifest_payload(
+    *,
+    source_dir: Path,
+    output_dir: Path,
+    processed_files: list[dict[str, Any]],
+    embeddings_enabled: bool,
+    chroma_enabled: bool,
+    collection_name: str,
+    persist_dir: str,
+    build_started_at: str,
+    build_finished_at: str,
+) -> dict[str, Any]:
+    document_hashes = {
+        str(item["document_id"]): str(item["document_hash"])
+        for item in processed_files
+        if item.get("document_id") and item.get("document_hash")
+    }
+    return {
+        "source_dir": str(source_dir),
+        "output_dir": str(output_dir),
+        "build_started_at": build_started_at,
+        "build_finished_at": build_finished_at,
+        "ingestion_version": LangChainDocumentIngestionService.INGESTION_VERSION,
+        "document_count": len(processed_files),
+        "chunk_count": sum(int(item.get("chunk_count", 0)) for item in processed_files),
+        "embeddings_enabled": embeddings_enabled,
+        "vector_store_provider": settings.VECTOR_STORE_PROVIDER,
+        "chroma_enabled": chroma_enabled,
+        "chroma_collection_name": collection_name,
+        "chroma_persist_dir": persist_dir,
+        "embedding_provider": settings.EMBEDDING_PROVIDER,
+        "embedding_model": settings.EMBEDDING_MODEL,
+        "document_hashes": document_hashes,
+        "files": processed_files,
+    }
 
 
 def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:

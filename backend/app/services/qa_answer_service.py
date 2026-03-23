@@ -1,12 +1,23 @@
 from collections.abc import Sequence
+from typing import Any
 
+from app.services.knowledge_qa_models import (
+    QACitation,
+    QARouteDecision,
+    QAStructuredAnswer,
+)
+from app.services.langchain_rag_service import LangChainRAGService
 from app.services.langchain_service import LangChainService
-from app.services.knowledge_qa_models import QACitation, QARouteDecision
 
 
 class QAAnswerService:
-    def __init__(self, langchain_service: LangChainService | None = None) -> None:
+    def __init__(
+        self,
+        langchain_service: LangChainService | None = None,
+        langchain_rag_service: LangChainRAGService | None = None,
+    ) -> None:
         self.langchain_service = langchain_service
+        self.langchain_rag_service = langchain_rag_service
 
     def build_answer(
         self,
@@ -18,8 +29,20 @@ class QAAnswerService:
         document_citations: Sequence[QACitation],
         citation_groups: dict[str, Sequence[QACitation]] | None = None,
         warnings: Sequence[str],
+        document_retriever: Any | None = None,
     ) -> str:
-        if self.langchain_service is not None:
+        if self.langchain_rag_service is not None:
+            generated_answer = self.langchain_rag_service.generate_grounded_answer(
+                question=question,
+                route=route,
+                executed_modes=executed_modes,
+                graph_citations=graph_citations,
+                document_citations=document_citations,
+                citation_groups=citation_groups,
+                warnings=warnings,
+                document_retriever=document_retriever,
+            )
+        elif self.langchain_service is not None:
             generated_answer = self.langchain_service.generate_grounded_answer(
                 question=question,
                 route=route,
@@ -28,9 +51,21 @@ class QAAnswerService:
                 document_citations=document_citations,
                 citation_groups=citation_groups,
                 warnings=warnings,
+                document_retriever=document_retriever,
             )
-            if generated_answer:
+        else:
+            generated_answer = None
+
+        if generated_answer:
+            if isinstance(generated_answer, str):
                 return generated_answer
+            return self._format_structured_answer(
+                question=question,
+                route=route,
+                executed_modes=executed_modes,
+                answer=generated_answer,
+                warnings=warnings,
+            )
 
         sections: list[str] = [
             f"问题：{question}",
@@ -59,6 +94,57 @@ class QAAnswerService:
         if warnings:
             warning_lines = [f"- {warning}" for warning in warnings]
             sections.append("风险/备注：\n" + "\n".join(warning_lines))
+
+        return "\n\n".join(sections)
+
+    @staticmethod
+    def _format_structured_answer(
+        *,
+        question: str,
+        route: QARouteDecision,
+        executed_modes: Sequence[str],
+        answer: QAStructuredAnswer,
+        warnings: Sequence[str],
+    ) -> str:
+        sections: list[str] = [
+            f"问题：{question}",
+            f"请求路由：{route.mode}。",
+            f"实际执行：{', '.join(executed_modes) if executed_modes else 'none'}。",
+        ]
+
+        if answer.conclusion:
+            sections.append(
+                "结论：\n" + "\n".join(f"- {item}" for item in answer.conclusion if item.strip())
+            )
+        if answer.evidence:
+            sections.append(
+                "依据：\n" + "\n".join(f"- {item}" for item in answer.evidence if item.strip())
+            )
+        if answer.suggestions:
+            sections.append(
+                "建议：\n" + "\n".join(f"- {item}" for item in answer.suggestions if item.strip())
+            )
+        if answer.used_sources:
+            sections.append(
+                "使用来源：\n"
+                + "\n".join(f"- {item}" for item in answer.used_sources if item.strip())
+            )
+        if answer.missing_information:
+            sections.append(
+                "缺失信息：\n"
+                + "\n".join(
+                    f"- {item}" for item in answer.missing_information if item.strip()
+                )
+            )
+
+        risk_items = [item for item in answer.risks if item.strip()]
+        for warning in warnings:
+            if warning not in risk_items:
+                risk_items.append(warning)
+        if risk_items:
+            sections.append("风险/备注：\n" + "\n".join(f"- {item}" for item in risk_items))
+        if answer.confidence is not None:
+            sections.append(f"置信度：\n- {answer.confidence:.2f}")
 
         return "\n\n".join(sections)
 

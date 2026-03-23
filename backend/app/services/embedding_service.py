@@ -69,7 +69,7 @@ class EmbeddingService:
         return [float(value) for value in vector]
 
     def _embed_documents_openai(self, texts: Sequence[str]) -> list[list[float]] | None:
-        if not settings.OPENAI_API_KEY:
+        if not settings.embedding_api_key:
             return None
         try:
             from langchain_openai import OpenAIEmbeddings
@@ -79,8 +79,8 @@ class EmbeddingService:
         try:
             model = OpenAIEmbeddings(
                 model=settings.EMBEDDING_MODEL,
-                api_key=settings.OPENAI_API_KEY,
-                base_url=settings.OPENAI_BASE_URL,
+                api_key=settings.embedding_api_key,
+                base_url=settings.embedding_base_url,
             )
             vectors = model.embed_documents(list(texts))
         except Exception:
@@ -88,7 +88,7 @@ class EmbeddingService:
         return [[float(value) for value in vector] for vector in vectors]
 
     def _embed_query_openai(self, text: str) -> list[float] | None:
-        if not settings.OPENAI_API_KEY:
+        if not settings.embedding_api_key:
             return None
         try:
             from langchain_openai import OpenAIEmbeddings
@@ -98,8 +98,8 @@ class EmbeddingService:
         try:
             model = OpenAIEmbeddings(
                 model=settings.EMBEDDING_MODEL,
-                api_key=settings.OPENAI_API_KEY,
-                base_url=settings.OPENAI_BASE_URL,
+                api_key=settings.embedding_api_key,
+                base_url=settings.embedding_base_url,
             )
             vector = model.embed_query(text)
         except Exception:

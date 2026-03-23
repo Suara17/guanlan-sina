@@ -101,6 +101,8 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "openai"
     LLM_MODEL: str = "gpt-4o-mini"
     LLM_TEMPERATURE: float = 0.1
+    LLM_API_KEY: str = ""
+    LLM_BASE_URL: str | None = None
     OPENAI_API_KEY: str = ""
     OPENAI_BASE_URL: str | None = None
     VOYAGE_API_KEY: str = ""
@@ -109,13 +111,41 @@ class Settings(BaseSettings):
     EMBEDDING_DEVICE: str = "cpu"
     EMBEDDING_BATCH_SIZE: int = 64
     EMBEDDING_REQUEST_INTERVAL_SECONDS: float = 0.0
+    EMBEDDING_API_KEY: str = ""
+    EMBEDDING_BASE_URL: str | None = None
+    VECTOR_STORE_PROVIDER: str = "chroma"
+    CHROMA_COLLECTION_NAME: str = "knowledge_qa_chunks"
+    CHROMA_PERSIST_DIR: str = (
+        r"C:\Users\forzr\.codex\memories\knowledge-qa-chroma"
+    )
+    CHROMA_TOP_K: int = 5
     QA_RETRIEVER_TIMEOUT_MS: int = 1500
     QA_RETRIEVER_MAX_WORKERS: int = 3
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def langchain_llm_configured(self) -> bool:
-        return bool(self.OPENAI_API_KEY)
+        return bool(self.llm_api_key)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def llm_api_key(self) -> str:
+        return self.LLM_API_KEY or self.OPENAI_API_KEY
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def llm_base_url(self) -> str | None:
+        return self.LLM_BASE_URL or self.OPENAI_BASE_URL
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def embedding_api_key(self) -> str:
+        return self.EMBEDDING_API_KEY or self.OPENAI_API_KEY
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def embedding_base_url(self) -> str | None:
+        return self.EMBEDDING_BASE_URL or self.OPENAI_BASE_URL
 
     # Neo4j 配置
     NEO4J_URI: str = "bolt://localhost:7687"

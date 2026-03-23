@@ -1,9 +1,13 @@
+import json
 import logging
+import re
 from collections.abc import Sequence
-from typing import Literal
+from typing import Any, Literal
+
+import httpx
 
 from app.core.config import settings
-from app.services.knowledge_qa_models import QACitation, QARouteDecision
+from app.services.knowledge_qa_models import QACitation, QAStructuredAnswer
 
 logger = logging.getLogger(__name__)
 
@@ -32,81 +36,131 @@ class LangChainService:
             provider=settings.LLM_PROVIDER,
             model=settings.LLM_MODEL,
             temperature=settings.LLM_TEMPERATURE,
-            api_key=settings.OPENAI_API_KEY,
-            base_url=settings.OPENAI_BASE_URL,
+            api_key=settings.llm_api_key,
+            base_url=settings.llm_base_url,
         )
 
-    def generate_grounded_answer(
-        self,
-        *,
-        question: str,
-        route: QARouteDecision,
-        executed_modes: Sequence[str],
-        graph_citations: Sequence[QACitation],
-        document_citations: Sequence[QACitation],
-        citation_groups: dict[str, Sequence[QACitation]] | None,
-        warnings: Sequence[str],
-    ) -> str | None:
-        try:
-            from langchain_core.output_parsers import StrOutputParser
-            from langchain_core.prompts import ChatPromptTemplate
-            from langchain_openai import ChatOpenAI
-        except ImportError:
-            logger.warning("LangChain packages are not installed, falling back to template answer")
-            return None
+    def generate_grounded_answer(self, **kwargs: Any) -> QAStructuredAnswer | None:
+        from app.services.langchain_rag_service import LangChainRAGService
 
+        return LangChainRAGService(self).generate_grounded_answer(**kwargs)
+
+    def generate_document_rag_answer(self, **kwargs: Any) -> QAStructuredAnswer | None:
+        from app.services.langchain_rag_service import LangChainRAGService
+
+        return LangChainRAGService(self).generate_document_rag_answer(**kwargs)
+
+    def generate_structured_answer(self, *, messages: list[dict[str, str]]) -> QAStructuredAnswer | None:
         if self.provider != "openai":
             logger.warning("Unsupported LLM provider for LangChain service: %s", self.provider)
             return None
 
-        graph_context = self._format_citation_context(graph_citations[:5], group_name="graph")
-        document_context = self._format_citation_context(
-            document_citations[:5], group_name="document"
-        )
-        grouped_context = self._format_grouped_context(citation_groups)
-        warning_context = "\n".join(f"- {warning}" for warning in warnings)
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": self.temperature,
+            "response_format": {"type": "json_object"},
+        }
+        if self.model.startswith("gpt-5"):
+            payload.pop("temperature", None)
 
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    "你是工业知识问答助手。只能基于提供的图谱事实和检索片段作答，不允许编造。"
-                    "如果文档检索为空，要明确说明当前没有可引用的 SOP/手册内容。"
-                    "输出必须严格包含四段：`结论`、`依据`、`建议`、`风险/备注`。"
-                    "`依据` 段中的每个要点都必须带来源标签，例如 `[G1]`、`[K1]`、`[V1]`。"
-                    "若某条结论没有来源支撑，就不要写。"
-                    "优先引用高分结果，先给结论，再给依据和建议。"
-                    "输出简洁、可执行、面向工程人员。",
-                ),
-                (
-                    "human",
-                    "问题：{question}\n"
-                    "请求路由：{route_mode}\n"
-                    "实际执行：{executed_modes}\n\n"
-                    "图谱事实：\n{graph_context}\n\n"
-                    "文本片段：\n{document_context}\n\n"
-                    "分组上下文：\n{grouped_context}\n\n"
-                    "注意事项：\n{warning_context}\n",
-                ),
-            ]
-        )
-        llm = ChatOpenAI(
-            model=self.model,
-            temperature=self.temperature,
-            api_key=self.api_key,
-            base_url=self.base_url,
-        )
-        chain = prompt | llm | StrOutputParser()
-        return chain.invoke(
-            {
-                "question": question,
-                "route_mode": route.mode,
-                "executed_modes": ", ".join(executed_modes) if executed_modes else "none",
-                "graph_context": graph_context or "无",
-                "document_context": document_context or "无",
-                "grouped_context": grouped_context or "无",
-                "warning_context": warning_context or "无",
-            }
+        try:
+            with httpx.Client(timeout=60.0, trust_env=False) as client:
+                response = client.post(
+                    self._chat_completions_url(),
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                )
+                response.raise_for_status()
+        except Exception:
+            logger.exception("Failed to request OpenAI-compatible structured answer")
+            return None
+
+        try:
+            content = response.json()["choices"][0]["message"]["content"]
+        except Exception:
+            logger.exception("Failed to parse OpenAI-compatible response payload")
+            return None
+
+        parsed_payload = self._extract_json_payload(content)
+        if parsed_payload is None:
+            logger.warning("OpenAI-compatible response did not contain valid JSON")
+            return None
+        return self._normalize_structured_answer(parsed_payload)
+
+    def _chat_completions_url(self) -> str:
+        base_url = (self.base_url or "").rstrip("/")
+        if not base_url:
+            raise ValueError("LLM base URL is not configured")
+        return f"{base_url}/chat/completions"
+
+    @staticmethod
+    def _extract_json_payload(content: Any) -> dict[str, Any] | None:
+        if isinstance(content, list):
+            content = "".join(
+                str(item.get("text") or "")
+                for item in content
+                if isinstance(item, dict)
+            )
+        if not isinstance(content, str):
+            return None
+
+        normalized = content.strip()
+        try:
+            parsed = json.loads(normalized)
+            return parsed if isinstance(parsed, dict) else None
+        except json.JSONDecodeError:
+            pass
+
+        fenced_match = re.search(r"```json\s*(\{.*?\})\s*```", normalized, re.DOTALL)
+        if fenced_match:
+            try:
+                parsed = json.loads(fenced_match.group(1))
+                return parsed if isinstance(parsed, dict) else None
+            except json.JSONDecodeError:
+                return None
+        return None
+
+    @staticmethod
+    def _normalize_structured_answer(payload: Any) -> QAStructuredAnswer | None:
+        if payload is None:
+            return None
+        if isinstance(payload, QAStructuredAnswer):
+            return payload
+        if isinstance(payload, dict):
+            try:
+                normalized_payload = dict(payload)
+                for key in (
+                    "conclusion",
+                    "evidence",
+                    "suggestions",
+                    "risks",
+                    "used_sources",
+                    "missing_information",
+                ):
+                    value = normalized_payload.get(key)
+                    if isinstance(value, str):
+                        normalized_payload[key] = [value]
+                return QAStructuredAnswer.model_validate(normalized_payload)
+            except Exception:
+                return None
+        return None
+
+    @staticmethod
+    def _has_structured_content(answer: QAStructuredAnswer) -> bool:
+        return any(
+            (
+                answer.conclusion,
+                answer.evidence,
+                answer.suggestions,
+                answer.risks,
+                answer.used_sources,
+                answer.missing_information,
+                answer.confidence is not None,
+            )
         )
 
     @staticmethod

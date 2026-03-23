@@ -49,6 +49,9 @@ class KnowledgeQAService:
             request.question,
             line_type=request.line_type,
             sequence=request.sequence,
+            selected_node_label=request.selected_node_label,
+            selected_node_description=request.selected_node_description,
+            selected_node_type=request.selected_node_type,
         )
         route_decision = QARouteDecision(mode=route.mode, reasons=route.reasons)
         executed_modes = self._determine_execution_modes(route.mode)
@@ -113,6 +116,11 @@ class KnowledgeQAService:
             citations=citations,
             source_type="document",
         )
+        document_retriever = None
+        if route.mode in {"document", "hybrid"} and hasattr(
+            self.vector_retriever, "get_langchain_retriever"
+        ):
+            document_retriever = self.vector_retriever.get_langchain_retriever(request)
         answer = self.answer_service.build_answer(
             question=request.question,
             route=route_decision,
@@ -121,6 +129,7 @@ class KnowledgeQAService:
             document_citations=answer_document_citations,
             citation_groups=citation_groups,
             warnings=warnings,
+            document_retriever=document_retriever,
         )
         timing_ms["total"] = self._elapsed_ms(total_start)
         debug = None
