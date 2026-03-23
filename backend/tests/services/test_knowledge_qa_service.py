@@ -1,5 +1,8 @@
+import json
+from pathlib import Path
 from time import sleep
 
+from app.services.document_index_service import DocumentIndexService
 from app.services.knowledge_qa_models import QARequest
 from app.services.knowledge_qa_service import KnowledgeQAService
 from app.services.qa_answer_service import QAAnswerService
@@ -87,14 +90,66 @@ class FailingVectorRetriever:
         raise RuntimeError("boom")
 
 
-def test_knowledge_qa_service_returns_hybrid_response():
+def build_document_index_service(tmp_path: Path) -> DocumentIndexService:
+    chunks_path = tmp_path / "chunks.jsonl"
+    embeddings_path = tmp_path / "embeddings.jsonl"
+    records = [
+        {
+            "document_id": "smt-guide",
+            "chunk_id": "smt-guide:p12:c01",
+            "source_file": "docs/知识图谱/downloads/smt-guide.pdf",
+            "title": "SMT Troubleshooting Guide",
+            "page": 12,
+            "section": "Placement Offset",
+            "text": "SMT 异常3 贴片偏移通常与吸嘴磨损、贴装坐标漂移和供料不稳定有关，建议重新校准。",
+            "text_preview": "SMT 异常3 贴片偏移通常与吸嘴磨损、贴装坐标漂移和供料不稳定有关，建议重新校准。",
+            "keywords": ["贴片偏移", "吸嘴磨损", "校准"],
+            "line_types": ["SMT"],
+        },
+        {
+            "document_id": "smt-sop",
+            "chunk_id": "smt-sop:p08:c01",
+            "source_file": "docs/知识图谱/downloads/smt-sop.pdf",
+            "title": "SMT SOP",
+            "page": 8,
+            "section": "Corrective Actions",
+            "text": "按照 SOP 应先检查吸嘴磨损，再校准贴装坐标，最后复核供料状态。",
+            "text_preview": "按照 SOP 应先检查吸嘴磨损，再校准贴装坐标，最后复核供料状态。",
+            "keywords": ["sop", "吸嘴磨损", "校准"],
+            "line_types": ["SMT"],
+        },
+    ]
+    with chunks_path.open("w", encoding="utf-8") as file:
+        for record in records:
+            file.write(json.dumps(record, ensure_ascii=False) + "\n")
+    embedding_records = [
+        {
+            "chunk_id": "smt-guide:p12:c01",
+            "document_id": "smt-guide",
+            "embedding_model": "test-model",
+            "vector": [1.0, 0.0, 0.0],
+        },
+        {
+            "chunk_id": "smt-sop:p08:c01",
+            "document_id": "smt-sop",
+            "embedding_model": "test-model",
+            "vector": [0.92, 0.08, 0.0],
+        },
+    ]
+    with embeddings_path.open("w", encoding="utf-8") as file:
+        for record in embedding_records:
+            file.write(json.dumps(record, ensure_ascii=False) + "\n")
+    return DocumentIndexService(chunks_path=chunks_path, embeddings_path=embeddings_path)
+
+
+def test_knowledge_qa_service_returns_hybrid_response(tmp_path: Path):
     service = KnowledgeQAService(
         qa_router=QARouter(),
         answer_service=QAAnswerService(langchain_service=StubLangChainService()),
         fusion_service=QAFusionService(),
         graph_retriever=GraphRetriever(StubNeo4jService()),
-        keyword_retriever=KeywordRetriever(StubNeo4jService()),
-        vector_retriever=VectorRetriever(StubNeo4jService()),
+        keyword_retriever=KeywordRetriever(build_document_index_service(tmp_path)),
+        vector_retriever=VectorRetriever(build_document_index_service(tmp_path)),
     )
 
     response = service.ask(
@@ -115,14 +170,14 @@ def test_knowledge_qa_service_returns_hybrid_response():
     assert response.debug.executed_modes == ["graph", "keyword", "vector"]
 
 
-def test_knowledge_qa_service_returns_template_answer_without_langchain():
+def test_knowledge_qa_service_returns_template_answer_without_langchain(tmp_path: Path):
     service = KnowledgeQAService(
         qa_router=QARouter(),
         answer_service=QAAnswerService(),
         fusion_service=QAFusionService(),
         graph_retriever=GraphRetriever(StubNeo4jService()),
-        keyword_retriever=KeywordRetriever(StubNeo4jService()),
-        vector_retriever=VectorRetriever(StubNeo4jService()),
+        keyword_retriever=KeywordRetriever(build_document_index_service(tmp_path)),
+        vector_retriever=VectorRetriever(build_document_index_service(tmp_path)),
     )
 
     response = service.ask(
@@ -141,25 +196,25 @@ def test_knowledge_qa_service_returns_template_answer_without_langchain():
     assert "[V1]" in response.answer
 
 
-def test_knowledge_qa_service_falls_back_to_graph_when_document_unavailable():
+def test_knowledge_qa_service_falls_back_to_graph_when_document_unavailable(tmp_path: Path):
     service = KnowledgeQAService(
         qa_router=QARouter(),
         answer_service=QAAnswerService(),
         fusion_service=QAFusionService(),
         graph_retriever=GraphRetriever(StubNeo4jService()),
-        keyword_retriever=KeywordRetriever(StubNeo4jService()),
-        vector_retriever=VectorRetriever(StubNeo4jService()),
+        keyword_retriever=KeywordRetriever(DocumentIndexService(chunks_path=tmp_path / "missing.jsonl")),
+        vector_retriever=VectorRetriever(DocumentIndexService(chunks_path=tmp_path / "missing.jsonl")),
     )
 
     response = service.ask(QARequest(question="SOP流程是什么？"))
 
     assert response.route.mode == "document"
-    assert len(response.graph_hits) == 0
+    assert len(response.graph_hits) == 1
     assert len(response.document_hits) == 0
     assert response.debug is not None
-    assert response.debug.executed_modes == ["keyword", "vector"]
-    assert any("关键词检索未命中" in warning for warning in response.warnings)
-    assert any("向量检索未命中" in warning for warning in response.warnings)
+    assert response.debug.executed_modes == ["graph"]
+    assert any("关键词检索未启用" in warning for warning in response.warnings)
+    assert any("向量检索未启用" in warning for warning in response.warnings)
 
 
 def test_knowledge_qa_service_returns_graph_summary_when_no_specific_hit():
@@ -168,8 +223,8 @@ def test_knowledge_qa_service_returns_graph_summary_when_no_specific_hit():
         answer_service=QAAnswerService(),
         fusion_service=QAFusionService(),
         graph_retriever=GraphRetriever(StubNeo4jService()),
-        keyword_retriever=KeywordRetriever(StubNeo4jService()),
-        vector_retriever=VectorRetriever(StubNeo4jService()),
+        keyword_retriever=KeywordRetriever(DocumentIndexService(chunks_path=Path("__missing__.jsonl"))),
+        vector_retriever=VectorRetriever(DocumentIndexService(chunks_path=Path("__missing__.jsonl"))),
     )
 
     response = service.ask(QARequest(question="最近都有哪些异常？", top_k=3))

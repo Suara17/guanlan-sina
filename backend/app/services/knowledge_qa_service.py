@@ -70,6 +70,12 @@ class KnowledgeQAService:
         timing_ms.update(retriever_results["timing_ms"])
         warnings.extend(retriever_results["warnings"])
 
+        if route.mode in {"document", "hybrid"}:
+            if "keyword" not in executed_modes and not self.keyword_retriever.is_available:
+                warnings.append("关键词检索未启用，已跳过文本匹配检索。")
+            if "vector" not in executed_modes and not self.vector_retriever.is_available:
+                warnings.append("向量检索未启用，已跳过语义召回。")
+
         graph_result = retriever_results["results"].get("graph", RetrievalResult())
         graph_hits = graph_result.hits
         graph_citations = graph_result.citations

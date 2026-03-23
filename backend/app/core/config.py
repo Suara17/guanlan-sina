@@ -103,7 +103,12 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float = 0.1
     OPENAI_API_KEY: str = ""
     OPENAI_BASE_URL: str | None = None
-    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    VOYAGE_API_KEY: str = ""
+    EMBEDDING_PROVIDER: str = "huggingface_local"
+    EMBEDDING_MODEL: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    EMBEDDING_DEVICE: str = "cpu"
+    EMBEDDING_BATCH_SIZE: int = 64
+    EMBEDDING_REQUEST_INTERVAL_SECONDS: float = 0.0
     QA_RETRIEVER_TIMEOUT_MS: int = 1500
     QA_RETRIEVER_MAX_WORKERS: int = 3
 

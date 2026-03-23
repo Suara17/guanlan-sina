@@ -18,6 +18,7 @@ from app.services.neo4j_service import Neo4jService
 from app.services.qa_answer_service import QAAnswerService
 from app.services.qa_fusion_service import QAFusionService
 from app.services.qa_router import QARouter
+from app.services.document_index_service import DocumentIndexService
 from app.services.retrievers import GraphRetriever, KeywordRetriever, VectorRetriever
 
 reusable_oauth2 = OAuth2PasswordBearer(
@@ -103,6 +104,6 @@ def get_knowledge_qa_service() -> KnowledgeQAService:
         answer_service=QAAnswerService(langchain_service=langchain_service),
         fusion_service=QAFusionService(),
         graph_retriever=GraphRetriever(neo4j_service),
-        keyword_retriever=KeywordRetriever(neo4j_service),
-        vector_retriever=VectorRetriever(neo4j_service),
+        keyword_retriever=KeywordRetriever(DocumentIndexService()),
+        vector_retriever=VectorRetriever(DocumentIndexService()),
     )

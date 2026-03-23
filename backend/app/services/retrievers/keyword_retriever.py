@@ -1,59 +1,75 @@
 import re
 from typing import Any
 
+from app.services.document_index_service import DocumentIndexService
 from app.services.knowledge_qa_models import QACitation, QARequest
-from app.services.neo4j_service import Neo4jService
 from app.services.retrievers.base import BaseRetriever, RetrievalResult
 
 
 class KeywordRetriever(BaseRetriever):
     name = "keyword"
 
-    def __init__(self, neo4j_service: Neo4jService | None = None) -> None:
-        self.neo4j_service = neo4j_service
+    def __init__(self, document_index_service: DocumentIndexService | None = None) -> None:
+        self.document_index_service = document_index_service or DocumentIndexService()
 
     @property
     def is_available(self) -> bool:
-        return self.neo4j_service is not None
+        return self.document_index_service.chunks_available
 
     def retrieve(self, request: QARequest) -> RetrievalResult:
-        if self.neo4j_service is None:
+        if not self.is_available:
             return RetrievalResult()
 
         keywords = self._extract_keywords(request.question)
-        anomalies = self.neo4j_service.get_all_anomalies()
+        if request.line_type:
+            normalized_line_type = request.line_type.lower().strip()
+            keywords = [keyword for keyword in keywords if keyword != normalized_line_type]
+        chunks = self.document_index_service.get_chunks()
         ranked_items: list[tuple[float, dict[str, Any], list[str]]] = []
 
-        for anomaly in anomalies:
-            if request.line_type and anomaly.get("line_type") != request.line_type:
+        for chunk in chunks:
+            if request.line_type and not self._matches_line_type(chunk, request.line_type):
                 continue
 
-            searchable_text = self._build_searchable_text(anomaly)
+            searchable_text = self._build_searchable_text(chunk)
             matched_terms: list[str] = []
             score = 0.0
+            keyword_match_count = 0
+            matched_sequence = False
 
             for keyword in keywords:
                 if keyword and keyword in searchable_text:
+                    keyword_match_count += 1
                     matched_terms.append(keyword)
-                    score += min(len(keyword), 6)
+                    score += min(len(keyword), 6) * 1.2
+                    if keyword in str(chunk.get("title", "")).lower():
+                        score += 1.5
+                    if keyword in str(chunk.get("section", "")).lower():
+                        score += 1.2
+                    if keyword in {str(item).lower() for item in chunk.get("keywords", [])}:
+                        score += 1.0
 
-            if request.sequence is not None and anomaly.get("sequence") == request.sequence:
+            if request.sequence is not None and request.sequence == self._extract_sequence(chunk):
+                matched_sequence = True
                 matched_terms.append(f"sequence:{request.sequence}")
                 score += 8.0
 
-            if request.line_type and anomaly.get("line_type") == request.line_type:
+            if request.line_type and self._matches_line_type(chunk, request.line_type):
                 matched_terms.append(f"line_type:{request.line_type}")
                 score += 3.0
+
+            if keyword_match_count == 0 and not matched_sequence:
+                continue
 
             if score <= 0:
                 continue
 
-            ranked_items.append((score, anomaly, self._unique_non_empty(matched_terms)))
+            ranked_items.append((score, chunk, self._unique_non_empty(matched_terms)))
 
         ranked_items.sort(
             key=lambda item: (
                 item[0],
-                item[1].get("sequence", 0),
+                int(item[1].get("page") or 0),
             ),
             reverse=True,
         )
@@ -61,42 +77,36 @@ class KeywordRetriever(BaseRetriever):
 
         hits: list[dict[str, Any]] = []
         citations: list[QACitation] = []
-        for score, anomaly, matched_terms in selected_items:
+        for score, chunk, matched_terms in selected_items:
             hit = {
-                "sequence": anomaly.get("sequence"),
-                "name": anomaly.get("name"),
-                "line_type": anomaly.get("line_type"),
-                "phenomenon": anomaly.get("phenomenon"),
-                "severity": anomaly.get("severity"),
+                "document_id": chunk.get("document_id"),
+                "chunk_id": chunk.get("chunk_id"),
+                "title": chunk.get("title"),
+                "page": chunk.get("page"),
+                "section": chunk.get("section"),
+                "source_file": chunk.get("source_file"),
                 "matched_terms": matched_terms,
                 "match_score": round(score, 2),
                 "rank_score": round(score, 2),
-                "causes": anomaly.get("causes", []),
-                "solutions": anomaly.get("solutions", []),
+                "text_preview": chunk.get("text_preview"),
             }
             hits.append(hit)
-
-            snippet_parts = [
-                f"现象：{anomaly.get('phenomenon', '未提供')}",
-            ]
-            cause_text = self._join_field_values(anomaly.get("causes", []), "description")
-            solution_text = self._join_field_values(anomaly.get("solutions", []), "method")
-            if cause_text:
-                snippet_parts.append(f"原因：{cause_text}")
-            if solution_text:
-                snippet_parts.append(f"处理：{solution_text}")
 
             citations.append(
                 QACitation(
                     source_type="document",
-                    title=f"关键词匹配异常 {anomaly.get('sequence')}",
-                    snippet=self._truncate("。".join(snippet_parts)),
+                    title=str(chunk.get("title") or chunk.get("document_id") or "文档片段"),
+                    snippet=self._truncate(str(chunk.get("text_preview") or chunk.get("text") or "")),
                     score=round(score, 2),
                     metadata={
                         "retriever": self.name,
                         "matched_terms": matched_terms,
-                        "line_type": anomaly.get("line_type"),
-                        "sequence": anomaly.get("sequence"),
+                        "document_id": chunk.get("document_id"),
+                        "chunk_id": chunk.get("chunk_id"),
+                        "source_file": chunk.get("source_file"),
+                        "title": chunk.get("title"),
+                        "page": chunk.get("page"),
+                        "section": chunk.get("section"),
                     },
                 )
             )
@@ -104,22 +114,15 @@ class KeywordRetriever(BaseRetriever):
         return RetrievalResult(hits=hits, citations=citations)
 
     @staticmethod
-    def _build_searchable_text(anomaly: dict[str, Any]) -> str:
+    def _build_searchable_text(chunk: dict[str, Any]) -> str:
         parts = [
-            str(anomaly.get("name", "")),
-            str(anomaly.get("line_type", "")),
-            str(anomaly.get("phenomenon", "")),
+            str(chunk.get("title", "")),
+            str(chunk.get("section", "")),
+            str(chunk.get("text", "")),
+            str(chunk.get("text_preview", "")),
+            " ".join(str(item) for item in chunk.get("keywords", [])),
+            " ".join(str(item) for item in chunk.get("line_types", [])),
         ]
-        parts.extend(
-            str(cause.get("description", ""))
-            for cause in anomaly.get("causes", [])
-            if isinstance(cause, dict)
-        )
-        parts.extend(
-            str(solution.get("method", ""))
-            for solution in anomaly.get("solutions", [])
-            if isinstance(solution, dict)
-        )
         normalized = " ".join(parts).lower()
         return normalized
 
@@ -179,20 +182,36 @@ class KeywordRetriever(BaseRetriever):
         return KeywordRetriever._unique_non_empty(keywords)
 
     @staticmethod
-    def _join_field_values(items: list[dict[str, Any]], field: str, limit: int = 2) -> str:
-        values = [
-            str(item.get(field, ""))
-            for item in items
-            if isinstance(item, dict) and item.get(field)
-        ]
-        return "；".join(KeywordRetriever._unique_non_empty(values)[:limit])
-
-    @staticmethod
     def _truncate(text: str, limit: int = 220) -> str:
         normalized = " ".join(text.split())
         if len(normalized) <= limit:
             return normalized
         return f"{normalized[: limit - 3]}..."
+
+    @staticmethod
+    def _matches_line_type(chunk: dict[str, Any], line_type: str) -> bool:
+        normalized_line_type = line_type.lower()
+        line_types = [str(item).lower() for item in chunk.get("line_types", [])]
+        if normalized_line_type in line_types:
+            return True
+        searchable_text = KeywordRetriever._build_searchable_text(chunk)
+        return normalized_line_type in searchable_text
+
+    @staticmethod
+    def _extract_sequence(chunk: dict[str, Any]) -> int | None:
+        metadata_candidates = (
+            chunk.get("sequence"),
+            chunk.get("chunk_id"),
+            chunk.get("text_preview"),
+            chunk.get("text"),
+        )
+        for candidate in metadata_candidates:
+            if candidate is None:
+                continue
+            match = re.search(r"(?:异常|sequence[:：\s-]*)(\d+)|(\d+)\s*号异常", str(candidate), re.IGNORECASE)
+            if match:
+                return int(match.group(1) or match.group(2))
+        return None
 
     @staticmethod
     def _unique_non_empty(values: list[str]) -> list[str]:

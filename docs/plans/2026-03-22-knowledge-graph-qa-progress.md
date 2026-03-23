@@ -6,7 +6,7 @@
 
 ## 总览
 - 目标：实现方案 B（Neo4j 图谱问答 + LangChain LLM + 后续 RAG 扩展）
-- 状态：后端已切换到 LangChain 路线，统一问答 API 已打通 `graph + keyword + vector + fusion + grouped prompt` 主链路；前端已接入真实 API
+- 状态：后端已切换到 LangChain 路线，统一问答 API 已打通 `graph + keyword + vector + fusion + grouped prompt` 主链路；文档 RAG 已接入真实 PDF 语料，已完成本地 embedding 索引与首轮回归，并开始切换到轻量多语言 embedding 模型；前端已接入真实 API
 
 ## 已完成
 ### Task 1：LangChain 配置与回答器
@@ -76,6 +76,44 @@
   - `LangChainService` 已要求固定输出结构：`结论 / 依据 / 建议 / 风险/备注`
   - `依据` 段需显式使用来源标签，如 `[G1]`、`[K1]`、`[V1]`
   - `QAAnswerService` 模板回答也已对齐来源标签输出
+- ✅ 已完成文档 RAG 底座接入：
+  - 新增 `backend/app/services/document_chunker.py`
+  - 新增 `backend/app/services/document_index_service.py`
+  - 新增 `backend/app/scripts/build_knowledge_qa_index.py`
+  - 新增 `backend/app/services/embedding_service.py`
+  - 已支持从 `docs/知识图谱/downloads` 扫描 PDF/TXT/MD 文档并生成 `chunks.jsonl / manifest.json / embeddings.jsonl`
+- ✅ 已完成文档语料首轮清洗与筛选：
+  - 已排除明显无关或高噪声文档名关键字，如 `arxiv / academic / taxonomy / datasheet / quick_reference / product_comparison`
+  - 已增加 PDF 正文页过滤，跳过 `copyright / references / disclaimer / contents / about ...`
+  - 当前索引产物为 `61` 份文档、`3007` 个 chunks
+- ✅ 已将 `KeywordRetriever` 真正切到文档 chunk 语料：
+  - 已改为依赖 `DocumentIndexService`
+  - 已收紧弱相关命中，避免仅靠 `line_type` 蹭进结果
+  - 已补充对应单测与服务层回归
+- ✅ 已将 `VectorRetriever` 真正切到文档 chunk + embedding 语料：
+  - 已支持读取 `embeddings.jsonl`
+  - 已通过 `EmbeddingService` 统一接 OpenAI / Voyage / 本地 Hugging Face provider
+  - 当前默认 provider 已切为本地 `huggingface_local`
+  - 当前默认模型已切为 `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`（轻量多语言）
+- ✅ 已完成 embedding 模型切换准备：
+  - 已将默认本地 embedding 模型从中文专用 `BAAI/bge-small-zh-v1.5` 切到轻量多语言 `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
+  - `build_knowledge_qa_index.py` 生成的 `manifest.json` 已补充 `embedding_provider / embedding_model`
+  - 当前适配目标是“英文 PDF 语料 + 中文问题”的跨语言检索场景
+- ✅ 已完成本地 BAAI embedding 索引构建：
+  - 已解决 Hugging Face 缓存离线加载问题，绕开工作区内错误代理配置
+  - 已成功生成 `backend/app/data/knowledge_qa/embeddings.jsonl`
+  - 当前 `manifest.json` 状态为 `embeddings_enabled=true`
+- ✅ 已补 document/vector 典型问题手工回归：
+  - 新增 `backend/app/scripts/evaluate_knowledge_qa.py`
+  - 已生成 `backend/app/data/knowledge_qa/evaluation_report.json`
+  - 已补结果记录：`docs/plans/2026-03-23-knowledge-qa-regression-report.md`
+  - 当前回归结论：
+    - `keyword`：`4 pass / 0 partial / 1 fail`
+    - `vector`：`3 pass / 0 partial / 2 fail`
+    - `fusion`：`3 pass / 1 partial / 1 fail`
+  - 当前明确短板：
+    - `虚焊排故` 会被弱相关 `vector` 结果带偏
+    - `贴片偏移/placement offset` 仍未形成稳定命中
 
 ### 前端：司南问答入口骨架（第一阶段）
 - ✅ 已新增前端设计与拆解文档：
@@ -137,27 +175,53 @@
 - ✅ 已取消引用“跳转定位”交互，回退为只读引用展示：
   - `frontend/components/AiAssistant.tsx`
   - 原因：当前跳转路径会干扰格物页图谱体验，先保留引用分组、摘要与匹配度展示，不再提供跳转入口
+- ✅ 已将格物主页面切换为 3D 知识图谱正式版：
+  - `frontend/App.tsx`
+  - `frontend/pages/KnowledgeGraph3DDemo.tsx`
+  - 当前 `/app/gewu` 已直接使用 3D 图谱视图
+  - 已支持：
+    - 全量知识节点三维展示
+    - 节点悬停弱提示与选中高亮
+    - 选中节点后的相机平滑聚焦
+    - 360 度自由旋转、缩放与平移
+  - 已移除演示性质按钮与说明文案，收敛为正式格物页面体验
 
 ## 未完成
 ### 后端待完善
 - ⏳ 还未做更细粒度异常分类与结果质量评估
 - ⏳ 文档更新说明（Task 4）尚未补写
-- ⏳ 尚未形成非结构化文档接入规范、切片规范与向量化流程
-- ⏳ 向量检索当前仍基于结构化异常文本，尚未接入真实非结构化文档语料
+- ⏳ 仍需继续优化文档筛选、chunk 清洗和召回排序权重
+- ⏳ 真实向量已接通，但对“贴片偏移/placement offset”这类问题仍会命中泛化工艺文档，尚未完成效果收口
+- ⏳ 仍需继续压制学术/泛检测类弱相关 `vector` 误召回，并优化 `fusion` 权重，避免高价值 `keyword` 结果被反超
+- ⏳ 轻量多语言模型正在下载，尚未完成基于 `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` 的 `embeddings.jsonl` 重建与回归验证
 
 ### 前端：待完成项
 - ⏳ 引用来源当前已支持分组与展开，跳转能力已暂时移除，后续若重做需要避免触发格物页重载或重排
 - ⏳ 引用来源的更细粒度排序策略尚未补齐
-- ⏳ 图谱页虽然已收敛一轮画布重渲染，但仍需继续观察问答面板交互下的布局稳定性
+- ⏳ 3D 格物页当前主要基于合并后的演示/聚合数据展示，后续仍需评估与真实异常上下文、筛选条件和问答联动的进一步整合方式
 
 ## 测试状态
-- `uv run pytest backend/tests/services/test_qa_router.py backend/tests/services/test_knowledge_qa_service.py backend/tests/services/test_langchain_service.py backend/tests/services/test_graph_retriever.py backend/tests/services/test_keyword_retriever.py backend/tests/services/test_vector_retriever.py backend/tests/services/test_qa_fusion_service.py backend/tests/api/routes/test_knowledge_qa.py` 未通过（权限问题，已停止）
-  - 错误：`error: failed to open file C:\Users\forzr\AppData\Local\uv\cache\sdists-v9\.git: 拒绝访问。 (os error 5)`
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_build_knowledge_qa_index.py tests/services/test_vector_retriever.py tests/services/test_keyword_retriever.py tests/services/test_knowledge_qa_service.py` 已通过
+  - 结果：`12 passed`
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_build_knowledge_qa_index.py tests/services/test_vector_retriever.py` 已通过
+  - 结果：`6 passed`
+- `.\.venv\Scripts\python.exe -c "from sentence_transformers import SentenceTransformer; ..."` 已通过
+  - 结果：本地 `BAAI/bge-small-zh-v1.5` 可正常加载并返回 `512` 维向量
+- `.\.venv\Scripts\python.exe -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'); ..."` 进行中
+  - 状态：模型下载中，尚未完成
+- `.\.venv\Scripts\python.exe app/scripts/build_knowledge_qa_index.py --with-embeddings` 已通过
+  - 结果：成功生成 `61` 份文档、`3007` 个 chunks、`3007` 条 embeddings
+- `.\.venv\Scripts\python.exe app/scripts/evaluate_knowledge_qa.py --top-k 3` 已通过
+  - 结果：成功生成 `backend/app/data/knowledge_qa/evaluation_report.json`
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_evaluate_knowledge_qa.py` 已通过
+  - 结果：`1 passed`
 - `npm run lint` 未通过（前端依赖未安装，已停止）
   - 错误：`'biome' is not recognized as an internal or external command`
   - 原因：`frontend/node_modules` 不存在，当前环境未安装前端依赖
 - `npx biome check frontend/components/AiAssistant.tsx` 已通过
 - `npx biome check frontend/App.tsx frontend/components/AiAssistant.tsx frontend/contexts/SinanQaContext.tsx` 已通过
+- `npx biome check frontend/App.tsx frontend/pages/KnowledgeGraph3DDemo.tsx` 已通过
+- `npx biome check frontend/pages/KnowledgeGraph3DDemo.tsx` 已通过
 - `npx biome check frontend/components/KnowledgeGraphCanvas.tsx frontend/pages/KnowledgeGraph.tsx` 未通过
   - 原因：这两个文件存在项目内既有 Biome 问题（如 `noExplicitAny`、`noNonNullAssertion`、`useButtonType` 等），不属于本轮新增逻辑直接引入的问题
 - `python -m compileall ...` 未通过（工作区 `__pycache__` 写入权限问题，已停止）
@@ -166,7 +230,13 @@
 ## 备注
 - 已清理工具产物目录（`.codex`）与误加入的计划文件，避免污染变更集。
 - 当前路线已明确切换为 LangChain。
+- 当前本地环境存在错误代理配置：
+  - `HTTP_PROXY / HTTPS_PROXY / ALL_PROXY = http://127.0.0.1:9`
+  - 已在 embedding 加载层通过本地缓存路径 + `local_files_only=True` 绕开该问题
+- 曾尝试接入 `Voyage` 作为免费 embedding provider，但未绑支付方式账号会被限制到 `3 RPM / 10K TPM`，不适合当前全量索引构建；当前已回退为本地 BAAI 方案
+- 当前已确认英文 PDF + 中文问题场景不适合继续依赖中文专用 embedding 模型，已切换到轻量多语言模型配置；待模型下载完成后需重建 embeddings 并复测
 - 后续优先建议：
-  1. 做结果质量评估与更细粒度异常分类
-  2. 完成非结构化文档接入规范后再把向量召回切到真实文档语料
-  3. 补 Task 4 的文档更新说明
+  1. 做 document/vector 结果质量评估与更细粒度问题分类
+  2. 针对“贴片偏移/placement offset”类问题继续补语料和调排序
+  3. 完成轻量多语言 embeddings 重建与回归验证
+  4. 补 Task 4 的文档更新说明
