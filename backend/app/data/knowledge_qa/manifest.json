@@ -1,0 +1,438 @@
+{
+  "source_dir": "E:\\Guanlan-Sina\\.worktrees\\knowledge-qa\\docs\\知识图谱\\downloads",
+  "output_dir": "E:\\Guanlan-Sina\\.worktrees\\knowledge-qa\\backend\\app\\data\\knowledge_qa",
+  "document_count": 61,
+  "chunk_count": 3007,
+  "embeddings_enabled": true,
+  "embedding_provider": "huggingface_local",
+  "embedding_model": "jinaai/jina-embeddings-v2-small-en",
+  "files": [
+    {
+      "document_id": "01_spi缺陷指南_solder_paste_print_inspection_defect_guide_wnie",
+      "source_file": "downloads/01 [SPI缺陷指南] Solder Paste Print Inspection & Defect Guide (WNIE).pdf",
+      "file_type": "pdf",
+      "chunk_count": 133,
+      "page_count": 33
+    },
+    {
+      "document_id": "02_焊点缺陷指南_the_engineer_s_guide_to_solder_defects_microvolt_lumafield",
+      "source_file": "downloads/02 [焊点缺陷指南] The Engineer's Guide to Solder Defects (Microvolt_Lumafield).pdf",
+      "file_type": "pdf",
+      "chunk_count": 40,
+      "page_count": 9
+    },
+    {
+      "document_id": "03_焊点缺陷指南_the_printed_circuit_assembler_s_guide_to_minimizing_solder_defects_indium",
+      "source_file": "downloads/03 [焊点缺陷指南] The Printed Circuit Assembler's Guide to Minimizing Solder Defects (Indium).pdf",
+      "file_type": "pdf",
+      "chunk_count": 125,
+      "page_count": 39
+    },
+    {
+      "document_id": "04_smt排故_smt_troubleshooting_guide_2017_alpha",
+      "source_file": "downloads/04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha).pdf",
+      "file_type": "pdf",
+      "chunk_count": 44,
+      "page_count": 20
+    },
+    {
+      "document_id": "05_bga_hip_head-in-pillow_bga_defects_aim",
+      "source_file": "downloads/05 [BGA_HiP] Head-in-Pillow BGA Defects (AIM).pdf",
+      "file_type": "pdf",
+      "chunk_count": 21,
+      "page_count": 6
+    },
+    {
+      "document_id": "06_smt_troubleshooting_guide_alpha",
+      "source_file": "downloads/06_SMT_Troubleshooting_Guide_ALPHA.pdf",
+      "file_type": "pdf",
+      "chunk_count": 33,
+      "page_count": 17
+    },
+    {
+      "document_id": "07_钢网设计_smt_stencil_design_smtnet_library",
+      "source_file": "downloads/07 [钢网设计] SMT STENCIL DESIGN (SMTnet library).pdf",
+      "file_type": "pdf",
+      "chunk_count": 95,
+      "page_count": 32
+    },
+    {
+      "document_id": "07_smt_trouble_shooting_guide_aim_solder",
+      "source_file": "downloads/07_SMT_Trouble_Shooting_Guide_AIM_Solder.pdf",
+      "file_type": "pdf",
+      "chunk_count": 46,
+      "page_count": 30
+    },
+    {
+      "document_id": "08_钢网设计_stencil_design_for_mixed_technology_through-hole_smt_circuitnet",
+      "source_file": "downloads/08 [钢网设计] Stencil design for mixed technology through-hole_SMT (Circuitnet).pdf",
+      "file_type": "pdf",
+      "chunk_count": 34,
+      "page_count": 4
+    },
+    {
+      "document_id": "09_钢网设计_solder_stencil_design_guidelines_for_reliable_assembly_of_pqfn_gan_epc_an029",
+      "source_file": "downloads/09 [钢网设计] Solder Stencil Design Guidelines for Reliable Assembly of PQFN GaN (EPC AN029).pdf",
+      "file_type": "pdf",
+      "chunk_count": 38,
+      "page_count": 8
+    },
+    {
+      "document_id": "10_回流曲线_best_practices_reflow_profiling_for_lead-free_smt_assembly_kic",
+      "source_file": "downloads/10 [回流曲线] Best Practices Reflow Profiling for Lead-Free SMT Assembly (KIC).pdf",
+      "file_type": "pdf",
+      "chunk_count": 41,
+      "page_count": 7
+    },
+    {
+      "document_id": "11_回流曲线_optimized_reflow_profiling_to_minimize_voiding_kic",
+      "source_file": "downloads/11 [回流曲线] Optimized Reflow Profiling to Minimize Voiding (KIC).pdf",
+      "file_type": "pdf",
+      "chunk_count": 31,
+      "page_count": 9
+    },
+    {
+      "document_id": "11_siemens_aoi_fcr_white_paper",
+      "source_file": "downloads/11_Siemens_AOI_FCR_White_Paper.pdf",
+      "file_type": "pdf",
+      "chunk_count": 25,
+      "page_count": 6
+    },
+    {
+      "document_id": "12_回流曲线_reflow_profiling_for_next-generation_solder_alloys_kic",
+      "source_file": "downloads/12 [回流曲线] Reflow Profiling for Next-Generation Solder Alloys (KIC).pdf",
+      "file_type": "pdf",
+      "chunk_count": 40,
+      "page_count": 8
+    },
+    {
+      "document_id": "13_aoi白皮书_tri_white_paper_introduction_to_aoi_technology",
+      "source_file": "downloads/13 [AOI白皮书] TRI White Paper – Introduction to AOI Technology.pdf",
+      "file_type": "pdf",
+      "chunk_count": 28,
+      "page_count": 11
+    },
+    {
+      "document_id": "14_aoi方法_analysis_of_optical_inspection_from_aoi_and_avi_circuitinsight",
+      "source_file": "downloads/14 [AOI方法] ANALYSIS OF OPTICAL INSPECTION FROM AOI AND AVI (CircuitInsight).pdf",
+      "file_type": "pdf",
+      "chunk_count": 62,
+      "page_count": 34
+    },
+    {
+      "document_id": "15_aoi误报降低_smarter_false_call_reduction_for_electronics_manufacturing_siemens",
+      "source_file": "downloads/15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens).pdf",
+      "file_type": "pdf",
+      "chunk_count": 25,
+      "page_count": 6
+    },
+    {
+      "document_id": "16_spi基础_solder_paste_inspection_techniques_thomasnet",
+      "source_file": "downloads/16 [SPI基础] Solder Paste Inspection Techniques (Thomasnet).pdf",
+      "file_type": "pdf",
+      "chunk_count": 16,
+      "page_count": 4
+    },
+    {
+      "document_id": "17_spi效益_solder_paste_measurement_a_yield_improvement_strategy_asc_international",
+      "source_file": "downloads/17 [SPI效益] Solder Paste Measurement_ A Yield Improvement Strategy (ASC International).pdf",
+      "file_type": "pdf",
+      "chunk_count": 25,
+      "page_count": 5
+    },
+    {
+      "document_id": "18_spi设备手册_se_300_solder_paste_inspection_user_guide",
+      "source_file": "downloads/18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide.pdf",
+      "file_type": "pdf",
+      "chunk_count": 197,
+      "page_count": 90
+    },
+    {
+      "document_id": "21_smt_troubleshooting_guide_-_tortai-tech_com",
+      "source_file": "downloads/21 SMT Troubleshooting Guide - tortai-tech.com.pdf",
+      "file_type": "pdf",
+      "chunk_count": 33,
+      "page_count": 17
+    },
+    {
+      "document_id": "25_smt_trouble_shooting_guide_-_aim_solder",
+      "source_file": "downloads/25 SMT TROUBLE SHOOTING GUIDE - AIM Solder.pdf",
+      "file_type": "pdf",
+      "chunk_count": 46,
+      "page_count": 30
+    },
+    {
+      "document_id": "alpha_om-355_solderpaste_process_window_tds_a2463f7d36da4c999b112a686a0d3da8",
+      "source_file": "downloads/Alpha_OM-355_SolderPaste_Process_Window_TDS_a2463f7d36da4c999b112a686a0d3da8.pdf",
+      "file_type": "pdf",
+      "chunk_count": 15,
+      "page_count": 5
+    },
+    {
+      "document_id": "alpha_om-362_solderpaste_smt_process_tds_c47c1a2a9b85456da0e5f2a9c3a2ae4a",
+      "source_file": "downloads/Alpha_OM-362_SolderPaste_SMT_Process_TDS_c47c1a2a9b85456da0e5f2a9c3a2ae4a.pdf",
+      "file_type": "pdf",
+      "chunk_count": 14,
+      "page_count": 6
+    },
+    {
+      "document_id": "alpha_om-5100_mixed_leadfree_snpb_solderpaste_tds_d6c4db9d1bdc4b9793d066088c24a3c0",
+      "source_file": "downloads/Alpha_OM-5100_Mixed_LeadFree_SnPb_SolderPaste_TDS_d6c4db9d1bdc4b9793d066088c24a3c0.pdf",
+      "file_type": "pdf",
+      "chunk_count": 16,
+      "page_count": 6
+    },
+    {
+      "document_id": "alpha_om-565_hrl3_solderpaste_tds_8e73149e4b274fe2be804f3163e1bc49",
+      "source_file": "downloads/Alpha_OM-565_HRL3_SolderPaste_TDS_8e73149e4b274fe2be804f3163e1bc49.pdf",
+      "file_type": "pdf",
+      "chunk_count": 15,
+      "page_count": 5
+    },
+    {
+      "document_id": "best-practices-reflow-profiling-98675_pdf",
+      "source_file": "downloads/Best-Practices-Reflow-Profiling-98675.pdf.pdf",
+      "file_type": "pdf",
+      "chunk_count": 41,
+      "page_count": 7
+    },
+    {
+      "document_id": "btu_oven_adjustment_effects_reflow_profile_7ed05397ef5f45c5ac43db59ba83eb98",
+      "source_file": "downloads/BTU_Oven_Adjustment_Effects_Reflow_Profile_7ed05397ef5f45c5ac43db59ba83eb98.pdf",
+      "file_type": "pdf",
+      "chunk_count": 12,
+      "page_count": 2
+    },
+    {
+      "document_id": "btu_pyramax_vacuum_reflow_oven_semicon_0f6690e870e14e0c92a14200c0033d1d",
+      "source_file": "downloads/BTU_Pyramax_Vacuum_Reflow_Oven_SEMICON_0f6690e870e14e0c92a14200c0033d1d.pdf",
+      "file_type": "pdf",
+      "chunk_count": 5,
+      "page_count": 2
+    },
+    {
+      "document_id": "ecd_mole_lead_free_wave_soldering_inemi_7b2b0d0021d14ad398abc19935048890",
+      "source_file": "downloads/ECD_MOLE_Lead_Free_Wave_Soldering_iNEMI_7b2b0d0021d14ad398abc19935048890.pdf",
+      "file_type": "pdf",
+      "chunk_count": 75,
+      "page_count": 11
+    },
+    {
+      "document_id": "ersa_powerflow_wave-soldering-guide_098a1379852c4117994c3dc477743987",
+      "source_file": "downloads/ERSA_POWERFLOW_Wave-Soldering-Guide_098a1379852c4117994c3dc477743987.pdf",
+      "file_type": "pdf",
+      "chunk_count": 35,
+      "page_count": 4
+    },
+    {
+      "document_id": "heller_vacuum_reflow_oven_technical_7c9a627097b24f66b4bb6e0f0e7171d6",
+      "source_file": "downloads/Heller_Vacuum_Reflow_Oven_Technical_7c9a627097b24f66b4bb6e0f0e7171d6.pdf",
+      "file_type": "pdf",
+      "chunk_count": 38,
+      "page_count": 16
+    },
+    {
+      "document_id": "indium_8_9hf_automotive_solderpaste_application_6180a7c53f164de8899bdaed03bf64d4",
+      "source_file": "downloads/Indium_8.9HF_Automotive_SolderPaste_Application_6180a7c53f164de8899bdaed03bf64d4.pdf",
+      "file_type": "pdf",
+      "chunk_count": 48,
+      "page_count": 16
+    },
+    {
+      "document_id": "indium_head_in_pillow_defect_prevention_1694e3961646474da357ad430090a356",
+      "source_file": "downloads/Indium_Head_in_Pillow_Defect_Prevention_1694e3961646474da357ad430090a356.pdf",
+      "file_type": "pdf",
+      "chunk_count": 42,
+      "page_count": 5
+    },
+    {
+      "document_id": "indium_pbfree_series_solder_paste_alloy_selection_guide_e0fa3e0405e24ec88f04d1ef9c11f9e1",
+      "source_file": "downloads/Indium_PbFree_Series_Solder_Paste_Alloy_Selection_Guide_e0fa3e0405e24ec88f04d1ef9c11f9e1.pdf",
+      "file_type": "pdf",
+      "chunk_count": 8,
+      "page_count": 2
+    },
+    {
+      "document_id": "inemi_bisn_lowtemp_solderpaste_process_development_paper_591364591ad34813853901da958f81e7",
+      "source_file": "downloads/iNEMI_BiSn_LowTemp_SolderPaste_Process_Development_Paper_591364591ad34813853901da958f81e7.pdf",
+      "file_type": "pdf",
+      "chunk_count": 107,
+      "page_count": 13
+    },
+    {
+      "document_id": "ipc-7530a_temperature_profiling_guidelines_updated_5826722380494207b8b0249cc3083eea",
+      "source_file": "downloads/IPC-7530A_Temperature_Profiling_Guidelines_Updated_5826722380494207b8b0249cc3083eea.pdf",
+      "file_type": "pdf",
+      "chunk_count": 20,
+      "page_count": 3
+    },
+    {
+      "document_id": "kester_defect_minimization_noclean_smt_process_d64599d781954d779a0a314829f9d9ae",
+      "source_file": "downloads/Kester_Defect_Minimization_NoClean_SMT_Process_d64599d781954d779a0a314829f9d9ae.pdf",
+      "file_type": "pdf",
+      "chunk_count": 44,
+      "page_count": 6
+    },
+    {
+      "document_id": "kester_developing_reliable_leadfree_smt_assembly_process_075cbef846fb40b89aff46e6968f40ca",
+      "source_file": "downloads/Kester_Developing_Reliable_LeadFree_SMT_Assembly_Process_075cbef846fb40b89aff46e6968f40ca.pdf",
+      "file_type": "pdf",
+      "chunk_count": 24,
+      "page_count": 7
+    },
+    {
+      "document_id": "kester_ep256_noclean_wideprocesswindow_solderpaste_tds_afcc74c606654fe79dcc2bcf99c3f742",
+      "source_file": "downloads/Kester_EP256_NoClean_WideProcessWindow_SolderPaste_TDS_afcc74c606654fe79dcc2bcf99c3f742.pdf",
+      "file_type": "pdf",
+      "chunk_count": 22,
+      "page_count": 5
+    },
+    {
+      "document_id": "kester_implementing_reliable_leadfree_wave_smt_process_798be49a87f94a7096d30ac00da92311",
+      "source_file": "downloads/Kester_Implementing_Reliable_LeadFree_Wave_SMT_Process_798be49a87f94a7096d30ac00da92311.pdf",
+      "file_type": "pdf",
+      "chunk_count": 41,
+      "page_count": 8
+    },
+    {
+      "document_id": "kester_solder_paste_handling_guidelines_952b6b08f26c482bb3125ff5919d0263",
+      "source_file": "downloads/Kester_Solder_Paste_Handling_Guidelines_952b6b08f26c482bb3125ff5919d0263.pdf",
+      "file_type": "pdf",
+      "chunk_count": 13,
+      "page_count": 3
+    },
+    {
+      "document_id": "kic_best_practices_lead_free_reflow_profiling_0bf2607417ef445786842911e3b60edf",
+      "source_file": "downloads/KIC_Best_Practices_Lead_Free_Reflow_Profiling_0bf2607417ef445786842911e3b60edf.pdf",
+      "file_type": "pdf",
+      "chunk_count": 41,
+      "page_count": 7
+    },
+    {
+      "document_id": "kic_optimized_reflow_profiling_minimize_voiding_7687eea70b2f4659b2892f1ba1079aa1",
+      "source_file": "downloads/KIC_Optimized_Reflow_Profiling_Minimize_Voiding_7687eea70b2f4659b2892f1ba1079aa1.pdf",
+      "file_type": "pdf",
+      "chunk_count": 23,
+      "page_count": 3
+    },
+    {
+      "document_id": "kic_profiling_software_2g_user_manual_7d2bf61e79f84844918daa8385442b49",
+      "source_file": "downloads/KIC_Profiling_Software_2G_User_Manual_7d2bf61e79f84844918daa8385442b49.pdf",
+      "file_type": "pdf",
+      "chunk_count": 389,
+      "page_count": 133
+    },
+    {
+      "document_id": "kic_rpi_reflow_process_index_2016_973e5f1aea66436592ea3be3a7addb26",
+      "source_file": "downloads/KIC_RPI_Reflow_Process_Index_2016_973e5f1aea66436592ea3be3a7addb26.pdf",
+      "file_type": "pdf",
+      "chunk_count": 5,
+      "page_count": 1
+    },
+    {
+      "document_id": "kic_rpi_reflow_process_index_2020_0267b698b1974c4b991d754c3e6eec90",
+      "source_file": "downloads/KIC_RPI_Reflow_Process_Index_2020_0267b698b1974c4b991d754c3e6eec90.pdf",
+      "file_type": "pdf",
+      "chunk_count": 5,
+      "page_count": 1
+    },
+    {
+      "document_id": "lead-free_smt_defects_how_to_prevent_them",
+      "source_file": "downloads/Lead-free_SMT_Defects_How_to_Prevent_Them.pdf",
+      "file_type": "pdf",
+      "chunk_count": 31,
+      "page_count": 8
+    },
+    {
+      "document_id": "lead_free_reflow_soldering_considerations_traco_f5bc6347a6a54eab832bec203426ca78",
+      "source_file": "downloads/Lead_Free_Reflow_Soldering_Considerations_Traco_f5bc6347a6a54eab832bec203426ca78.pdf",
+      "file_type": "pdf",
+      "chunk_count": 18,
+      "page_count": 5
+    },
+    {
+      "document_id": "mdpi_pcb_defect_algorithm_improved_497bbc18ef354a47b0463eee8dd6090e",
+      "source_file": "downloads/MDPI_PCB_Defect_Algorithm_Improved_497bbc18ef354a47b0463eee8dd6090e.pdf",
+      "file_type": "pdf",
+      "chunk_count": 92,
+      "page_count": 15
+    },
+    {
+      "document_id": "mdpi_pcb_defect_detection_deep_learning_58141581c0cc4a5590c7d4cacdaba8f8",
+      "source_file": "downloads/MDPI_PCB_Defect_Detection_Deep_Learning_58141581c0cc4a5590c7d4cacdaba8f8.pdf",
+      "file_type": "pdf",
+      "chunk_count": 127,
+      "page_count": 13
+    },
+    {
+      "document_id": "nordson_spi_best_practices_guide_7c506247c79c491f85a58341626baa5e",
+      "source_file": "downloads/Nordson_SPI_Best_Practices_Guide_7c506247c79c491f85a58341626baa5e.pdf",
+      "file_type": "pdf",
+      "chunk_count": 133,
+      "page_count": 33
+    },
+    {
+      "document_id": "optimized-reflow-profiling-to-minimize-voiding-v3-final",
+      "source_file": "downloads/Optimized-Reflow-Profiling-to-Minimize-Voiding-v3-Final.pdf",
+      "file_type": "pdf",
+      "chunk_count": 31,
+      "page_count": 9
+    },
+    {
+      "document_id": "optimizing_reflow_profile_maximum_productivity_a751cc7bb2c5406c9801814d3848f83c",
+      "source_file": "downloads/Optimizing_Reflow_Profile_Maximum_Productivity_a751cc7bb2c5406c9801814d3848f83c.pdf",
+      "file_type": "pdf",
+      "chunk_count": 29,
+      "page_count": 9
+    },
+    {
+      "document_id": "reflow_profiling_time_above_liquidus_tal_31a39e444b854900a7e30baa62c043e6",
+      "source_file": "downloads/Reflow_Profiling_Time_Above_Liquidus_TAL_31a39e444b854900a7e30baa62c043e6.pdf",
+      "file_type": "pdf",
+      "chunk_count": 31,
+      "page_count": 11
+    },
+    {
+      "document_id": "smt_troubleshooting_guide_aim_solder_93469137937645a8955e08ea0b7db8a0",
+      "source_file": "downloads/SMT_Troubleshooting_Guide_AIM_Solder_93469137937645a8955e08ea0b7db8a0.pdf",
+      "file_type": "pdf",
+      "chunk_count": 46,
+      "page_count": 30
+    },
+    {
+      "document_id": "smt_troubleshooting_guide_alpha_d6686468abb844869b7a1af696afbf4f",
+      "source_file": "downloads/SMT_Troubleshooting_Guide_Alpha_d6686468abb844869b7a1af696afbf4f.pdf",
+      "file_type": "pdf",
+      "chunk_count": 33,
+      "page_count": 17
+    },
+    {
+      "document_id": "smt_voiding_mechanisms_reflow_soldering_process_analysis_1a9c6963efa5494c94f66d68167b9198",
+      "source_file": "downloads/SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198.pdf",
+      "file_type": "pdf",
+      "chunk_count": 82,
+      "page_count": 48
+    },
+    {
+      "document_id": "smtai_developing_optimum_reflow_process_c1566ca8e0f44649852df840d92da6d8",
+      "source_file": "downloads/SMTAI_Developing_Optimum_Reflow_Process_c1566ca8e0f44649852df840d92da6d8.pdf",
+      "file_type": "pdf",
+      "chunk_count": 34,
+      "page_count": 4
+    },
+    {
+      "document_id": "solder-paste-storage-and-handling-guidelines-appnote-98995-r5-1",
+      "source_file": "downloads/Solder-Paste-Storage-and-Handling-Guidelines-APPNOTE-98995-R5-1.pdf",
+      "file_type": "pdf",
+      "chunk_count": 17,
+      "page_count": 2
+    },
+    {
+      "document_id": "wave_soldering_profile_recommendations_ipc7530_ref_073f4ae8430047e68e1e3fcc7468374f",
+      "source_file": "downloads/Wave_Soldering_Profile_Recommendations_IPC7530_Ref_073f4ae8430047e68e1e3fcc7468374f.pdf",
+      "file_type": "pdf",
+      "chunk_count": 27,
+      "page_count": 5
+    }
+  ]
+}

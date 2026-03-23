@@ -1,0 +1,603 @@
+{
+  "chunks_path": "E:\\Guanlan-Sina\\.worktrees\\knowledge-qa\\backend\\app\\data\\knowledge_qa\\chunks.jsonl",
+  "embeddings_path": "E:\\Guanlan-Sina\\.worktrees\\knowledge-qa\\backend\\app\\data\\knowledge_qa\\embeddings.jsonl",
+  "chunks_available": true,
+  "embeddings_available": true,
+  "chunk_count": 3007,
+  "embedding_count": 3007,
+  "top_k": 3,
+  "cases": [
+    {
+      "id": "aoi_false_call",
+      "question": "AOI误报降低有哪些思路？",
+      "line_type": "SMT",
+      "sequence": null,
+      "expected_terms": [
+        "aoi",
+        "false call",
+        "false-call",
+        "siemens"
+      ],
+      "note": "期望命中 AOI false call reduction 相关白皮书或指南。",
+      "keyword": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "title": "15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens)",
+            "page": 5,
+            "section": "parts: the local installation on the shop-floor and a cloud-based service for model generation and updates. The local installation connects to the respective AOI machine and receives the measure - ments from the test equipment for every product inspected. The ML model predicts the probabilities of AOI machine outputs indi - cating a false call or a real error. A dashboard presents the findings to the operator in charge of inspecting PCBs at the SMT line. Training the ML model and monitoring its performance is done in the cloud, which eliminates the need for a big investment in computer infrastructure.",
+            "chunk_id": "15_aoi误报降低_smarter_false_call_reduction_for_electronics_manufacturing_siemens:p5:c03",
+            "score": 63.3,
+            "source_file": "downloads/15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens).pdf",
+            "text_preview": "Deploy and use in the production line In the second step, the trained model is deployed to an edge computer on the shop floor that contains additional supporting apps. From this ma..."
+          },
+          {
+            "title": "15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens)",
+            "page": 6,
+            "section": "parts: the local installation on the shop-floor and a cloud-based service for model generation and updates. The local installation connects to the respective AOI machine and receives the measure - ments from the test equipment for every product inspected. The ML model predicts the probabilities of AOI machine outputs indi - cating a false call or a real error. A dashboard presents the findings to the operator in charge of inspecting PCBs at the SMT line. Training the ML model and monitoring its performance is done in the cloud, which eliminates the need for a big investment in computer infrastructure.",
+            "chunk_id": "15_aoi误报降低_smarter_false_call_reduction_for_electronics_manufacturing_siemens:p6:c01",
+            "score": 57.1,
+            "source_file": "downloads/15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens).pdf",
+            "text_preview": "Seamless IT and OT integration via the Siemens Industrial Edge Ecosystem makes the AOI false-call reduction solution easy to commission and deploy, and it works well with or withou..."
+          },
+          {
+            "title": "15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens)",
+            "page": 6,
+            "section": "parts: the local installation on the shop-floor and a cloud-based service for model generation and updates. The local installation connects to the respective AOI machine and receives the measure - ments from the test equipment for every product inspected. The ML model predicts the probabilities of AOI machine outputs indi - cating a false call or a real error. A dashboard presents the findings to the operator in charge of inspecting PCBs at the SMT line. Training the ML model and monitoring its performance is done in the cloud, which eliminates the need for a big investment in computer infrastructure.",
+            "chunk_id": "15_aoi误报降低_smarter_false_call_reduction_for_electronics_manufacturing_siemens:p6:c02",
+            "score": 56.1,
+            "source_file": "downloads/15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens).pdf",
+            "text_preview": "Manufacturers can be confident in investing in the industrial edge because, not only is Siemens a well-known provider of the entire range of software and hardware critical to PCB p..."
+          }
+        ]
+      },
+      "vector": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "title": "11_Siemens_AOI_FCR_White_Paper",
+            "page": 4,
+            "section": "parts: the local installation on the shop-floor and a cloud-based service for model generation and updates. The local installation connects to the respective AOI machine and receives the measure - ments from the test equipment for every product inspected. The ML model predicts the probabilities of AOI machine outputs indi - cating a false call or a real error. A dashboard presents the findings to the operator in charge of inspecting PCBs at the SMT line. Training the ML model and monitoring its performance is done in the cloud, which eliminates the need for a big investment in computer infrastructure.",
+            "chunk_id": "11_siemens_aoi_fcr_white_paper:p4:c02",
+            "score": 1.1641,
+            "source_file": "downloads/11_Siemens_AOI_FCR_White_Paper.pdf",
+            "text_preview": "This lightweight solution only needs four compo - nents. Currently, in general terms, it is offered as a combination of hardware, software, and customized service from Siemens for..."
+          },
+          {
+            "title": "15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens)",
+            "page": 4,
+            "section": "parts: the local installation on the shop-floor and a cloud-based service for model generation and updates. The local installation connects to the respective AOI machine and receives the measure - ments from the test equipment for every product inspected. The ML model predicts the probabilities of AOI machine outputs indi - cating a false call or a real error. A dashboard presents the findings to the operator in charge of inspecting PCBs at the SMT line. Training the ML model and monitoring its performance is done in the cloud, which eliminates the need for a big investment in computer infrastructure.",
+            "chunk_id": "15_aoi误报降低_smarter_false_call_reduction_for_electronics_manufacturing_siemens:p4:c02",
+            "score": 1.1641,
+            "source_file": "downloads/15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens).pdf",
+            "text_preview": "This lightweight solution only needs four compo - nents. Currently, in general terms, it is offered as a combination of hardware, software, and customized service from Siemens for..."
+          },
+          {
+            "title": "11_Siemens_AOI_FCR_White_Paper",
+            "page": 4,
+            "section": "parts: the local installation on the shop-floor and a cloud-based service for model generation and updates. The local installation connects to the respective AOI machine and receives the measure - ments from the test equipment for every product inspected. The ML model predicts the probabilities of AOI machine outputs indi - cating a false call or a real error. A dashboard presents the findings to the operator in charge of inspecting PCBs at the SMT line. Training the ML model and monitoring its performance is done in the cloud, which eliminates the need for a big investment in computer infrastructure.",
+            "chunk_id": "11_siemens_aoi_fcr_white_paper:p4:c01",
+            "score": 1.1639,
+            "source_file": "downloads/11_Siemens_AOI_FCR_White_Paper.pdf",
+            "text_preview": "Integrating AI and ML into the factory Our AI- and ML-based solution uses data provided by AOI machines installed in SMT lines along with manual inspection findings recorded whenev..."
+          }
+        ]
+      },
+      "fusion": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "retriever": "keyword",
+            "title": "15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens)",
+            "score": 63.3,
+            "page": 5,
+            "section": "parts: the local installation on the shop-floor and a cloud-based service for model generation and updates. The local installation connects to the respective AOI machine and receives the measure - ments from the test equipment for every product inspected. The ML model predicts the probabilities of AOI machine outputs indi - cating a false call or a real error. A dashboard presents the findings to the operator in charge of inspecting PCBs at the SMT line. Training the ML model and monitoring its performance is done in the cloud, which eliminates the need for a big investment in computer infrastructure.",
+            "chunk_id": "15_aoi误报降低_smarter_false_call_reduction_for_electronics_manufacturing_siemens:p5:c03",
+            "source_file": "downloads/15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens).pdf",
+            "snippet": "Deploy and use in the production line In the second step, the trained model is deployed to an edge computer on the shop floor that contains additional supporting apps. From this ma..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens)",
+            "score": 57.1,
+            "page": 6,
+            "section": "parts: the local installation on the shop-floor and a cloud-based service for model generation and updates. The local installation connects to the respective AOI machine and receives the measure - ments from the test equipment for every product inspected. The ML model predicts the probabilities of AOI machine outputs indi - cating a false call or a real error. A dashboard presents the findings to the operator in charge of inspecting PCBs at the SMT line. Training the ML model and monitoring its performance is done in the cloud, which eliminates the need for a big investment in computer infrastructure.",
+            "chunk_id": "15_aoi误报降低_smarter_false_call_reduction_for_electronics_manufacturing_siemens:p6:c01",
+            "source_file": "downloads/15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens).pdf",
+            "snippet": "Seamless IT and OT integration via the Siemens Industrial Edge Ecosystem makes the AOI false-call reduction solution easy to commission and deploy, and it works well with or withou..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens)",
+            "score": 56.1,
+            "page": 6,
+            "section": "parts: the local installation on the shop-floor and a cloud-based service for model generation and updates. The local installation connects to the respective AOI machine and receives the measure - ments from the test equipment for every product inspected. The ML model predicts the probabilities of AOI machine outputs indi - cating a false call or a real error. A dashboard presents the findings to the operator in charge of inspecting PCBs at the SMT line. Training the ML model and monitoring its performance is done in the cloud, which eliminates the need for a big investment in computer infrastructure.",
+            "chunk_id": "15_aoi误报降低_smarter_false_call_reduction_for_electronics_manufacturing_siemens:p6:c02",
+            "source_file": "downloads/15 [AOI误报降低] Smarter false call reduction for electronics manufacturing (Siemens).pdf",
+            "snippet": "Manufacturers can be confident in investing in the industrial edge because, not only is Siemens a well-known provider of the entire range of software and hardware critical to PCB p..."
+          }
+        ],
+        "groups": {
+          "keyword": 3
+        }
+      }
+    },
+    {
+      "id": "spi_setup",
+      "question": "SPI设备手册里焊膏检测通常怎么设置和检查？",
+      "line_type": "SMT",
+      "sequence": null,
+      "expected_terms": [
+        "spi",
+        "solder paste inspection",
+        "se 300"
+      ],
+      "note": "期望命中 SPI 设备手册正文，而不是泛宣传材料。",
+      "keyword": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "title": "18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide",
+            "page": 8,
+            "section": "Chapter 1: Getting Started 2 SE 300 Solder Paste Inspection User Guide Introduction The SE 300 Ultra Solder Paste Inspection User Guide provides comprehensive information about the Solder Paste Inspection application. If you have any questions that are not answered by this guide, contact CyberOptics Customer Service and Support. For more information, refer to Technical Support on page 78.\nPrerequisite Knowledge ● Moderate computer experience ● Moderate Windows® experience ● Prior knowledge of solder paste inspection process Documentation Documentation for the SE 300 Ultra inspection system consists of the following information:",
+            "chunk_id": "18_spi设备手册_se_300_solder_paste_inspection_user_guide:p8:c01",
+            "score": 50.4,
+            "source_file": "downloads/18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide.pdf",
+            "text_preview": "● SE 300 Ultra Hardware Reference Provides an overview of SE 300 Ultra components, instructions for how to install and maintain the SE 300 Ultra system, parts replacement informati..."
+          },
+          {
+            "title": "18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide",
+            "page": 9,
+            "section": "SPI.book",
+            "chunk_id": "18_spi设备手册_se_300_solder_paste_inspection_user_guide:p9:c04",
+            "score": 46.8,
+            "source_file": "downloads/18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide.pdf",
+            "text_preview": "● SMT Teach: Engineers use the Teach application to create and maintain SRFFs for each assembly to be inspected. SRFFs define the dimensions and characteristics of the panels as we..."
+          },
+          {
+            "title": "02 [焊点缺陷指南] The Engineer's Guide to Solder Defects (Microvolt_Lumafield)",
+            "page": 8,
+            "section": "sections The Hidden De f ects A ut oma t ed op tical inspection and manual visual check s ma y ca t ch basic solder join t de f ects, but ther e ar e se v er al types o f critical de f ects tha t ar e in visible t o the e y e and can go unde t ect ed. These ar e incr easingly common as electr onics become smaller and mor e comple x. F or e x ample, pack ages such as Quad Fla t N o-L ead ( QFN) de vices o ft en ha v e a lar ge e xposed cen t er pad sho wn in Figur e 8 tha t ser v es as a thermal/ gr ound pad. P erime t er leads o ff er limit ed ar ea f or hea t dissipa tion, so inadequa t e cen t er -pad solder can cause o v erhea ting.",
+            "chunk_id": "02_焊点缺陷指南_the_engineer_s_guide_to_solder_defects_microvolt_lumafield:p8:c01",
+            "score": 34.5,
+            "source_file": "downloads/02 [焊点缺陷指南] The Engineer's Guide to Solder Defects (Microvolt_Lumafield).pdf",
+            "text_preview": "08 L uma field Whit e P aper R e f er ences A tmel. (2009 , M ar ch ). QFN pack age moun ting guidelines: A T 88RF1354 applica tion no t e 8583A (Doc. 8583A -RFID-3/09 ). Micr ochi..."
+          }
+        ]
+      },
+      "vector": {
+        "status": "partial",
+        "top_hits": [
+          {
+            "title": "Kester_Defect_Minimization_NoClean_SMT_Process_d64599d781954d779a0a314829f9d9ae",
+            "page": 4,
+            "section": "Microsoft Word - Kester - Defect Minimization Methods for a No-Clean SMT Process.docx",
+            "chunk_id": "kester_defect_minimization_noclean_smt_process_d64599d781954d779a0a314829f9d9ae:p4:c06",
+            "score": 1.2168,
+            "source_file": "downloads/Kester_Defect_Minimization_NoClean_SMT_Process_d64599d781954d779a0a314829f9d9ae.pdf",
+            "text_preview": "3. C. Johnson and J. Kevra, Ph.D., Solder Paste Technology Principals and Applications\n\n4. Tom Gervascio, Philips Circuits Assemblies, Solder Beads: How to Make Them A Vanishing Ac..."
+          },
+          {
+            "title": "18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide",
+            "page": 8,
+            "section": "Chapter 1: Getting Started 2 SE 300 Solder Paste Inspection User Guide Introduction The SE 300 Ultra Solder Paste Inspection User Guide provides comprehensive information about the Solder Paste Inspection application. If you have any questions that are not answered by this guide, contact CyberOptics Customer Service and Support. For more information, refer to Technical Support on page 78.\nPrerequisite Knowledge ● Moderate computer experience ● Moderate Windows® experience ● Prior knowledge of solder paste inspection process Documentation Documentation for the SE 300 Ultra inspection system consists of the following information:",
+            "chunk_id": "18_spi设备手册_se_300_solder_paste_inspection_user_guide:p8:c01",
+            "score": 1.2158,
+            "source_file": "downloads/18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide.pdf",
+            "text_preview": "● SE 300 Ultra Hardware Reference Provides an overview of SE 300 Ultra components, instructions for how to install and maintain the SE 300 Ultra system, parts replacement informati..."
+          },
+          {
+            "title": "07 [钢网设计] SMT STENCIL DESIGN (SMTnet library)",
+            "page": 4,
+            "section": null,
+            "chunk_id": "07_钢网设计_smt_stencil_design_smtnet_library:p4:c01",
+            "score": 1.2155,
+            "source_file": "downloads/07 [钢网设计] SMT STENCIL DESIGN (SMTnet library).pdf",
+            "text_preview": "02/06/2007 and the support equipment. The picture below should illustrate the summary of this type of\ntechnology:\n\nLast but not least, the current and widely use technology now is..."
+          }
+        ]
+      },
+      "fusion": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "retriever": "keyword",
+            "title": "18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide",
+            "score": 50.4,
+            "page": 8,
+            "section": "Chapter 1: Getting Started 2 SE 300 Solder Paste Inspection User Guide Introduction The SE 300 Ultra Solder Paste Inspection User Guide provides comprehensive information about the Solder Paste Inspection application. If you have any questions that are not answered by this guide, contact CyberOptics Customer Service and Support. For more information, refer to Technical Support on page 78.\nPrerequisite Knowledge ● Moderate computer experience ● Moderate Windows® experience ● Prior knowledge of solder paste inspection process Documentation Documentation for the SE 300 Ultra inspection system consists of the following information:",
+            "chunk_id": "18_spi设备手册_se_300_solder_paste_inspection_user_guide:p8:c01",
+            "source_file": "downloads/18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide.pdf",
+            "snippet": "● SE 300 Ultra Hardware Reference Provides an overview of SE 300 Ultra components, instructions for how to install and maintain the SE 300 Ultra system, parts replacement informati..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide",
+            "score": 46.8,
+            "page": 9,
+            "section": "SPI.book",
+            "chunk_id": "18_spi设备手册_se_300_solder_paste_inspection_user_guide:p9:c04",
+            "source_file": "downloads/18 [SPI设备手册] SE 300 Solder Paste Inspection User Guide.pdf",
+            "snippet": "● SMT Teach: Engineers use the Teach application to create and maintain SRFFs for each assembly to be inspected. SRFFs define the dimensions and characteristics of the panels as we..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "02 [焊点缺陷指南] The Engineer's Guide to Solder Defects (Microvolt_Lumafield)",
+            "score": 34.5,
+            "page": 8,
+            "section": "sections The Hidden De f ects A ut oma t ed op tical inspection and manual visual check s ma y ca t ch basic solder join t de f ects, but ther e ar e se v er al types o f critical de f ects tha t ar e in visible t o the e y e and can go unde t ect ed. These ar e incr easingly common as electr onics become smaller and mor e comple x. F or e x ample, pack ages such as Quad Fla t N o-L ead ( QFN) de vices o ft en ha v e a lar ge e xposed cen t er pad sho wn in Figur e 8 tha t ser v es as a thermal/ gr ound pad. P erime t er leads o ff er limit ed ar ea f or hea t dissipa tion, so inadequa t e cen t er -pad solder can cause o v erhea ting.",
+            "chunk_id": "02_焊点缺陷指南_the_engineer_s_guide_to_solder_defects_microvolt_lumafield:p8:c01",
+            "source_file": "downloads/02 [焊点缺陷指南] The Engineer's Guide to Solder Defects (Microvolt_Lumafield).pdf",
+            "snippet": "08 L uma field Whit e P aper R e f er ences A tmel. (2009 , M ar ch ). QFN pack age moun ting guidelines: A T 88RF1354 applica tion no t e 8583A (Doc. 8583A -RFID-3/09 ). Micr ochi..."
+          }
+        ],
+        "groups": {
+          "keyword": 3
+        }
+      }
+    },
+    {
+      "id": "solder_joint_troubleshooting",
+      "question": "虚焊按照排故手册通常怎么处理？",
+      "line_type": "SMT",
+      "sequence": null,
+      "expected_terms": [
+        "troubleshooting",
+        "alpha",
+        "solder",
+        "guide"
+      ],
+      "note": "期望命中排故指南正文，而不是联系方式、封底或版权页。",
+      "keyword": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "title": "03 [焊点缺陷指南] The Printed Circuit Assembler's Guide to Minimizing Solder Defects (Indium)",
+            "page": 49,
+            "section": "The Printed Circuit Assembler’s Guide to... Solder Defects",
+            "chunk_id": "03_焊点缺陷指南_the_printed_circuit_assembler_s_guide_to_minimizing_solder_defects_indium:p49:c01",
+            "score": 50.4,
+            "source_file": "downloads/03 [焊点缺陷指南] The Printed Circuit Assembler's Guide to Minimizing Solder Defects (Indium).pdf",
+            "text_preview": "41 References\n1. J. A. DeVore, 1984, \"To Solder Easily: The Mechanisms of Solder- ability and Solderability-Related Failures,\" Circuits Manufacturing, pp. 62-70.\n2. Indium Corporat..."
+          },
+          {
+            "title": "04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha)",
+            "page": 7,
+            "section": null,
+            "chunk_id": "04_smt排故_smt_troubleshooting_guide_2017_alpha:p7:c01",
+            "score": 46.2,
+            "source_file": "downloads/04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha).pdf",
+            "text_preview": "Non-Wet Opens 7 AlphaAssembly.com Definition: A Non-Wet Open (NWO) defect, also known as non-wet or lifted ball, occurs during the Surface Mount Technology (SMT) assembly reflow pr..."
+          },
+          {
+            "title": "04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha)",
+            "page": 17,
+            "section": null,
+            "chunk_id": "04_smt排故_smt_troubleshooting_guide_2017_alpha:p17:c03",
+            "score": 39.0,
+            "source_file": "downloads/04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha).pdf",
+            "text_preview": "Recommendations Check other components placement accuracy.\nRe-teach fiducials if all component shifted, else edit that specific location manually.\nPossible Causes: Placement Accura..."
+          }
+        ]
+      },
+      "vector": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "title": "07_SMT_Trouble_Shooting_Guide_AIM_Solder",
+            "page": 2,
+            "section": "PowerPoint Presentation",
+            "chunk_id": "07_smt_trouble_shooting_guide_aim_solder:p2:c01",
+            "score": 1.2347,
+            "source_file": "downloads/07_SMT_Trouble_Shooting_Guide_AIM_Solder.pdf",
+            "text_preview": "aimsolder.com SMT TROUBLE SHOOTING OUTLINE ▪ Solder balling/spattering ▪ Solder beading ▪ Bridging ▪ Non-wet opens (NWO)/Head in pillow (HiP) ▪ Insufficient fillet/solder ▪ Voiding..."
+          },
+          {
+            "title": "25 SMT TROUBLE SHOOTING GUIDE - AIM Solder",
+            "page": 2,
+            "section": "PowerPoint Presentation",
+            "chunk_id": "25_smt_trouble_shooting_guide_-_aim_solder:p2:c01",
+            "score": 1.2347,
+            "source_file": "downloads/25 SMT TROUBLE SHOOTING GUIDE - AIM Solder.pdf",
+            "text_preview": "aimsolder.com SMT TROUBLE SHOOTING OUTLINE ▪ Solder balling/spattering ▪ Solder beading ▪ Bridging ▪ Non-wet opens (NWO)/Head in pillow (HiP) ▪ Insufficient fillet/solder ▪ Voiding..."
+          },
+          {
+            "title": "SMT_Troubleshooting_Guide_AIM_Solder_93469137937645a8955e08ea0b7db8a0",
+            "page": 2,
+            "section": "PowerPoint Presentation",
+            "chunk_id": "smt_troubleshooting_guide_aim_solder_93469137937645a8955e08ea0b7db8a0:p2:c01",
+            "score": 1.2347,
+            "source_file": "downloads/SMT_Troubleshooting_Guide_AIM_Solder_93469137937645a8955e08ea0b7db8a0.pdf",
+            "text_preview": "aimsolder.com SMT TROUBLE SHOOTING OUTLINE ▪ Solder balling/spattering ▪ Solder beading ▪ Bridging ▪ Non-wet opens (NWO)/Head in pillow (HiP) ▪ Insufficient fillet/solder ▪ Voiding..."
+          }
+        ]
+      },
+      "fusion": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "retriever": "keyword",
+            "title": "03 [焊点缺陷指南] The Printed Circuit Assembler's Guide to Minimizing Solder Defects (Indium)",
+            "score": 50.4,
+            "page": 49,
+            "section": "The Printed Circuit Assembler’s Guide to... Solder Defects",
+            "chunk_id": "03_焊点缺陷指南_the_printed_circuit_assembler_s_guide_to_minimizing_solder_defects_indium:p49:c01",
+            "source_file": "downloads/03 [焊点缺陷指南] The Printed Circuit Assembler's Guide to Minimizing Solder Defects (Indium).pdf",
+            "snippet": "41 References 1. J. A. DeVore, 1984, \"To Solder Easily: The Mechanisms of Solder- ability and Solderability-Related Failures,\" Circuits Manufacturing, pp. 62-70. 2. Indium Corporat..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha)",
+            "score": 46.2,
+            "page": 7,
+            "section": null,
+            "chunk_id": "04_smt排故_smt_troubleshooting_guide_2017_alpha:p7:c01",
+            "source_file": "downloads/04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha).pdf",
+            "snippet": "Non-Wet Opens 7 AlphaAssembly.com Definition: A Non-Wet Open (NWO) defect, also known as non-wet or lifted ball, occurs during the Surface Mount Technology (SMT) assembly reflow pr..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha)",
+            "score": 39.0,
+            "page": 17,
+            "section": null,
+            "chunk_id": "04_smt排故_smt_troubleshooting_guide_2017_alpha:p17:c03",
+            "source_file": "downloads/04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha).pdf",
+            "snippet": "Recommendations Check other components placement accuracy. Re-teach fiducials if all component shifted, else edit that specific location manually. Possible Causes: Placement Accura..."
+          }
+        ],
+        "groups": {
+          "keyword": 3
+        }
+      }
+    },
+    {
+      "id": "reflow_voiding_profile",
+      "question": "回流焊空洞怎么优化温度曲线？",
+      "line_type": "SMT",
+      "sequence": null,
+      "expected_terms": [
+        "reflow",
+        "void",
+        "kic",
+        "profile"
+      ],
+      "note": "期望命中回流焊/温度曲线/空洞控制相关正文。",
+      "keyword": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "title": "Lead_Free_Reflow_Soldering_Considerations_Traco_f5bc6347a6a54eab832bec203426ca78",
+            "page": 3,
+            "section": null,
+            "chunk_id": "lead_free_reflow_soldering_considerations_traco_f5bc6347a6a54eab832bec203426ca78:p3:c01",
+            "score": 56.9,
+            "source_file": "downloads/Lead_Free_Reflow_Soldering_Considerations_Traco_f5bc6347a6a54eab832bec203426ca78.pdf",
+            "text_preview": "Lead free soldering considerationsGeneral Application Note\n3. Reflow soldering profile according to IPC/JEDEC J-STD-020 Unless otherwise stated, TRACO POWER follows the standard IP..."
+          },
+          {
+            "title": "SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198",
+            "page": 40,
+            "section": "Controlling Voiding Mechanisms in the Reflow Soldering Process",
+            "chunk_id": "smt_voiding_mechanisms_reflow_soldering_process_analysis_1a9c6963efa5494c94f66d68167b9198:p40:c01",
+            "score": 56.1,
+            "source_file": "downloads/SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198.pdf",
+            "text_preview": "0 5 10 15 Void Ratio(%) RtP (Linear) RtP (Linear) + Long TALSoak + Short TAL Effect of Reflow Profile on Voiding in Small Solder Joints Less voiding with long soak and shorter TAL..."
+          },
+          {
+            "title": "SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198",
+            "page": 39,
+            "section": "Controlling Voiding Mechanisms in the Reflow Soldering Process",
+            "chunk_id": "smt_voiding_mechanisms_reflow_soldering_process_analysis_1a9c6963efa5494c94f66d68167b9198:p39:c01",
+            "score": 56.1,
+            "source_file": "downloads/SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198.pdf",
+            "text_preview": "Effect of Reflow Profile on Voiding in Small Solder Joints 0 50 100 150 200 250 0 60 120 180 240 300 360 420 480 Temperature (°C) Time (Minutes) A: Linear Ramp to Peak Peak Tempera..."
+          }
+        ]
+      },
+      "vector": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "title": "Lead_Free_Reflow_Soldering_Considerations_Traco_f5bc6347a6a54eab832bec203426ca78",
+            "page": 3,
+            "section": null,
+            "chunk_id": "lead_free_reflow_soldering_considerations_traco_f5bc6347a6a54eab832bec203426ca78:p3:c01",
+            "score": 1.2205,
+            "source_file": "downloads/Lead_Free_Reflow_Soldering_Considerations_Traco_f5bc6347a6a54eab832bec203426ca78.pdf",
+            "text_preview": "Lead free soldering considerationsGeneral Application Note\n3. Reflow soldering profile according to IPC/JEDEC J-STD-020 Unless otherwise stated, TRACO POWER follows the standard IP..."
+          },
+          {
+            "title": "SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198",
+            "page": 28,
+            "section": "Controlling Voiding Mechanisms in the Reflow Soldering Process",
+            "chunk_id": "smt_voiding_mechanisms_reflow_soldering_process_analysis_1a9c6963efa5494c94f66d68167b9198:p28:c01",
+            "score": 1.219,
+            "source_file": "downloads/SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198.pdf",
+            "text_preview": "Factors Affecting Voiding Reflow Soldering Printing/ Dispensing Reflow Conditions Substrates/ Components Incidence of Voiding Storage Condition Soldering area Surface Finish Mounti..."
+          },
+          {
+            "title": "07 [钢网设计] SMT STENCIL DESIGN (SMTnet library)",
+            "page": 4,
+            "section": null,
+            "chunk_id": "07_钢网设计_smt_stencil_design_smtnet_library:p4:c01",
+            "score": 1.2158,
+            "source_file": "downloads/07 [钢网设计] SMT STENCIL DESIGN (SMTnet library).pdf",
+            "text_preview": "02/06/2007 and the support equipment. The picture below should illustrate the summary of this type of\ntechnology:\n\nLast but not least, the current and widely use technology now is..."
+          }
+        ]
+      },
+      "fusion": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "retriever": "keyword",
+            "title": "Lead_Free_Reflow_Soldering_Considerations_Traco_f5bc6347a6a54eab832bec203426ca78",
+            "score": 56.9,
+            "page": 3,
+            "section": null,
+            "chunk_id": "lead_free_reflow_soldering_considerations_traco_f5bc6347a6a54eab832bec203426ca78:p3:c01",
+            "source_file": "downloads/Lead_Free_Reflow_Soldering_Considerations_Traco_f5bc6347a6a54eab832bec203426ca78.pdf",
+            "snippet": "Lead free soldering considerationsGeneral Application Note 3. Reflow soldering profile according to IPC/JEDEC J-STD-020 Unless otherwise stated, TRACO POWER follows the standard IP..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198",
+            "score": 56.1,
+            "page": 40,
+            "section": "Controlling Voiding Mechanisms in the Reflow Soldering Process",
+            "chunk_id": "smt_voiding_mechanisms_reflow_soldering_process_analysis_1a9c6963efa5494c94f66d68167b9198:p40:c01",
+            "source_file": "downloads/SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198.pdf",
+            "snippet": "0 5 10 15 Void Ratio(%) RtP (Linear) RtP (Linear) + Long TALSoak + Short TAL Effect of Reflow Profile on Voiding in Small Solder Joints Less voiding with long soak and shorter TAL..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198",
+            "score": 56.1,
+            "page": 39,
+            "section": "Controlling Voiding Mechanisms in the Reflow Soldering Process",
+            "chunk_id": "smt_voiding_mechanisms_reflow_soldering_process_analysis_1a9c6963efa5494c94f66d68167b9198:p39:c01",
+            "source_file": "downloads/SMT_Voiding_Mechanisms_Reflow_Soldering_Process_Analysis_1a9c6963efa5494c94f66d68167b9198.pdf",
+            "snippet": "Effect of Reflow Profile on Voiding in Small Solder Joints 0 50 100 150 200 250 0 60 120 180 240 300 360 420 480 Temperature (°C) Time (Minutes) A: Linear Ramp to Peak Peak Tempera..."
+          }
+        ],
+        "groups": {
+          "keyword": 3
+        }
+      }
+    },
+    {
+      "id": "placement_offset",
+      "question": "SMT贴片偏移怎么排查和校准？",
+      "line_type": "SMT",
+      "sequence": null,
+      "expected_terms": [
+        "placement",
+        "offset",
+        "pick",
+        "calibration",
+        "校准"
+      ],
+      "note": "当前已知弱项，用来观察是否仍被泛化工艺文档吞掉。",
+      "keyword": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "title": "07_SMT_Trouble_Shooting_Guide_AIM_Solder",
+            "page": 20,
+            "section": "PowerPoint Presentation",
+            "chunk_id": "07_smt_trouble_shooting_guide_aim_solder:p20:c02",
+            "score": 19.5,
+            "source_file": "downloads/07_SMT_Trouble_Shooting_Guide_AIM_Solder.pdf",
+            "text_preview": "Ensure accurate and precise component placement using calibrated machinery.\nThermal imbalance during reflow Different thermal characteristics such as unequal heat sink, or uneven h..."
+          },
+          {
+            "title": "25 SMT TROUBLE SHOOTING GUIDE - AIM Solder",
+            "page": 20,
+            "section": "PowerPoint Presentation",
+            "chunk_id": "25_smt_trouble_shooting_guide_-_aim_solder:p20:c02",
+            "score": 19.5,
+            "source_file": "downloads/25 SMT TROUBLE SHOOTING GUIDE - AIM Solder.pdf",
+            "text_preview": "Ensure accurate and precise component placement using calibrated machinery.\nThermal imbalance during reflow Different thermal characteristics such as unequal heat sink, or uneven h..."
+          },
+          {
+            "title": "SMT_Troubleshooting_Guide_AIM_Solder_93469137937645a8955e08ea0b7db8a0",
+            "page": 20,
+            "section": "PowerPoint Presentation",
+            "chunk_id": "smt_troubleshooting_guide_aim_solder_93469137937645a8955e08ea0b7db8a0:p20:c02",
+            "score": 19.5,
+            "source_file": "downloads/SMT_Troubleshooting_Guide_AIM_Solder_93469137937645a8955e08ea0b7db8a0.pdf",
+            "text_preview": "Ensure accurate and precise component placement using calibrated machinery.\nThermal imbalance during reflow Different thermal characteristics such as unequal heat sink, or uneven h..."
+          }
+        ]
+      },
+      "vector": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "title": "04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha)",
+            "page": 17,
+            "section": null,
+            "chunk_id": "04_smt排故_smt_troubleshooting_guide_2017_alpha:p17:c03",
+            "score": 1.3337,
+            "source_file": "downloads/04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha).pdf",
+            "text_preview": "Recommendations Check other components placement accuracy.\nRe-teach fiducials if all component shifted, else edit that specific location manually.\nPossible Causes: Placement Accura..."
+          },
+          {
+            "title": "21 SMT Troubleshooting Guide - tortai-tech.com",
+            "page": 5,
+            "section": "Layout 1",
+            "chunk_id": "21_smt_troubleshooting_guide_-_tortai-tech_com:p5:c01",
+            "score": 1.3336,
+            "source_file": "downloads/21 SMT Troubleshooting Guide - tortai-tech.com.pdf",
+            "text_preview": "Possible Causes: Component Placement Description Placement inaccuracy will narrow the gap between pads, increasing the chance of bridging.\nExcessive component placement pressure wi..."
+          },
+          {
+            "title": "04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha)",
+            "page": 5,
+            "section": null,
+            "chunk_id": "04_smt排故_smt_troubleshooting_guide_2017_alpha:p5:c01",
+            "score": 1.3333,
+            "source_file": "downloads/04 [SMT排故] SMT Troubleshooting Guide 2017 (Alpha).pdf",
+            "text_preview": "Possible Causes: Component Placement Description Placement inaccuracy will narrow the gap between pads, increasing the chance of bridging.\nExcessive component placement pressure wi..."
+          }
+        ]
+      },
+      "fusion": {
+        "status": "pass",
+        "top_hits": [
+          {
+            "retriever": "keyword",
+            "title": "07_SMT_Trouble_Shooting_Guide_AIM_Solder",
+            "score": 19.5,
+            "page": 20,
+            "section": "PowerPoint Presentation",
+            "chunk_id": "07_smt_trouble_shooting_guide_aim_solder:p20:c02",
+            "source_file": "downloads/07_SMT_Trouble_Shooting_Guide_AIM_Solder.pdf",
+            "snippet": "Ensure accurate and precise component placement using calibrated machinery. Thermal imbalance during reflow Different thermal characteristics such as unequal heat sink, or uneven h..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "25 SMT TROUBLE SHOOTING GUIDE - AIM Solder",
+            "score": 19.5,
+            "page": 20,
+            "section": "PowerPoint Presentation",
+            "chunk_id": "25_smt_trouble_shooting_guide_-_aim_solder:p20:c02",
+            "source_file": "downloads/25 SMT TROUBLE SHOOTING GUIDE - AIM Solder.pdf",
+            "snippet": "Ensure accurate and precise component placement using calibrated machinery. Thermal imbalance during reflow Different thermal characteristics such as unequal heat sink, or uneven h..."
+          },
+          {
+            "retriever": "keyword",
+            "title": "SMT_Troubleshooting_Guide_AIM_Solder_93469137937645a8955e08ea0b7db8a0",
+            "score": 19.5,
+            "page": 20,
+            "section": "PowerPoint Presentation",
+            "chunk_id": "smt_troubleshooting_guide_aim_solder_93469137937645a8955e08ea0b7db8a0:p20:c02",
+            "source_file": "downloads/SMT_Troubleshooting_Guide_AIM_Solder_93469137937645a8955e08ea0b7db8a0.pdf",
+            "snippet": "Ensure accurate and precise component placement using calibrated machinery. Thermal imbalance during reflow Different thermal characteristics such as unequal heat sink, or uneven h..."
+          }
+        ],
+        "groups": {
+          "keyword": 3
+        }
+      }
+    }
+  ],
+  "summary": {
+    "keyword": {
+      "pass": 5,
+      "partial": 0,
+      "fail": 0
+    },
+    "vector": {
+      "pass": 4,
+      "partial": 1,
+      "fail": 0
+    },
+    "fusion": {
+      "pass": 5,
+      "partial": 0,
+      "fail": 0
+    }
+  }
+}
