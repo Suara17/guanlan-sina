@@ -1,0 +1,290 @@
+# 知识图谱 + 文档问答 任务进度
+
+日期：2026-03-22  
+分支：`knowledge-qa`  
+工作区：`E:\Guanlan-Sina\.worktrees\knowledge-qa`
+
+## 总览
+- 目标：实现方案 B（Neo4j 图谱问答 + LangChain LLM + 后续 RAG 扩展）
+- 状态：后端已切换到 LangChain 路线，统一问答 API 已打通 `graph + keyword + vector + fusion + grouped prompt` 主链路；文档 RAG 已接入真实 PDF 语料，已完成 `jinaai/jina-embeddings-v2-small-en` 本地索引重建、查询英文化扩展、`Chroma` 向量库接入、全 LangChain ingestion / RAG 主干收口，以及 OpenAI 兼容 LLM 的原始 `httpx` 调用改造；前端已接入真实 API
+
+## 已完成
+### Task 1：LangChain 配置与回答器
+- ✅ 新增 LangChain 服务：
+  - `backend/app/services/langchain_service.py`
+- ✅ 新增 LangChain / LLM 配置字段：
+  - `backend/app/core/config.py`
+- ✅ 已将 `QAAnswerService` 改为：
+  - 优先调用 LangChain 生成 grounded answer
+  - 未配置或未安装依赖时退回模板回答
+
+### 后端：统一知识问答主链路（首版）
+- ✅ 新增问答数据契约：
+  - `backend/app/services/knowledge_qa_models.py`
+- ✅ 新增规则路由器：
+  - `backend/app/services/qa_router.py`
+- ✅ 新增回答摘要服务：
+  - `backend/app/services/qa_answer_service.py`
+- ✅ 新增问答编排服务：
+  - `backend/app/services/knowledge_qa_service.py`
+- ✅ 新增统一问答 API：
+  - `backend/app/api/routes/knowledge_qa.py`
+  - 已挂载到 `POST /api/v1/knowledge-qa/ask`
+- ✅ 已补齐依赖注入与配置开关：
+  - `backend/app/api/deps.py`
+  - `backend/app/core/config.py`
+  - `backend/app/api/main.py`
+- ✅ 已补齐首轮后端测试文件：
+  - `backend/tests/services/test_qa_router.py`
+  - `backend/tests/services/test_knowledge_qa_service.py`
+  - `backend/tests/services/test_langchain_service.py`
+  - `backend/tests/api/routes/test_knowledge_qa.py`
+- ✅ 已补强 graph-only 可上线模式：
+  - 文档路由在非结构化检索未接入时自动退回图谱检索
+  - 本地环境返回 `debug` 字段（requested route / executed modes / hit counts / timing）
+  - 回答模板显式区分“当前仅基于图谱事实”与“暂无 SOP/手册引用”
+- ✅ 已移除旧的外部知识库主链路依赖：
+  - `backend/app/api/deps.py`
+  - `backend/app/services/knowledge_qa_service.py`
+  - 设计与计划文档已切换为 LangChain 路线
+- ✅ 已完成 retriever 分层骨架重构：
+  - 新增 `backend/app/services/retrievers/`
+  - 已拆出 `GraphRetriever`
+  - 已完成 `KeywordRetriever` 首版实现
+  - 已完成 `VectorRetriever` 首版实现
+  - `KnowledgeQAService` 已收敛为路由 + 执行计划 + 响应装配
+- ✅ 已补充 retriever 分层测试：
+  - `backend/tests/services/test_graph_retriever.py`
+  - `backend/tests/services/test_keyword_retriever.py`
+- ✅ 已补统一融合层：
+  - 新增 `backend/app/services/qa_fusion_service.py`
+  - 已支持图谱 / 关键词 / 向量结果去重、归一化排序和上下文裁剪
+  - `KnowledgeQAService` 进一步收敛为执行编排器
+- ✅ 已完成 `VectorRetriever` 首版：
+  - 新增 `backend/tests/services/test_vector_retriever.py`
+  - 已支持基于现有异常文本的轻量语义召回
+  - 有 embedding 配置时可切到真实向量嵌入，未配置时自动退回本地近似向量
+- ✅ 已将 fusion 结构化结果接入回答层：
+  - `QAFusionService` 已输出 `graph / keyword / vector / document` 分组
+  - `QAAnswerService` 模板回答已按分组展示文本补充
+  - `LangChainService` 已接收分组上下文并写入 prompt
+- ✅ 已补并行超时控制与失败隔离：
+  - `KnowledgeQAService` 已支持三路检索并行执行
+  - 已新增 per-retriever timeout / max workers 配置
+  - 超时与异常会单独降级，不阻塞主链路返回
+- ✅ 已补更严格的回答引用约束：
+  - `LangChainService` 已要求固定输出结构：`结论 / 依据 / 建议 / 风险/备注`
+  - `依据` 段需显式使用来源标签，如 `[G1]`、`[K1]`、`[V1]`
+  - `QAAnswerService` 模板回答也已对齐来源标签输出
+- ✅ 已完成文档 RAG 底座接入：
+  - 新增 `backend/app/services/document_chunker.py`
+  - 新增 `backend/app/services/document_index_service.py`
+  - 新增 `backend/app/scripts/build_knowledge_qa_index.py`
+  - 新增 `backend/app/services/embedding_service.py`
+  - 已支持从 `docs/知识图谱/downloads` 扫描 PDF/TXT/MD 文档并生成 `chunks.jsonl / manifest.json / embeddings.jsonl`
+- ✅ 已完成文档语料首轮清洗与筛选：
+  - 已排除明显无关或高噪声文档名关键字，如 `arxiv / academic / taxonomy / datasheet / quick_reference / product_comparison`
+  - 已增加 PDF 正文页过滤，跳过 `copyright / references / disclaimer / contents / about ...`
+  - 当前索引产物为 `61` 份文档、`3007` 个 chunks
+- ✅ 已将 `KeywordRetriever` 真正切到文档 chunk 语料：
+  - 已改为依赖 `DocumentIndexService`
+  - 已收紧弱相关命中，避免仅靠 `line_type` 蹭进结果
+  - 已补充对应单测与服务层回归
+- ✅ 已将 `VectorRetriever` 真正切到文档 chunk + embedding 语料：
+  - 已支持读取 `embeddings.jsonl`
+  - 已通过 `EmbeddingService` 统一接 OpenAI / Voyage / 本地 Hugging Face provider
+  - 当前默认 provider 已切为本地 `huggingface_local`
+  - 当前默认模型已切为 `jinaai/jina-embeddings-v2-small-en`（轻量英文 embedding）
+- ✅ 已完成 embedding 模型切换准备：
+  - 已将默认本地 embedding 模型从中文专用 `BAAI/bge-small-zh-v1.5` 切到 `jinaai/jina-embeddings-v2-small-en`
+  - `build_knowledge_qa_index.py` 生成的 `manifest.json` 已补充 `embedding_provider / embedding_model`
+  - 已为 `jinaai/jina-embeddings-v2-*` 本地加载补充 `trust_remote_code` 支持
+  - 当前切换目标优先考虑“英文 PDF 语料 + 更快模型下载与索引构建”
+- ✅ 已完成 `jinaai/jina-embeddings-v2-small-en` 本地索引重建：
+  - 已验证本地模型可正常加载，向量维度为 `512`
+  - 已重建 `backend/app/data/knowledge_qa/embeddings.jsonl`
+  - 当前 `manifest.json` 已记录 `embedding_model = jinaai/jina-embeddings-v2-small-en`
+- ✅ 已完成本地 BAAI embedding 索引构建：
+  - 已解决 Hugging Face 缓存离线加载问题，绕开工作区内错误代理配置
+  - 已成功生成 `backend/app/data/knowledge_qa/embeddings.jsonl`
+  - 当前 `manifest.json` 状态为 `embeddings_enabled=true`
+- ✅ 已完成查询英文化扩展与 placement intent 加权：
+  - 新增 `backend/app/services/query_expansion.py`
+  - `KeywordRetriever` / `VectorRetriever` 已接入中文问题到英文检索术语的扩展
+  - 已针对 `placement offset` 增加意图级正负权重，提升 `placement accuracy / fiducial / z-height / nozzle / feeder`，压制 `stencil misalignment / printing process`
+- ✅ 已补 document/vector 典型问题手工回归：
+  - 新增 `backend/app/scripts/evaluate_knowledge_qa.py`
+  - 已生成 `backend/app/data/knowledge_qa/evaluation_report.json`
+  - 已补结果记录：`docs/plans/2026-03-23-knowledge-qa-regression-report.md`
+  - 最新回归结论：
+    - `keyword`：`5 pass / 0 partial / 0 fail`
+    - `vector`：`4 pass / 1 partial / 0 fail`
+    - `fusion`：`5 pass / 0 partial / 0 fail`
+  - 当前剩余观察：
+    - `SPI设备手册` 的 `vector` 仍为 `partial`，但 `fusion` 已为 `pass`
+- ✅ 已完成 `Chroma` 向量库接入：
+  - 新增 `backend/app/services/chroma_vector_store_service.py`
+  - `build_knowledge_qa_index.py` 已支持 `--with-chroma / --reset-chroma`
+  - `VectorRetriever` 已支持 `Chroma` 优先、`jsonl` 回退
+  - 当前已完成本地 `Chroma` 全量索引构建，索引规模为 `61` 份文档、`3007` 个 chunks
+- ✅ 已完成全 LangChain ingestion / RAG 主干收口：
+  - 新增 `backend/app/services/langchain_document_ingestion_service.py`
+  - 新增 `backend/app/services/langchain_rag_service.py`
+  - `LangChainService` 已收敛为 OpenAI 兼容 LLM 薄适配层
+  - `QAAnswerService` 已改为统一格式化结构化答案输出
+  - `knowledge_qa_models.py` 已补充 `confidence / used_sources / missing_information`
+- ✅ 已完成 LLM / embedding 配置拆分：
+  - `backend/app/core/config.py` 已支持 `LLM_API_KEY / LLM_BASE_URL / LLM_MODEL`
+  - `backend/app/core/config.py` 已支持 `EMBEDDING_API_KEY / EMBEDDING_BASE_URL / EMBEDDING_MODEL`
+  - 当前 `.env` 已切换为 `LLM_MODEL=gpt-5.2`
+- ✅ 已完成 OpenAI 兼容 LLM 适配改造：
+  - 已确认当前供应商接口对 `openai` / `langchain_openai` SDK 兼容性不稳定
+  - `backend/app/services/langchain_service.py` 已改为基于原始 `httpx` 的 `/v1/chat/completions` 调用
+  - 已显式使用 `trust_env=False` 绕开本地错误代理环境变量
+  - 当前真实接口已可返回结构化问答内容，不再依赖 `ChatOpenAI`
+- ✅ 已完成启动预热与本地联调稳定性修正：
+  - `backend/app/main.py` 已将知识问答依赖预热切到后台线程，避免阻塞 `uvicorn` 启动
+  - `backend/app/api/deps.py` 已收缩启动阶段预热范围，不再在 startup 阶段同步触发重型本地模型加载
+- ✅ 已完成 API 级结构化结果回归：
+  - `backend/tests/api/routes/test_knowledge_qa.py`
+  - `backend/tests/services/test_langchain_service.py`
+  - `backend/tests/services/test_langchain_rag_service.py`
+  - `backend/tests/services/test_qa_answer_service.py`
+  - 当前已验证真实接口返回中可见：`结论 / 使用来源 / 缺失信息 / 置信度`
+
+### 前端：司南问答入口骨架（第一阶段）
+- ✅ 已完成前端入口方案收口：
+  - 前端入口与旧计划文档已合并整理到 `docs/plans/2026-03-23-knowledge-qa-docs-consolidation.md`
+  - 当前实现状态统一以本进度文档为准
+- ✅ 已完成全局问答入口状态管理：
+  - `frontend/App.tsx`
+  - 新增统一状态：`open/source/context/draftQuestion`
+- ✅ 已完成悬浮司南首阶段页面策略接入：
+  - 首阶段显示：`/app/`、`/app/sinan`、`/app/gewu`
+  - 暂不显示悬浮入口：`/app/kernel`、`/app/huntian`、`/app/tianchou`、`/app/zhixing`
+- ✅ 已完成轻量“问司南”按钮入口：
+  - 页面：`/app/huntian`、`/app/tianchou`、`/app/zhixing`
+  - 入口承载：`frontend/App.tsx`
+  - 支持预置问题草稿并打开统一问答面板
+- ✅ 已完成司南入口组件改造：
+  - `frontend/components/SinanAvatar.tsx`
+  - 支持 `onOpen`、`previewMessage`、`showBubble`、`disabled`
+  - `mode` 扩展为 `idle | alert | qa`
+- ✅ 已完成问答面板骨架重构：
+  - `frontend/components/AiAssistant.tsx`
+  - 已具备：
+    - 面板开合
+    - 输入框
+    - 快捷问题
+    - 上下文标签
+    - 图谱/文档引用占位区
+- ✅ 已接入真实知识问答 API：
+  - `frontend/src/api/knowledgeQaApi.ts`
+  - `frontend/components/AiAssistant.tsx`
+  - 已支持：
+    - 调用 `POST /api/v1/knowledge-qa/ask`
+    - 展示回答内容
+    - 展示图谱/文档引用
+    - 展示 warnings / 降级提示
+    - 根据页面上下文透传 `line_type` / `sequence`
+- ✅ 已移除 Dashboard 页面内旧的局部悬浮司南入口，避免与全局入口重复：
+  - `frontend/pages/Dashboard.tsx`
+- ✅ 已完成引用来源分组与展开渲染：
+  - `frontend/components/AiAssistant.tsx`
+  - 已按 `graph / keyword / vector / document` 分组展示引用
+  - 已支持分组展开/收起与基础元数据标签展示
+- ✅ 已完成 `KernelConnect` 第二阶段轻量问答入口接入：
+  - `frontend/App.tsx`
+  - `KernelConnect` 页面已显示统一“问司南”入口
+- ✅ 已补多页面上下文注入增强：
+  - `frontend/App.tsx`
+  - 已为 `SinanAnalysis` / `KnowledgeGraph` / `KernelConnect` 补充异常摘要、推荐方案、接入状态等上下文字段
+- ✅ 已补 `KnowledgeGraph` 页面内选中节点的问答上下文注入：
+  - `frontend/contexts/SinanQaContext.tsx`
+  - `frontend/App.tsx`
+  - `frontend/pages/KnowledgeGraph.tsx`
+  - 当前在格物页面切换选中节点后，司南问答可直接拿到 `selectedNodeId / selectedNodeLabel / selectedNodeType / selectedNodeDescription`
+- ✅ 已补知识图谱画布重渲染收敛：
+  - `frontend/components/KnowledgeGraphCanvas.tsx`
+  - `frontend/pages/KnowledgeGraph.tsx`
+  - 已将 `KnowledgeGraphCanvas` 做 `memo` 包装，并将节点点击回调改为稳定引用，减少问答上下文变化时的图谱重复重排
+- ✅ 已取消引用“跳转定位”交互，回退为只读引用展示：
+  - `frontend/components/AiAssistant.tsx`
+  - 原因：当前跳转路径会干扰格物页图谱体验，先保留引用分组、摘要与匹配度展示，不再提供跳转入口
+- ✅ 已将格物主页面切换为 3D 知识图谱正式版：
+  - `frontend/App.tsx`
+  - `frontend/pages/KnowledgeGraph3DDemo.tsx`
+  - 当前 `/app/gewu` 已直接使用 3D 图谱视图
+  - 已支持：
+    - 全量知识节点三维展示
+    - 节点悬停弱提示与选中高亮
+    - 选中节点后的相机平滑聚焦
+    - 360 度自由旋转、缩放与平移
+  - 已移除演示性质按钮与说明文案，收敛为正式格物页面体验
+
+## 未完成
+### 后端待完善
+- ⏳ 还未做更细粒度异常分类与结果质量评估
+- ⏳ 文档更新说明（Task 4）尚未补写
+- ⏳ 仍需继续优化文档筛选、chunk 清洗和召回排序权重
+- ⏳ 仍需继续优化 `SPI设备手册` 类问题的向量 Top1 命中稳定性
+- ⏳ 仍需继续压制学术/泛检测类弱相关 `vector` 误召回，尤其在非手册型问题上的抢位现象
+- ⏳ `hybrid` 问答当前虽已可走真实 LLM 结构化输出，但仍会混入明显不相关的图谱事实（例如 `SMT/SPI` 手册问题串入 `PCB` 异常）
+- ⏳ 当前 OpenAI 兼容 LLM 已绕开 SDK 直接可用，但尚未补更细的降级策略（如原始 HTTP 正常、结构化字段不规范时的二次修正与更强 fallback）
+
+### 前端：待完成项
+- ⏳ 引用来源当前已支持分组与展开，跳转能力已暂时移除，后续若重做需要避免触发格物页重载或重排
+- ⏳ 引用来源的更细粒度排序策略尚未补齐
+- ⏳ 3D 格物页当前主要基于合并后的演示/聚合数据展示，后续仍需评估与真实异常上下文、筛选条件和问答联动的进一步整合方式
+
+## 测试状态
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_build_knowledge_qa_index.py tests/services/test_vector_retriever.py tests/services/test_keyword_retriever.py tests/services/test_knowledge_qa_service.py` 已通过
+  - 结果：`12 passed`
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_build_knowledge_qa_index.py tests/services/test_vector_retriever.py` 已通过
+  - 结果：`6 passed`
+- `.\.venv\Scripts\python.exe -c "from sentence_transformers import SentenceTransformer; ..."` 已通过
+  - 结果：本地 `BAAI/bge-small-zh-v1.5` 可正常加载并返回 `512` 维向量
+- `.\.venv\Scripts\python.exe -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True); ..."` 已通过
+  - 结果：本地 `jinaai/jina-embeddings-v2-small-en` 可正常加载并返回 `512` 维向量
+- `.\.venv\Scripts\python.exe app/scripts/build_knowledge_qa_index.py --with-embeddings` 已通过
+  - 结果：成功生成 `61` 份文档、`3007` 个 chunks、`3007` 条 embeddings
+- `.\.venv\Scripts\python.exe app/scripts/evaluate_knowledge_qa.py --top-k 3` 已通过
+  - 结果：成功生成 `backend/app/data/knowledge_qa/evaluation_report.json`
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_evaluate_knowledge_qa.py` 已通过
+  - 结果：`1 passed`
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_keyword_retriever.py tests/services/test_vector_retriever.py tests/services/test_evaluate_knowledge_qa.py tests/services/test_knowledge_qa_service.py` 已通过
+  - 结果：`11 passed`
+- `.\.venv\Scripts\python.exe -m pytest tests/services/test_chroma_vector_store_service.py tests/services/test_langchain_service.py tests/services/test_langchain_rag_service.py tests/services/test_qa_answer_service.py tests/api/routes/test_knowledge_qa.py` 已通过
+  - 结果：`17 passed`
+- `.\.venv\Scripts\ruff.exe check app/services/langchain_service.py app/services/langchain_rag_service.py app/api/deps.py app/main.py tests/services/test_langchain_service.py tests/services/test_langchain_rag_service.py tests/api/routes/test_knowledge_qa.py` 已通过
+- 本地真实接口验证已通过：
+  - `GET /api/v1/utils/health-check/` 返回 `200`
+  - `POST /api/v1/knowledge-qa/ask` 已可返回 LLM 生成的结构化结果文本（含 `结论 / 使用来源 / 缺失信息 / 置信度`）
+- `npm run lint` 未通过（前端依赖未安装，已停止）
+  - 错误：`'biome' is not recognized as an internal or external command`
+  - 原因：`frontend/node_modules` 不存在，当前环境未安装前端依赖
+- `npx biome check frontend/components/AiAssistant.tsx` 已通过
+- `npx biome check frontend/App.tsx frontend/components/AiAssistant.tsx frontend/contexts/SinanQaContext.tsx` 已通过
+- `npx biome check frontend/App.tsx frontend/pages/KnowledgeGraph3DDemo.tsx` 已通过
+- `npx biome check frontend/pages/KnowledgeGraph3DDemo.tsx` 已通过
+- `npx biome check frontend/components/KnowledgeGraphCanvas.tsx frontend/pages/KnowledgeGraph.tsx` 未通过
+  - 原因：这两个文件存在项目内既有 Biome 问题（如 `noExplicitAny`、`noNonNullAssertion`、`useButtonType` 等），不属于本轮新增逻辑直接引入的问题
+- `python -m compileall ...` 未通过（工作区 `__pycache__` 写入权限问题，已停止）
+  - 错误：`PermissionError: [WinError 5] 拒绝访问`
+
+## 备注
+- 已清理工具产物目录（`.codex`）与误加入的计划文件，避免污染变更集。
+- 当前路线已明确切换为 LangChain。
+- 当前本地环境存在错误代理配置：
+  - `HTTP_PROXY / HTTPS_PROXY / ALL_PROXY = http://127.0.0.1:9`
+  - 已在 embedding 加载层通过本地缓存路径 + `local_files_only=True` 绕开该问题
+  - 当前后端启动命令已显式清空这三个环境变量，否则 OpenAI 兼容 LLM 请求会先死在本机坏代理上
+- 曾尝试接入 `Voyage` 作为免费 embedding provider，但未绑支付方式账号会被限制到 `3 RPM / 10K TPM`，不适合当前全量索引构建；当前已回退为本地 BAAI 方案
+- 当前已确认英文 PDF + 中文问题场景不适合继续依赖中文专用 embedding 模型；当前已切到更轻量的英文 embedding 模型配置，并通过查询英文化扩展进行补偿
+- 当前已确认 `https://newapi.zhenhaoji.qzz.io/v1` 可通过原始 HTTP `POST /chat/completions` 正常访问并返回 `gpt-5.2` 响应，但对 `openai` / `langchain_openai` SDK 兼容性不稳定，已改为原始 `httpx` 适配方案
+- 后续优先建议：
+  1. 先收 `hybrid` 的图谱误召回，避免 `SMT/SPI` 手册问题混入 `PCB` 图谱事实
+  2. 针对 `SPI设备手册` 类问题继续调优向量 Top1 命中
+  3. 继续补 query 扩展词表与排序规则，减少泛化工艺文档抢位
+  4. 做 document/vector 结果质量评估与更细粒度问题分类
+  5. 补 Task 4 的文档更新说明

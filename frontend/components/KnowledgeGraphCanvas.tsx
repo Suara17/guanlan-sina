@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 import type React from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { KnowledgeEdge, KnowledgeGraph, KnowledgeNode } from '../types'
 
 type SimNode = KnowledgeNode & d3.SimulationNodeDatum
@@ -87,9 +87,14 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  const onNodeClickRef = useRef(onNodeClick)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const [layoutMap, setLayoutMap] = useState<Map<string, { x: number; y: number }>>(new Map())
   const graphSignatureRef = useRef('')
+
+  useEffect(() => {
+    onNodeClickRef.current = onNodeClick
+  }, [onNodeClick])
 
   const activeVisibleNodeIds = useMemo(() => {
     if (visibleNodeIds) return visibleNodeIds
@@ -532,7 +537,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
     const nodeMerged = nodeEnter.merge(nodeJoin as any)
 
     nodeMerged
-      .on('click', (_, node) => onNodeClick(node))
+      .on('click', (_, node) => onNodeClickRef.current(node))
       .attr('transform', (node) => `translate(${node.x},${node.y})`)
 
     nodeMerged.each(function (node) {
@@ -542,7 +547,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
         .attr('stroke-width', selectedNodeId === node.id ? 3 : 0)
       d3.select(this).select('text').text(truncateLabel(node.label))
     })
-  }, [visibleNodes, visibleEdges, onNodeClick, selectedNodeId])
+  }, [visibleNodes, visibleEdges, selectedNodeId])
 
   return (
     <div
@@ -554,4 +559,4 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
   )
 }
 
-export default KnowledgeGraphCanvas
+export default memo(KnowledgeGraphCanvas)

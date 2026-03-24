@@ -22,7 +22,6 @@ import FactoryVisualization from '../components/FactoryVisualization'
 import ProductChangeAlert from '../components/ProductChangeAlert'
 import ProductionLineSelector from '../components/ProductionLineSelector'
 import ProductionPlanCard from '../components/ProductionPlanCard'
-import SinanAvatar from '../components/SinanAvatar'
 import { DASHBOARD_METRICS, getAnomaliesByLineType, PRODUCTION_LINES } from '../mockData'
 import type {
   AssetMode,
@@ -53,7 +52,6 @@ const QUALITY_DATA = [
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
-  const [sinanMode, setSinanMode] = useState<'idle' | 'alert'>('idle')
   const [selectedLine, setSelectedLine] = useState<ProductionLine | null>(PRODUCTION_LINES[0]) // 默认选中第一条产线
 
   // 3.2 优化路线：生产计划状态
@@ -177,32 +175,6 @@ const Dashboard: React.FC = () => {
   const currentAnomalies = useMemo(() => {
     return selectedLine ? getAnomaliesByLineType(selectedLine.type) : []
   }, [selectedLine])
-
-  // Determine alert message based on anomalies
-  const alertMessage = useMemo(() => {
-    if (currentAnomalies.length === 0) return '当前产线运行正常'
-
-    // Prioritize Critical > Error > Warning
-    const critical = currentAnomalies.find((a) => a.level === 'critical')
-    if (critical) return `${critical.location} ${critical.message}`
-
-    const error = currentAnomalies.find((a) => a.level === 'error')
-    if (error) return `${error.location} ${error.message}`
-
-    const warning = currentAnomalies.find((a) => a.level === 'warning')
-    if (warning) return `${warning.location} ${warning.message}`
-
-    return '检测到潜在异常风险'
-  }, [currentAnomalies])
-
-  // Update Sinan mode based on anomalies
-  useEffect(() => {
-    if (currentAnomalies.length > 0) {
-      setSinanMode('alert')
-    } else {
-      setSinanMode('idle')
-    }
-  }, [currentAnomalies])
 
   // 产线选择处理函数
   const handleLineSelect = (line: ProductionLine) => {
@@ -485,11 +457,6 @@ const Dashboard: React.FC = () => {
             <p className="text-xs text-slate-500 mt-1">ROI</p>
           </div>
         </div>
-      </div>
-
-      {/* 司南数字人 - 悬浮定位 */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <SinanAvatar mode={sinanMode} alertMessage={alertMessage} className="h-48 w-48" />
       </div>
 
       {/* 3.2 优化路线：产品切换预警弹窗 */}

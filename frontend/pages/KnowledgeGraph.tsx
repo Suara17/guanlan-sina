@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import KnowledgeGraphCanvas from '../components/KnowledgeGraphCanvas'
 import NodeDetailPanel from '../components/NodeDetailPanel'
+import { useSinanQaPageContext } from '../contexts/SinanQaContext'
 import { getAllKnowledgeGraphsMerged } from '../mockData'
 import { KnowledgeGraphAdapter } from '../services/dataAdapter'
 import type { KnowledgeGraph, KnowledgeNode } from '../types'
@@ -74,6 +75,7 @@ const limitGraphNodes = (graph: KnowledgeGraph, maxNodes: number): KnowledgeGrap
 const KnowledgeGraphPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { setPageContext, clearPageContext } = useSinanQaPageContext()
   const [graphData, setGraphData] = useState<KnowledgeGraph | null>(null)
   const [selectedNode, setSelectedNode] = useState<KnowledgeNode | null>(null)
   const [loading, setLoading] = useState(true)
@@ -371,16 +373,32 @@ const KnowledgeGraphPage: React.FC = () => {
   }, [graphData, initializeGrowth])
 
   useEffect(() => {
+    if (!selectedNode) {
+      clearPageContext()
+      return
+    }
+
+    setPageContext({
+      selectedNodeId: selectedNode.id,
+      selectedNodeLabel: selectedNode.label,
+      selectedNodeType: selectedNode.type,
+      selectedNodeDescription: selectedNode.description,
+    })
+  }, [clearPageContext, selectedNode, setPageContext])
+
+  useEffect(() => () => clearPageContext(), [clearPageContext])
+
+  useEffect(() => {
     if (!graphData || isGrowthFinished) return
     // 每步约400ms，6-7步完成 = 约3秒
     const timer = setInterval(growOneStep, 400)
     return () => clearInterval(timer)
   }, [graphData, isGrowthFinished, growOneStep])
 
-  const handleNodeClick = (node: KnowledgeNode) => {
+  const handleNodeClick = useCallback((node: KnowledgeNode) => {
     setSelectedNode(node)
     setShowDetailPanel(true)
-  }
+  }, [])
 
   const handleBackToDashboard = () => {
     navigate('/app/')

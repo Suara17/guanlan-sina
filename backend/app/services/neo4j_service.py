@@ -243,6 +243,32 @@ class Neo4jService:
         """
         return self.execute_query(query, {"phenomenon": phenomenon, "limit": limit})
 
+    def search_related_knowledge(
+        self, term: str, limit: int = 5
+    ) -> List[Dict[str, Any]]:
+        """按节点文本检索相关异常、原因和方案"""
+        query = """
+        MATCH (a:Anomaly)
+        OPTIONAL MATCH (l:LineType)-[:HAS_ANOMALY]->(a)
+        OPTIONAL MATCH (a)-[:CAUSED_BY]->(c:Cause)
+        OPTIONAL MATCH (c)-[:SOLVED_BY]->(s:Solution)
+        WITH a, l, c, s,
+             CASE
+                 WHEN toLower(a.phenomenon) CONTAINS toLower($term) THEN 3
+                 WHEN c IS NOT NULL AND toLower(c.description) CONTAINS toLower($term) THEN 2
+                 WHEN s IS NOT NULL AND toLower(s.method) CONTAINS toLower($term) THEN 1
+                 ELSE 0
+             END AS match_score
+        WHERE match_score > 0
+        RETURN a, l, c, s, match_score
+        ORDER BY match_score DESC, a.sequence ASC
+        LIMIT $limit_rows
+        """
+        return self.execute_query(
+            query,
+            {"term": term, "limit_rows": max(limit, 1) * 6},
+        )
+
     def recommend_solutions(
         self, line_type: str, severity: str = None
     ) -> List[Dict[str, Any]]:

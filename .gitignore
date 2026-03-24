@@ -54,3 +54,9 @@ docs/截图/
 
 # iFlow 本地技能配置
 .iflow/skills/
+
+# Knowledge QA local vector stores
+backend/app/data/knowledge_qa/chroma/
+backend/app/data/knowledge_qa/chroma_debug/
+backend/app/data/knowledge_qa/chroma_smoke/
+backend/app/data/knowledge_qa/chroma_store/
