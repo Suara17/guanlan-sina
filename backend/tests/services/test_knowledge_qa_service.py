@@ -48,6 +48,30 @@ class StubNeo4jService:
 
     def search_related_knowledge(self, term: str, limit: int = 5):
         if term != "真空发生器过滤棉堵塞":
+            if "贴装精度下降" in term:
+                return [
+                    {
+                        "a": {
+                            "sequence": 15,
+                            "name": "异常-15",
+                            "phenomenon": "贴装精度下降，元件中心偏移增大",
+                            "severity": "HIGH",
+                            "line_type": "SMT",
+                        },
+                        "c": {
+                            "description": "吸嘴磨损或视觉校准漂移导致拾取与贴装坐标偏差",
+                            "type": "直接原因",
+                            "confidence": 0.85,
+                        },
+                        "s": {
+                            "method": "检查吸嘴状态并重新执行视觉与贴装坐标校准",
+                            "type": "长期解决办法",
+                            "priority": 9,
+                            "success_rate": 0.93,
+                        },
+                        "match_score": 3,
+                    }
+                ]
             return []
         return [
             {
@@ -121,6 +145,28 @@ class FailingVectorRetriever:
     def retrieve(self, request: QARequest):
         _ = request
         raise RuntimeError("boom")
+
+
+class ExplodingAvailabilityRetriever:
+    name = "vector"
+
+    @property
+    def is_available(self):
+        raise AssertionError("vector availability should not be checked for graph-only questions")
+
+    def retrieve(self, request: QARequest):
+        _ = request
+        raise AssertionError("vector retrieve should not be called for graph-only questions")
+
+
+class SlowGraphRetriever:
+    name = "graph"
+    is_available = True
+
+    def retrieve(self, request: QARequest):
+        _ = request
+        sleep(0.8)
+        return RetrievalResult()
 
 
 def build_document_index_service(tmp_path: Path) -> DocumentIndexService:
@@ -255,12 +301,37 @@ def test_knowledge_qa_service_falls_back_to_graph_when_document_unavailable(tmp_
     response = service.ask(QARequest(question="SOP流程是什么？"))
 
     assert response.route.mode == "document"
-    assert len(response.graph_hits) == 1
+    assert len(response.graph_hits) == 0
     assert len(response.document_hits) == 0
     assert response.debug is not None
     assert response.debug.executed_modes == ["graph"]
     assert any("关键词检索未启用" in warning for warning in response.warnings)
     assert any("向量检索未启用" in warning for warning in response.warnings)
+
+
+def test_knowledge_qa_service_prefers_document_modes_for_manual_question(tmp_path: Path):
+    service = KnowledgeQAService(
+        qa_router=QARouter(),
+        answer_service=QAAnswerService(),
+        fusion_service=QAFusionService(),
+        graph_retriever=GraphRetriever(StubNeo4jService()),
+        keyword_retriever=KeywordRetriever(build_document_index_service(tmp_path)),
+        vector_retriever=VectorRetriever(build_document_index_service(tmp_path)),
+    )
+
+    response = service.ask(
+        QARequest(
+            question="SPI设备手册里焊膏检测通常怎么设置和检查？",
+            line_type="SMT",
+            top_k=3,
+        )
+    )
+
+    assert response.route.mode == "document"
+    assert len(response.graph_hits) == 0
+    assert len(response.document_hits) >= 2
+    assert response.debug is not None
+    assert response.debug.executed_modes == ["keyword", "vector"]
 
 
 def test_knowledge_qa_service_returns_graph_summary_when_no_specific_hit():
@@ -329,3 +400,58 @@ def test_knowledge_qa_service_prefers_graph_with_selected_node_context():
     assert len(response.graph_hits) == 1
     assert response.debug is not None
     assert response.debug.executed_modes == ["graph"]
+
+
+def test_knowledge_qa_service_does_not_touch_vector_for_graph_route():
+    service = KnowledgeQAService(
+        qa_router=QARouter(),
+        answer_service=QAAnswerService(),
+        fusion_service=QAFusionService(),
+        graph_retriever=GraphRetriever(StubNeo4jService()),
+        keyword_retriever=KeywordRetriever(DocumentIndexService(chunks_path=Path("__missing__.jsonl"))),
+        vector_retriever=ExplodingAvailabilityRetriever(),
+    )
+
+    response = service.ask(QARequest(question="最近都有哪些异常？", top_k=3))
+
+    assert response.route.mode == "graph"
+    assert response.debug is not None
+    assert response.debug.executed_modes == ["graph"]
+
+
+def test_knowledge_qa_service_uses_graph_term_search_for_generic_cause_question():
+    service = KnowledgeQAService(
+        qa_router=QARouter(),
+        answer_service=QAAnswerService(),
+        fusion_service=QAFusionService(),
+        graph_retriever=GraphRetriever(StubNeo4jService()),
+        keyword_retriever=KeywordRetriever(DocumentIndexService(chunks_path=Path("__missing__.jsonl"))),
+        vector_retriever=VectorRetriever(DocumentIndexService(chunks_path=Path("__missing__.jsonl"))),
+    )
+
+    response = service.ask(QARequest(question="贴装精度下降的原因是什么？", top_k=3))
+
+    assert response.route.mode == "graph"
+    assert len(response.graph_hits) == 1
+    assert response.graph_hits[0]["sequence"] == 15
+    assert "吸嘴磨损或视觉校准漂移" in response.citations[0].snippet
+
+
+def test_knowledge_qa_service_uses_shorter_timeout_for_generic_graph_question(monkeypatch):
+    monkeypatch.setattr("app.services.knowledge_qa_service.settings.QA_RETRIEVER_TIMEOUT_MS", 1500)
+    monkeypatch.setattr("app.services.knowledge_qa_service.settings.QA_RETRIEVER_MAX_WORKERS", 1)
+
+    service = KnowledgeQAService(
+        qa_router=QARouter(),
+        answer_service=QAAnswerService(),
+        fusion_service=QAFusionService(),
+        graph_retriever=SlowGraphRetriever(),
+        keyword_retriever=KeywordRetriever(DocumentIndexService(chunks_path=Path("__missing__.jsonl"))),
+        vector_retriever=VectorRetriever(DocumentIndexService(chunks_path=Path("__missing__.jsonl"))),
+    )
+
+    response = service.ask(QARequest(question="贴装精度下降的原因是什么？", top_k=3))
+
+    assert any("图谱检索超时" in warning for warning in response.warnings)
+    assert response.debug is not None
+    assert response.debug.timing_ms["graph_retrieval"] == 500

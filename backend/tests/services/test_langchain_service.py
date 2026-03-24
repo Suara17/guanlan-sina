@@ -1,3 +1,5 @@
+import httpx
+
 from app.services.knowledge_qa_models import (
     QACitation,
     QARouteDecision,
@@ -209,3 +211,124 @@ def test_langchain_service_from_settings_uses_new_llm_fields(monkeypatch):
     assert service is not None
     assert service.api_key == "new-llm-key"
     assert service.base_url == "https://llm.example/v1"
+
+
+def test_langchain_service_uses_configured_request_timeout(monkeypatch):
+    service = LangChainService(
+        provider="openai",
+        model="gpt-4o-mini",
+        temperature=0.1,
+        api_key="test-key",
+        base_url="https://llm.example/v1",
+    )
+    captured: dict[str, object] = {}
+
+    class StubResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": '{"conclusion":["OK"],"evidence":[],"suggestions":[],"risks":[],"used_sources":[],"missing_information":[],"confidence":0.5}'
+                        }
+                    }
+                ]
+            }
+
+    class StubClient:
+        def __init__(self, *, timeout, trust_env):
+            captured["timeout"] = timeout
+            captured["trust_env"] = trust_env
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def post(self, url, *, headers, json):
+            captured["url"] = url
+            captured["headers"] = headers
+            captured["json"] = json
+            return StubResponse()
+
+    monkeypatch.setattr("app.services.langchain_service.settings.LLM_REQUEST_TIMEOUT_SECONDS", 9.0)
+    monkeypatch.setattr("app.services.langchain_service.httpx.Client", StubClient)
+
+    answer = service.generate_structured_answer(
+        messages=[{"role": "user", "content": "test"}]
+    )
+
+    assert answer is not None
+    assert captured["trust_env"] is False
+    assert str(captured["timeout"]) == "Timeout(connect=5.0, read=9.0, write=9.0, pool=9.0)"
+
+
+def test_langchain_service_retries_without_response_format_on_400(monkeypatch):
+    service = LangChainService(
+        provider="openai",
+        model="openrouter/free",
+        temperature=0.1,
+        api_key="test-key",
+        base_url="https://llm.example/v1",
+    )
+    captured_payloads: list[dict[str, object]] = []
+
+    class StubResponse:
+        def __init__(self, status_code, content):
+            self.status_code = status_code
+            self._content = content
+            self.request = httpx.Request("POST", "https://llm.example/v1/chat/completions")
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise httpx.HTTPStatusError(
+                    "bad request",
+                    request=self.request,
+                    response=self,
+                )
+
+        def json(self):
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": self._content,
+                        }
+                    }
+                ]
+            }
+
+    class StubClient:
+        def __init__(self, *, timeout, trust_env):
+            _ = timeout, trust_env
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def post(self, url, *, headers, json):
+            _ = url, headers
+            captured_payloads.append(json)
+            if len(captured_payloads) == 1:
+                return StubResponse(400, "")
+            return StubResponse(
+                200,
+                '{"conclusion":["中文结论"],"evidence":[],"suggestions":[],"risks":[],"used_sources":[],"missing_information":[],"confidence":0.6}',
+            )
+
+    monkeypatch.setattr("app.services.langchain_service.httpx.Client", StubClient)
+
+    answer = service.generate_structured_answer(
+        messages=[{"role": "user", "content": "test"}]
+    )
+
+    assert answer is not None
+    assert answer.conclusion == ["中文结论"]
+    assert "response_format" in captured_payloads[0]
+    assert "response_format" not in captured_payloads[1]

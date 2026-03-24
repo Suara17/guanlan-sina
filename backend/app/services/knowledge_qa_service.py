@@ -54,7 +54,7 @@ class KnowledgeQAService:
             selected_node_type=request.selected_node_type,
         )
         route_decision = QARouteDecision(mode=route.mode, reasons=route.reasons)
-        executed_modes = self._determine_execution_modes(route.mode)
+        executed_modes = self._determine_execution_modes(route.mode, request=request)
         warnings: list[str] = []
         graph_hits: list[dict[str, Any]] = []
         document_hits: list[dict[str, Any]] = []
@@ -163,14 +163,20 @@ class KnowledgeQAService:
             debug=debug,
         )
 
-    def _determine_execution_modes(self, requested_mode: str) -> list[str]:
-        graph_available = self.graph_retriever.is_available
-        keyword_available = self.keyword_retriever.is_available
-        vector_available = self.vector_retriever.is_available
+    def _determine_execution_modes(
+        self,
+        requested_mode: str,
+        *,
+        request: QARequest,
+    ) -> list[str]:
+        document_primary_intent = self._is_document_primary_request(request)
 
         if requested_mode == "graph":
+            graph_available = self.graph_retriever.is_available
             return ["graph"] if graph_available else []
         if requested_mode == "document":
+            keyword_available = self.keyword_retriever.is_available
+            vector_available = self.vector_retriever.is_available
             modes: list[str] = []
             if keyword_available:
                 modes.append("keyword")
@@ -178,9 +184,23 @@ class KnowledgeQAService:
                 modes.append("vector")
             if modes:
                 return modes
+            graph_available = self.graph_retriever.is_available
             return ["graph"] if graph_available else []
         if requested_mode == "hybrid":
+            keyword_available = self.keyword_retriever.is_available
+            vector_available = self.vector_retriever.is_available
+            if document_primary_intent and keyword_available and vector_available:
+                return ["keyword", "vector"]
+            if document_primary_intent and (keyword_available or vector_available):
+                modes: list[str] = []
+                if keyword_available:
+                    modes.append("keyword")
+                if vector_available:
+                    modes.append("vector")
+                graph_available = self.graph_retriever.is_available
+                return modes or (["graph"] if graph_available else [])
             modes: list[str] = []
+            graph_available = self.graph_retriever.is_available
             if graph_available:
                 modes.append("graph")
             if keyword_available:
@@ -189,6 +209,32 @@ class KnowledgeQAService:
                 modes.append("vector")
             return modes
         return []
+
+    @staticmethod
+    def _is_document_primary_request(request: QARequest) -> bool:
+        normalized_question = request.question.lower()
+        document_primary_keywords = (
+            "手册",
+            "user guide",
+            "manual",
+            "setup",
+            "set up",
+            "设置",
+            "检查",
+            "check",
+            "操作",
+            "参数",
+        )
+        if not any(keyword in normalized_question for keyword in document_primary_keywords):
+            return False
+        return request.sequence is None and not any(
+            value
+            for value in (
+                request.selected_node_label,
+                request.selected_node_description,
+                request.selected_node_type,
+            )
+        )
 
     def _run_retrievers(
         self, executed_modes: list[str], request: QARequest
@@ -211,7 +257,8 @@ class KnowledgeQAService:
             max(settings.QA_RETRIEVER_MAX_WORKERS, 1),
             len(available_specs),
         )
-        timeout_seconds = max(settings.QA_RETRIEVER_TIMEOUT_MS, 1) / 1000
+        timeout_ms = self._resolve_retriever_timeout_ms(executed_modes, request)
+        timeout_seconds = max(timeout_ms, 1) / 1000
 
         executor = ThreadPoolExecutor(max_workers=max_workers)
         try:
@@ -241,13 +288,39 @@ class KnowledgeQAService:
                 spec = future_map[future]
                 future.cancel()
                 timing_ms[f"{spec['name']}_retrieval"] = round(
-                    settings.QA_RETRIEVER_TIMEOUT_MS, 2
+                    timeout_ms, 2
                 )
                 warnings.append(spec["timeout_warning"])
         finally:
             executor.shutdown(wait=False, cancel_futures=True)
 
         return {"results": results, "warnings": warnings, "timing_ms": timing_ms}
+
+    def _resolve_retriever_timeout_ms(
+        self,
+        executed_modes: list[str],
+        request: QARequest,
+    ) -> int:
+        if not self._is_generic_graph_request(executed_modes, request):
+            return settings.QA_RETRIEVER_TIMEOUT_MS
+        return min(settings.QA_RETRIEVER_TIMEOUT_MS, 500)
+
+    @staticmethod
+    def _is_generic_graph_request(executed_modes: list[str], request: QARequest) -> bool:
+        if executed_modes != ["graph"]:
+            return False
+        if request.sequence is not None or request.line_type:
+            return False
+        if any(
+            value
+            for value in (
+                request.selected_node_label,
+                request.selected_node_description,
+                request.selected_node_type,
+            )
+        ):
+            return False
+        return True
 
     def _build_retriever_specs(self, executed_modes: list[str]) -> list[dict[str, Any]]:
         retrievers: list[dict[str, Any]] = []

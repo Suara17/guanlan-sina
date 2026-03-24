@@ -55,26 +55,15 @@ class LangChainService:
             logger.warning("Unsupported LLM provider for LangChain service: %s", self.provider)
             return None
 
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": self.temperature,
-            "response_format": {"type": "json_object"},
-        }
-        if self.model.startswith("gpt-5"):
-            payload.pop("temperature", None)
+        payload = self._build_payload(messages=messages, structured_output=True)
 
         try:
-            with httpx.Client(timeout=60.0, trust_env=False) as client:
-                response = client.post(
-                    self._chat_completions_url(),
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    json=payload,
-                )
-                response.raise_for_status()
+            timeout = httpx.Timeout(
+                timeout=settings.LLM_REQUEST_TIMEOUT_SECONDS,
+                connect=min(settings.LLM_REQUEST_TIMEOUT_SECONDS, 5.0),
+            )
+            with httpx.Client(timeout=timeout, trust_env=False) as client:
+                response = self._post_chat_completion(client=client, payload=payload)
         except Exception:
             logger.exception("Failed to request OpenAI-compatible structured answer")
             return None
@@ -90,6 +79,61 @@ class LangChainService:
             logger.warning("OpenAI-compatible response did not contain valid JSON")
             return None
         return self._normalize_structured_answer(parsed_payload)
+
+    def _build_payload(
+        self,
+        *,
+        messages: list[dict[str, str]],
+        structured_output: bool,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": self.temperature,
+        }
+        if structured_output:
+            payload["response_format"] = {"type": "json_object"}
+        if self.model.startswith("gpt-5"):
+            payload.pop("temperature", None)
+        return payload
+
+    def _post_chat_completion(
+        self,
+        *,
+        client: httpx.Client,
+        payload: dict[str, Any],
+    ) -> httpx.Response:
+        try:
+            response = client.post(
+                self._chat_completions_url(),
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+            response.raise_for_status()
+            return response
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code != 400 or "response_format" not in payload:
+                raise
+            logger.warning(
+                "Structured output was rejected by upstream model; retrying without response_format"
+            )
+            fallback_payload = self._build_payload(
+                messages=payload["messages"],
+                structured_output=False,
+            )
+            response = client.post(
+                self._chat_completions_url(),
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=fallback_payload,
+            )
+            response.raise_for_status()
+            return response
 
     def _chat_completions_url(self) -> str:
         base_url = (self.base_url or "").rstrip("/")

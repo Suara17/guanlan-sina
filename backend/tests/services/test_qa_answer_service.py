@@ -43,3 +43,54 @@ def test_qa_answer_service_formats_structured_answer_and_appends_warnings():
     assert "缺少当前设备报警码。" in answer
     assert "置信度：" in answer
     assert "- 0.76" in answer
+
+
+def test_qa_answer_service_returns_fast_fallback_for_placement_accuracy_question():
+    service = QAAnswerService()
+
+    answer = service.build_answer(
+        question="贴装精度下降的原因是什么？",
+        route=QARouteDecision(mode="graph", reasons=["test"]),
+        executed_modes=["graph"],
+        graph_citations=[],
+        document_citations=[],
+        citation_groups=None,
+        warnings=["图谱检索超时，已跳过该来源。"],
+        document_retriever=None,
+    )
+
+    assert "贴装精度下降通常优先看 5 类问题" in answer
+    assert "先做首轮快检" in answer
+    assert "图谱检索超时，已跳过该来源。" in answer
+
+
+class EnglishOnlyLangChainRAGService:
+    def generate_grounded_answer(self, **kwargs):
+        _ = kwargs
+        return QAStructuredAnswer(
+            conclusion=["Placement accuracy may drop because of nozzle wear."],
+            evidence=["Equipment calibration drift may also contribute."],
+            suggestions=["Inspect nozzle and recalibrate the machine."],
+            risks=["No direct evidence was found."],
+            confidence=0.31,
+            used_sources=[],
+            missing_information=["Missing AOI data."],
+        )
+
+
+def test_qa_answer_service_rejects_english_only_answer_for_chinese_question():
+    service = QAAnswerService(langchain_rag_service=EnglishOnlyLangChainRAGService())
+
+    answer = service.build_answer(
+        question="贴装精度下降的原因是什么？",
+        route=QARouteDecision(mode="graph", reasons=["test"]),
+        executed_modes=["graph"],
+        graph_citations=[],
+        document_citations=[],
+        citation_groups=None,
+        warnings=["图谱检索超时，已跳过该来源。"],
+        document_retriever=None,
+    )
+
+    assert "贴装精度下降通常优先看 5 类问题" in answer
+    assert "Placement accuracy may drop" not in answer

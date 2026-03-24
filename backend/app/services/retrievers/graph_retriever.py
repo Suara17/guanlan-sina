@@ -5,6 +5,43 @@ from app.services.knowledge_qa_models import QACitation, QARequest
 from app.services.neo4j_service import Neo4jService
 from app.services.retrievers.base import BaseRetriever, RetrievalResult
 
+GRAPH_LIST_KEYWORDS: tuple[str, ...] = (
+    "哪些异常",
+    "所有异常",
+    "异常列表",
+    "最近异常",
+    "全部异常",
+)
+
+GENERIC_QUESTION_PATTERNS: tuple[str, ...] = (
+    "是什么",
+    "什么原因",
+    "原因是什么",
+    "怎么办",
+    "如何处理",
+    "怎么处理",
+    "怎么排查",
+)
+
+STOP_TERMS: tuple[str, ...] = (
+    "请问",
+    "一下",
+    "一下子",
+    "这个",
+    "这个问题",
+    "问题",
+    "原因",
+    "根因",
+    "建议",
+    "方案",
+    "处理",
+    "怎么",
+    "如何",
+    "为何",
+    "什么",
+    "是什么",
+)
+
 
 class GraphRetriever(BaseRetriever):
     name = "graph"
@@ -20,6 +57,7 @@ class GraphRetriever(BaseRetriever):
         if self.neo4j_service is None:
             return RetrievalResult()
 
+        normalized_question = self._normalize_question(request.question)
         selected_node_text = self._selected_node_text(request)
         if selected_node_text:
             results = self.neo4j_service.search_related_knowledge(
@@ -35,6 +73,13 @@ class GraphRetriever(BaseRetriever):
             if sequence is not None:
                 results = self.neo4j_service.get_anomaly_analysis(sequence)
                 return self._build_anomaly_hits(results, sequence)
+
+        related_results = self._retrieve_by_question_terms(
+            normalized_question,
+            limit=request.top_k,
+        )
+        if related_results.hits or related_results.citations:
+            return related_results
 
         if self._contains_any(request.question, ("相似", "类似")):
             results = self.neo4j_service.find_similar_anomalies(
@@ -52,8 +97,24 @@ class GraphRetriever(BaseRetriever):
             result = self.neo4j_service.analyze_line_health(request.line_type)
             return self._build_health_hits(result, request.line_type)
 
-        results = self.neo4j_service.get_all_anomalies()[: request.top_k]
-        return self._build_all_anomaly_hits(results)
+        if self._is_list_query(normalized_question):
+            results = self.neo4j_service.get_all_anomalies()[: request.top_k]
+            return self._build_all_anomaly_hits(results)
+
+        return RetrievalResult()
+
+    def _retrieve_by_question_terms(
+        self,
+        normalized_question: str,
+        *,
+        limit: int,
+    ) -> RetrievalResult:
+        search_terms = self._extract_search_terms(normalized_question)
+        for term in search_terms:
+            results = self.neo4j_service.search_related_knowledge(term, limit=limit)
+            if results:
+                return self._build_related_hits(results)
+        return RetrievalResult()
 
     def _build_related_hits(self, results: list[dict[str, Any]]) -> RetrievalResult:
         grouped_hits: dict[int, dict[str, Any]] = {}
@@ -260,6 +321,45 @@ class GraphRetriever(BaseRetriever):
     def _contains_any(text: str, keywords: tuple[str, ...]) -> bool:
         normalized_text = text.lower()
         return any(keyword in normalized_text for keyword in keywords)
+
+    @staticmethod
+    def _is_list_query(question: str) -> bool:
+        return any(keyword in question for keyword in GRAPH_LIST_KEYWORDS)
+
+    @classmethod
+    def _extract_search_terms(cls, question: str) -> list[str]:
+        candidate = question
+        for pattern in GENERIC_QUESTION_PATTERNS:
+            candidate = candidate.replace(pattern, " ")
+        candidate = re.sub(r"[？?，,。.!！:：、/]+", " ", candidate)
+        terms = [
+            term.strip()
+            for term in re.findall(r"[\u4e00-\u9fff]{2,}|[a-z0-9_#-]+", candidate)
+        ]
+        unique_terms: list[str] = []
+        for term in terms:
+            if len(term) < 2:
+                continue
+            if term in STOP_TERMS:
+                continue
+            if term not in unique_terms:
+                unique_terms.append(term)
+
+        joined = " ".join(unique_terms).strip()
+        search_terms: list[str] = []
+        if joined:
+            search_terms.append(joined)
+        search_terms.extend(unique_terms[:3])
+        normalized_terms: list[str] = []
+        for term in search_terms:
+            compact = " ".join(term.split()).strip()
+            if compact and compact not in normalized_terms:
+                normalized_terms.append(compact)
+        return normalized_terms
+
+    @staticmethod
+    def _normalize_question(question: str) -> str:
+        return " ".join(question.lower().split())
 
     @staticmethod
     def _extract_sequence(question: str) -> int | None:

@@ -61,12 +61,14 @@ class LangChainRAGService:
                     {
                         "role": "system",
                         "content": (
-                            "你是工业知识问答助手。只能基于提供的图谱事实和检索片段作答，不允许编造。"
+                            "你是工业知识问答助手。优先基于提供的图谱事实和检索片段作答，不允许把猜测说成已证实事实。"
+                            "如果图谱或文档检索为空，你仍需基于问题语义给出一个明确、可执行的排查答案，但要在 risks 中明确标注这是经验性判断、证据不足。"
                             "如果文档检索为空，要明确说明当前没有可引用的 SOP/手册内容。"
+                            "所有字段内容必须使用简体中文，禁止输出英文整句，必要时只保留专业英文缩写。"
                             "你必须输出 JSON 对象，字段只有 conclusion、evidence、suggestions、risks、"
                             "confidence、used_sources、missing_information。"
-                            "evidence 中的每个要点都必须带来源标签，例如 [G1]、[K1]、[V1]。"
-                            "若某条结论没有来源支撑，就不要写。"
+                            "当存在来源时，evidence 中的每个要点都必须带来源标签，例如 [G1]、[K1]、[V1]。"
+                            "当不存在来源时，可以写不带标签的经验性 evidence，但必须把 used_sources 置空，并在 risks 中写明没有直接证据。"
                             "confidence 取 0 到 1 之间的小数。used_sources 只写实际使用过的来源标签。"
                             "missing_information 只写当前回答仍缺什么信息。"
                         ),
@@ -114,6 +116,7 @@ class LangChainRAGService:
                         "role": "system",
                         "content": (
                             "你是工业文档问答助手，只能基于检索到的文档片段作答，不允许编造。"
+                            "所有字段内容必须使用简体中文，禁止输出英文整句，必要时只保留专业英文缩写。"
                             "你必须输出 JSON 对象，字段只有 conclusion、evidence、suggestions、risks、"
                             "confidence、used_sources、missing_information。"
                             "evidence 中的每个要点都必须带来源标签，例如 [D1]。"

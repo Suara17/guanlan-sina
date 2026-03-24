@@ -121,6 +121,7 @@ class Settings(BaseSettings):
     CHROMA_TOP_K: int = 5
     QA_RETRIEVER_TIMEOUT_MS: int = 1500
     QA_RETRIEVER_MAX_WORKERS: int = 3
+    LLM_REQUEST_TIMEOUT_SECONDS: float = 12.0
 
     @computed_field  # type: ignore[prop-decorator]
     @property
