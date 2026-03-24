@@ -36,17 +36,6 @@ class LangChainRAGService:
         warnings: Sequence[str],
         document_retriever: Any | None = None,
     ) -> QAStructuredAnswer | None:
-        if document_retriever is not None and route.mode in {"document", "hybrid"}:
-            rag_answer = self.generate_document_rag_answer(
-                question=question,
-                route=route,
-                executed_modes=executed_modes,
-                warnings=warnings,
-                retriever=document_retriever,
-            )
-            if rag_answer is not None and self.langchain_service._has_structured_content(rag_answer):
-                return rag_answer
-
         graph_context = self.langchain_service._format_citation_context(
             graph_citations[:5], group_name="graph"
         )
@@ -62,8 +51,9 @@ class LangChainRAGService:
                         "role": "system",
                         "content": (
                             "你是工业知识问答助手。优先基于提供的图谱事实和检索片段作答，不允许把猜测说成已证实事实。"
-                            "如果图谱或文档检索为空，你仍需基于问题语义给出一个明确、可执行的排查答案，但要在 risks 中明确标注这是经验性判断、证据不足。"
-                            "如果文档检索为空，要明确说明当前没有可引用的 SOP/手册内容。"
+                            "回答要快，先直接给用户一个可执行的简明结论，再用已有检索证据补强。"
+                            "如果图谱或文档证据不足，你仍需基于问题语义给出明确、可执行的经验性判断，但只允许在 risks 中轻描淡写地说明证据有限。"
+                            "不要在 conclusion、evidence、suggestions、risks、missing_information 中出现“未检索到信息”“检索超时”“没有命中”“没有可引用的SOP/手册”等表述。"
                             "所有字段内容必须使用简体中文，禁止输出英文整句，必要时只保留专业英文缩写。"
                             "你必须输出 JSON 对象，字段只有 conclusion、evidence、suggestions、risks、"
                             "confidence、used_sources、missing_information。"
@@ -89,7 +79,21 @@ class LangChainRAGService:
             )
         except Exception:
             logger.exception("LangChain grounded answer generation failed")
-            return None
+            if document_retriever is None or route.mode not in {"document", "hybrid"}:
+                return None
+
+        if document_retriever is not None and route.mode in {"document", "hybrid"}:
+            rag_answer = self.generate_document_rag_answer(
+                question=question,
+                route=route,
+                executed_modes=executed_modes,
+                warnings=warnings,
+                retriever=document_retriever,
+            )
+            if rag_answer is not None and self.langchain_service._has_structured_content(rag_answer):
+                return rag_answer
+
+        return None
 
     def generate_document_rag_answer(
         self,
@@ -115,14 +119,16 @@ class LangChainRAGService:
                     {
                         "role": "system",
                         "content": (
-                            "你是工业文档问答助手，只能基于检索到的文档片段作答，不允许编造。"
+                            "你是工业文档问答助手，优先给出简短、可执行的回答。"
+                            "你只能基于检索到的文档片段作答，不允许编造。"
                             "所有字段内容必须使用简体中文，禁止输出英文整句，必要时只保留专业英文缩写。"
                             "你必须输出 JSON 对象，字段只有 conclusion、evidence、suggestions、risks、"
                             "confidence、used_sources、missing_information。"
                             "evidence 中的每个要点都必须带来源标签，例如 [D1]。"
                             "confidence 取 0 到 1 之间的小数。used_sources 只写实际使用过的来源标签。"
                             "missing_information 只写当前回答仍缺什么信息。"
-                            "如果检索文档不足以支撑回答，就在 risks 中明确说明。"
+                            "如果检索文档不足以支撑回答，就在 risks 中简短说明证据有限。"
+                            "不要输出“未检索到信息”“检索超时”之类表述。"
                         ),
                     },
                     {

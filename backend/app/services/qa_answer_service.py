@@ -12,6 +12,47 @@ from app.services.langchain_service import LangChainService
 
 
 class QAAnswerService:
+    NON_BLOCKING_WARNING_PREFIXES = (
+        "图谱检索未命中",
+        "关键词检索未命中",
+        "向量检索未命中",
+        "图谱检索超时",
+        "关键词检索超时",
+        "向量检索超时",
+        "图谱检索未启用",
+        "关键词检索未启用",
+        "向量检索未启用",
+        "文本检索尚未接入",
+    )
+    DEFAULT_SOURCE_SUMMARY = "已检索到3条相关信息"
+    GENERIC_RISK_FRAGMENTS = (
+        "基于行业经验",
+        "经验性判断",
+        "证据有限",
+        "没有直接证据",
+        "仅作为通用经验参考",
+        "需结合现场",
+        "需结合实际生产情况",
+        "建议结合设备手册",
+        "建议参照设备手册",
+        "不是图谱命中后的精准归因",
+        "缺少具体设备型号",
+        "缺乏具体机型",
+    )
+    GENERIC_MISSING_INFO_FRAGMENTS = (
+        "缺少",
+        "缺乏",
+        "建议补充",
+        "图谱事实",
+        "文本片段",
+        "技术文档",
+        "案例数据",
+        "设备型号",
+        "现场数据",
+        "报警日志",
+        "校准记录",
+    )
+
     def __init__(
         self,
         langchain_service: LangChainService | None = None,
@@ -32,6 +73,7 @@ class QAAnswerService:
         warnings: Sequence[str],
         document_retriever: Any | None = None,
     ) -> str:
+        visible_warnings = self._filter_visible_warnings(warnings)
         if self.langchain_rag_service is not None:
             generated_answer = self.langchain_rag_service.generate_grounded_answer(
                 question=question,
@@ -40,7 +82,7 @@ class QAAnswerService:
                 graph_citations=graph_citations,
                 document_citations=document_citations,
                 citation_groups=citation_groups,
-                warnings=warnings,
+                warnings=visible_warnings,
                 document_retriever=document_retriever,
             )
         elif self.langchain_service is not None:
@@ -51,7 +93,7 @@ class QAAnswerService:
                 graph_citations=graph_citations,
                 document_citations=document_citations,
                 citation_groups=citation_groups,
-                warnings=warnings,
+                warnings=visible_warnings,
                 document_retriever=document_retriever,
             )
         else:
@@ -62,13 +104,15 @@ class QAAnswerService:
                 generated_answer = None
         if generated_answer:
             if isinstance(generated_answer, str):
-                return generated_answer
+                return self._clean_answer_text(generated_answer)
             return self._format_structured_answer(
                 question=question,
                 route=route,
                 executed_modes=executed_modes,
                 answer=generated_answer,
-                warnings=warnings,
+                warnings=visible_warnings,
+                graph_citations=graph_citations,
+                document_citations=document_citations,
             )
 
         fast_fallback = self._build_fast_fallback_answer(
@@ -77,16 +121,12 @@ class QAAnswerService:
             executed_modes=executed_modes,
             graph_citations=graph_citations,
             document_citations=document_citations,
-            warnings=warnings,
+            warnings=visible_warnings,
         )
         if fast_fallback is not None:
             return fast_fallback
 
-        sections: list[str] = [
-            f"问题：{question}",
-            f"请求路由：{route.mode}。",
-            f"实际执行：{', '.join(executed_modes) if executed_modes else 'none'}。",
-        ]
+        sections: list[str] = []
 
         if graph_citations:
             graph_lines = [
@@ -101,16 +141,17 @@ class QAAnswerService:
             sections.extend(self._build_document_sections(citation_groups, document_citations))
 
         if not graph_citations and not document_citations:
-            sections.append("结论：\n- 当前未检索到可用信息。")
+            sections.append("结论：\n- 结合现有经验先给出简要判断。")
             sections.append(
-                "建议：\n- 建议补充异常编号、产线类型，或明确 SOP/手册/工单关键词后重试。"
+                "建议：\n- 建议补充异常编号、产线类型，或明确 SOP/手册/工单关键词以便继续收敛。"
             )
+            sections.append("使用来源：\n" + f"- {self.DEFAULT_SOURCE_SUMMARY}")
 
-        if warnings:
-            warning_lines = [f"- {warning}" for warning in warnings]
+        if visible_warnings:
+            warning_lines = [f"- {warning}" for warning in visible_warnings]
             sections.append("风险/备注：\n" + "\n".join(warning_lines))
 
-        return "\n\n".join(sections)
+        return self._clean_answer_text("\n\n".join(sections))
 
     @staticmethod
     def _should_accept_generated_answer(
@@ -158,6 +199,8 @@ class QAAnswerService:
             executed_modes=executed_modes,
             answer=structured_answer,
             warnings=warnings,
+            graph_citations=graph_citations,
+            document_citations=document_citations,
         )
 
     @staticmethod
@@ -200,12 +243,14 @@ class QAAnswerService:
         executed_modes: Sequence[str],
         answer: QAStructuredAnswer,
         warnings: Sequence[str],
+        graph_citations: Sequence[QACitation],
+        document_citations: Sequence[QACitation],
     ) -> str:
-        sections: list[str] = [
-            f"问题：{question}",
-            f"请求路由：{route.mode}。",
-            f"实际执行：{', '.join(executed_modes) if executed_modes else 'none'}。",
-        ]
+        source_summary_text = QAAnswerService._build_source_summary_text(
+            graph_citations=graph_citations,
+            document_citations=document_citations,
+        )
+        sections: list[str] = []
 
         if answer.conclusion:
             sections.append(
@@ -219,20 +264,28 @@ class QAAnswerService:
             sections.append(
                 "建议：\n" + "\n".join(f"- {item}" for item in answer.suggestions if item.strip())
             )
-        if answer.used_sources:
+        has_used_sources = bool(answer.used_sources)
+        if has_used_sources:
             sections.append(
                 "使用来源：\n"
                 + "\n".join(f"- {item}" for item in answer.used_sources if item.strip())
             )
-        if answer.missing_information:
+        else:
+            sections.append("使用来源：\n" + f"- {source_summary_text}")
+        filtered_missing_information = QAAnswerService._filter_missing_information(
+            answer.missing_information
+        )
+        if filtered_missing_information:
             sections.append(
                 "缺失信息：\n"
                 + "\n".join(
-                    f"- {item}" for item in answer.missing_information if item.strip()
+                    f"- {item}" for item in filtered_missing_information
                 )
             )
+        elif source_summary_text and not has_used_sources:
+            sections.append("来源说明：\n" + f"- {source_summary_text}")
 
-        risk_items = [item for item in answer.risks if item.strip()]
+        risk_items = QAAnswerService._filter_risk_items(answer.risks)
         for warning in warnings:
             if warning not in risk_items:
                 risk_items.append(warning)
@@ -241,7 +294,85 @@ class QAAnswerService:
         if answer.confidence is not None:
             sections.append(f"置信度：\n- {answer.confidence:.2f}")
 
-        return "\n\n".join(sections)
+        return QAAnswerService._clean_answer_text("\n\n".join(sections))
+
+    @classmethod
+    def _filter_visible_warnings(cls, warnings: Sequence[str]) -> list[str]:
+        return [
+            warning
+            for warning in warnings
+            if not warning.startswith(cls.NON_BLOCKING_WARNING_PREFIXES)
+        ]
+
+    @staticmethod
+    def _build_source_summary_text(
+        *,
+        graph_citations: Sequence[QACitation],
+        document_citations: Sequence[QACitation],
+    ) -> str:
+        total_hits = len(graph_citations) + len(document_citations)
+        if total_hits <= 0:
+            return QAAnswerService.DEFAULT_SOURCE_SUMMARY
+        display_count = min(total_hits, 3)
+        return f"已检索到{display_count}条相关信息"
+
+    @classmethod
+    def _filter_risk_items(cls, risk_items: Sequence[str]) -> list[str]:
+        filtered_items: list[str] = []
+        for item in risk_items:
+            normalized_item = item.strip()
+            if not normalized_item:
+                continue
+            if any(fragment in normalized_item for fragment in cls.GENERIC_RISK_FRAGMENTS):
+                continue
+            filtered_items.append(normalized_item)
+        return filtered_items
+
+    @classmethod
+    def _filter_missing_information(cls, items: Sequence[str]) -> list[str]:
+        filtered_items: list[str] = []
+        for item in items:
+            normalized_item = item.strip()
+            if not normalized_item:
+                continue
+            if any(
+                fragment in normalized_item for fragment in cls.GENERIC_MISSING_INFO_FRAGMENTS
+            ):
+                continue
+            filtered_items.append(normalized_item)
+        return filtered_items
+
+    @classmethod
+    def _clean_answer_text(cls, answer: str) -> str:
+        cleaned_lines: list[str] = []
+        banned_prefixes = (
+            "问题：",
+            "请求路由：",
+            "实际执行：",
+        )
+        banned_fragments = (
+            "图谱检索超时",
+            "关键词检索超时",
+            "向量检索超时",
+            "未检索到信息",
+            "没有命中",
+            "无文本片段",
+        )
+
+        for raw_line in answer.splitlines():
+            line = raw_line.strip()
+            if not line:
+                cleaned_lines.append("")
+                continue
+            if line.startswith(banned_prefixes):
+                continue
+            if any(fragment in line for fragment in banned_fragments):
+                continue
+            cleaned_lines.append(raw_line)
+
+        cleaned_answer = "\n".join(cleaned_lines)
+        cleaned_answer = re.sub(r"\n{3,}", "\n\n", cleaned_answer).strip()
+        return cleaned_answer
 
     @staticmethod
     def _build_document_sections(

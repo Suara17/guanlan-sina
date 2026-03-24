@@ -91,6 +91,7 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const [layoutMap, setLayoutMap] = useState<Map<string, { x: number; y: number }>>(new Map())
   const graphSignatureRef = useRef('')
+  const resizeFrameRef = useRef<number | null>(null)
 
   useEffect(() => {
     onNodeClickRef.current = onNodeClick
@@ -113,12 +114,49 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
       })
     }
 
-    const observer = new ResizeObserver(updateSize)
+    const scheduleUpdate = () => {
+      if (resizeFrameRef.current !== null) {
+        cancelAnimationFrame(resizeFrameRef.current)
+      }
+      resizeFrameRef.current = requestAnimationFrame(() => {
+        resizeFrameRef.current = null
+        updateSize()
+      })
+    }
+
+    const observer = new ResizeObserver(scheduleUpdate)
     observer.observe(containerRef.current)
     updateSize()
+    window.addEventListener('resize', scheduleUpdate)
 
-    return () => observer.disconnect()
+    const timers = [
+      window.setTimeout(updateSize, 0),
+      window.setTimeout(updateSize, 120),
+      window.setTimeout(updateSize, 360),
+    ]
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', scheduleUpdate)
+      if (resizeFrameRef.current !== null) {
+        cancelAnimationFrame(resizeFrameRef.current)
+      }
+      timers.forEach((timer) => window.clearTimeout(timer))
+    }
   }, [])
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    const nextWidth = Math.max(1, Math.floor(rect.width))
+    const nextHeight = Math.max(1, Math.floor(rect.height))
+    setDimensions((current) => {
+      if (current.width === nextWidth && current.height === nextHeight) {
+        return current
+      }
+      return { width: nextWidth, height: nextHeight }
+    })
+  }, [graphData, visibleNodeIds, isCompactView])
 
   useEffect(() => {
     if (dimensions.width <= 1 || dimensions.height <= 1) return
@@ -554,7 +592,14 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
       ref={containerRef}
       className="w-full h-full bg-slate-50 rounded-xl overflow-hidden shadow-inner border border-slate-200"
     >
-      <svg ref={svgRef} className="w-full h-full block" />
+      <svg
+        ref={svgRef}
+        className="w-full h-full block"
+        width={Math.max(dimensions.width, 1)}
+        height={Math.max(dimensions.height, 1)}
+        viewBox={`0 0 ${Math.max(dimensions.width, 1)} ${Math.max(dimensions.height, 1)}`}
+        preserveAspectRatio="xMidYMid meet"
+      />
     </div>
   )
 }

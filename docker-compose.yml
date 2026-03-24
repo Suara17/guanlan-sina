@@ -46,6 +46,10 @@ services:
     image: 'guanlan-sina-prestart:${TAG-latest}'
     build:
       context: ./backend
+      cache_from:
+        - type=local,src=.docker-cache/backend
+      cache_to:
+        - type=local,dest=.docker-cache/backend,mode=max
     networks:
       - traefik-public
       - default
@@ -107,19 +111,33 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
-      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_URI=bolt://neo4j:7687
       - NEO4J_USER=${NEO4J_USER}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
       - NEO4J_DATABASE=${NEO4J_DATABASE}
+      - CHROMA_PERSIST_DIR=${DOCKER_CHROMA_PERSIST_DIR:-/data/chroma}
+      - HF_HOME=${DOCKER_HF_HOME:-/data/hf}
+      - TRANSFORMERS_CACHE=${DOCKER_TRANSFORMERS_CACHE:-/data/hf/transformers}
+      - SENTENCE_TRANSFORMERS_HOME=${DOCKER_SENTENCE_TRANSFORMERS_HOME:-/data/hf/sentence-transformers}
+      - TORCH_HOME=${DOCKER_TORCH_HOME:-/data/torch}
+    volumes:
+      - backend-hf-cache:/data/hf
+      - backend-torch-cache:/data/torch
+      - backend-chroma:/data/chroma
+      - ./backend/app/data/knowledge_qa:/app/app/data/knowledge_qa
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/test/ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
     build:
       context: ./backend
+      cache_from:
+        - type=local,src=.docker-cache/backend
+      cache_to:
+        - type=local,dest=.docker-cache/backend,mode=max
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
@@ -137,6 +155,57 @@ services:
 
       # Enable redirection for HTTP and HTTPS
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.middlewares=https-redirect
+
+  knowledge-qa-indexer:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    profiles:
+      - knowledge-qa
+    build:
+      context: ./backend
+      cache_from:
+        - type=local,src=.docker-cache/backend
+      cache_to:
+        - type=local,dest=.docker-cache/backend,mode=max
+    depends_on:
+      db:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - NEO4J_DATABASE=${NEO4J_DATABASE}
+      - CHROMA_PERSIST_DIR=${DOCKER_CHROMA_PERSIST_DIR:-/data/chroma}
+      - HF_HOME=${DOCKER_HF_HOME:-/data/hf}
+      - TRANSFORMERS_CACHE=${DOCKER_TRANSFORMERS_CACHE:-/data/hf/transformers}
+      - SENTENCE_TRANSFORMERS_HOME=${DOCKER_SENTENCE_TRANSFORMERS_HOME:-/data/hf/sentence-transformers}
+      - TORCH_HOME=${DOCKER_TORCH_HOME:-/data/torch}
+    volumes:
+      - backend-hf-cache:/data/hf
+      - backend-torch-cache:/data/torch
+      - backend-chroma:/data/chroma
+      - ./backend/app/data/knowledge_qa:/app/app/data/knowledge_qa
+      - ./docs:/app/docs:ro
+    command:
+      - python
+      - app/scripts/build_knowledge_qa_index.py
+      - --source-dir
+      - /app/docs/知识图谱/downloads
+      - --output-dir
+      - /app/app/data/knowledge_qa
+      - --with-embeddings
+      - --with-chroma
+      - --persist-dir
+      - /data/chroma
+      - --reset-chroma
 
   frontend:
     image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
@@ -199,6 +268,9 @@ services:
 
 volumes:
   app-db-data:
+  backend-chroma:
+  backend-hf-cache:
+  backend-torch-cache:
   neo4j-data:
   neo4j-logs:
   neo4j-plugins:

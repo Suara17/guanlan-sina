@@ -1,6 +1,5 @@
 import axios from 'axios'
 import {
-  AlertTriangle,
   ChevronDown,
   ChevronUp,
   FileText,
@@ -30,7 +29,6 @@ interface AssistantMessage {
   role: 'user' | 'ai'
   content: string
   citations?: CitationCard[]
-  warnings?: string[]
 }
 
 interface AiAssistantProps {
@@ -65,8 +63,7 @@ const getWelcomeMessage = (entrySource?: string) => {
 const buildFallbackMessage = (question: string, detail?: string): AssistantMessage => ({
   id: `ai-fallback-${Date.now()}`,
   role: 'ai',
-  content: `暂时无法完成“${question}”的知识检索，请稍后重试。`,
-  warnings: [detail || '知识问答服务暂不可用。'],
+  content: `暂时无法完成“${question}”的知识检索，请稍后重试。${detail ? ` ${detail}` : ''}`,
 })
 
 const mapCitation = (citation: KnowledgeQaCitation, index: number): CitationCard => ({
@@ -190,7 +187,6 @@ const AiAssistant: React.FC<AiAssistantProps> = ({
           role: 'ai',
           content: response.answer,
           citations: response.citations.map(mapCitation),
-          warnings: response.warnings,
         },
       ])
     } catch (error) {
@@ -263,19 +259,6 @@ const AiAssistant: React.FC<AiAssistantProps> = ({
                 }`}
               >
                 <p>{msg.content}</p>
-                {msg.warnings && msg.warnings.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {msg.warnings.map((warning) => (
-                      <div
-                        key={`${msg.id}-${warning}`}
-                        className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700"
-                      >
-                        <AlertTriangle size={12} className="mt-0.5 shrink-0" />
-                        <span>{warning}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
                 {msg.citations && msg.citations.length > 0 && (
                   <div className="mt-3 space-y-2">
                     {[

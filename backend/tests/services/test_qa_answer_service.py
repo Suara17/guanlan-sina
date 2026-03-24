@@ -2,6 +2,13 @@ from app.services.knowledge_qa_models import QARouteDecision, QAStructuredAnswer
 from app.services.qa_answer_service import QAAnswerService
 
 
+def _assert_no_metadata_headers(answer: str) -> None:
+    lines = [line.strip() for line in answer.splitlines()]
+    assert "问题：" not in lines
+    assert "请求路由：" not in lines
+    assert "实际执行：" not in lines
+
+
 class StubLangChainRAGService:
     def generate_grounded_answer(self, **kwargs):
         _ = kwargs
@@ -39,10 +46,14 @@ def test_qa_answer_service_formats_structured_answer_and_appends_warnings():
     assert "向量检索结果仅覆盖手册片段。" in answer
     assert "使用来源：" in answer
     assert "- D1" in answer
-    assert "缺失信息：" in answer
-    assert "缺少当前设备报警码。" in answer
+    assert "缺失信息：" not in answer
+    assert "缺少当前设备报警码。" not in answer
     assert "置信度：" in answer
     assert "- 0.76" in answer
+    assert "使用来源：" in answer
+    assert "已检索到3条相关信息" not in answer
+    assert "来源说明：" not in answer
+    _assert_no_metadata_headers(answer)
 
 
 def test_qa_answer_service_returns_fast_fallback_for_placement_accuracy_question():
@@ -61,7 +72,30 @@ def test_qa_answer_service_returns_fast_fallback_for_placement_accuracy_question
 
     assert "贴装精度下降通常优先看 5 类问题" in answer
     assert "先做首轮快检" in answer
-    assert "图谱检索超时，已跳过该来源。" in answer
+    assert "图谱检索超时，已跳过该来源。" not in answer
+    assert "使用来源：" in answer
+    assert "已检索到3条相关信息" in answer
+    _assert_no_metadata_headers(answer)
+
+
+def test_qa_answer_service_moves_default_source_summary_to_source_section():
+    service = QAAnswerService()
+
+    answer = service.build_answer(
+        question="设备报警怎么排查？",
+        route=QARouteDecision(mode="graph", reasons=["test"]),
+        executed_modes=["graph"],
+        graph_citations=[],
+        document_citations=[],
+        citation_groups=None,
+        warnings=["图谱检索超时，已跳过该来源。"],
+        document_retriever=None,
+    )
+
+    assert "使用来源：" in answer
+    assert "已检索到3条相关信息" in answer
+    assert "图谱检索超时" not in answer
+    _assert_no_metadata_headers(answer)
 
 
 class EnglishOnlyLangChainRAGService:
@@ -94,3 +128,22 @@ def test_qa_answer_service_rejects_english_only_answer_for_chinese_question():
 
     assert "贴装精度下降通常优先看 5 类问题" in answer
     assert "Placement accuracy may drop" not in answer
+
+
+def test_qa_answer_service_filters_generic_missing_info_and_risk_notes():
+    service = QAAnswerService(langchain_rag_service=StubLangChainRAGService())
+
+    answer = service.build_answer(
+        question="设备参数怎么调？",
+        route=QARouteDecision(mode="document", reasons=["test"]),
+        executed_modes=["vector"],
+        graph_citations=[],
+        document_citations=[],
+        citation_groups=None,
+        warnings=[],
+        document_retriever="stub-retriever",
+    )
+
+    assert "缺失信息：" not in answer
+    assert "缺少当前设备报警码。" not in answer
+    assert "风险/备注：" in answer

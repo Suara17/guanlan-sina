@@ -1,6 +1,10 @@
-FROM python:3.10
+FROM python:3.11
 
 ENV PYTHONUNBUFFERED=1
+ENV HF_HOME=/data/hf
+ENV TRANSFORMERS_CACHE=/data/hf/transformers
+ENV SENTENCE_TRANSFORMERS_HOME=/data/hf/sentence-transformers
+ENV TORCH_HOME=/data/torch
 
 WORKDIR /app/
 
@@ -36,6 +40,9 @@ ENV UV_COMPILE_BYTECODE=1
 # uv Cache
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#caching
 ENV UV_LINK_MODE=copy
+ENV UV_HTTP_TIMEOUT=120
+
+RUN mkdir -p /data/hf /data/torch /data/chroma /app/app/data/knowledge_qa
 
 # Install dependencies
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers

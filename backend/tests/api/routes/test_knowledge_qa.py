@@ -17,6 +17,13 @@ from app.services.qa_router import RouteDecision
 from app.services.retrievers.base import RetrievalResult
 
 
+def _assert_no_metadata_headers(answer: str) -> None:
+    lines = [line.strip() for line in answer.splitlines()]
+    assert "问题：" not in lines
+    assert "请求路由：" not in lines
+    assert "实际执行：" not in lines
+
+
 class StubKnowledgeQAService:
     def ask(self, request: QARequest) -> QAResponse:
         return QAResponse(
@@ -142,10 +149,34 @@ def test_ask_knowledge_qa_formats_structured_answer_from_real_service_chain():
     payload = response.json()
     assert payload["route"]["mode"] == "hybrid"
     assert "使用来源：" in payload["answer"]
-    assert "缺失信息：" in payload["answer"]
+    assert "缺失信息：" not in payload["answer"]
     assert "置信度：" in payload["answer"]
     assert "- 0.76" in payload["answer"]
+    _assert_no_metadata_headers(payload["answer"])
     assert payload["debug"]["executed_modes"] == ["graph", "keyword", "vector"]
+
+
+def test_answer_service_hides_timeout_and_empty_retrieval_warnings_in_answer():
+    answer = QAAnswerService().build_answer(
+        question="贴装精度下降怎么处理？",
+        route=QARouteDecision(mode="hybrid", reasons=[]),
+        executed_modes=["graph", "keyword", "vector"],
+        graph_citations=[],
+        document_citations=[],
+        citation_groups=None,
+        warnings=[
+            "图谱检索超时，已跳过该来源。",
+            "向量检索未命中相关语义片段。",
+            "模型判断仅能覆盖常见场景，请结合现场点检确认。",
+        ],
+        document_retriever=None,
+    )
+
+    assert "图谱检索超时" not in answer
+    assert "未命中相关语义片段" not in answer
+    assert "已检索到3条相关信息" in answer
+    assert "模型判断仅能覆盖常见场景" in answer
+    _assert_no_metadata_headers(answer)
 
 
 def test_ask_knowledge_qa_validates_payload():

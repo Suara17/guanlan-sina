@@ -60,3 +60,9 @@ backend/app/data/knowledge_qa/chroma/
 backend/app/data/knowledge_qa/chroma_debug/
 backend/app/data/knowledge_qa/chroma_smoke/
 backend/app/data/knowledge_qa/chroma_store/
+
+# Docker local build cache
+.docker-cache/
+
+# Local runtime logs
+backend/*.log

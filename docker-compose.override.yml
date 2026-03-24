@@ -80,11 +80,25 @@ services:
     # TODO: remove once coverage is done locally
     volumes:
       - ./backend/htmlcov:/app/htmlcov
+      - ./backend/app/data/knowledge_qa:/app/app/data/knowledge_qa
+      - ./docs:/app/docs:ro
+      - backend-hf-cache:/data/hf
+      - backend-torch-cache:/data/torch
+      - backend-chroma:/data/chroma
+
+  knowledge-qa-indexer:
+    restart: "no"
+    volumes:
+      - ./backend/app/data/knowledge_qa:/app/app/data/knowledge_qa
+      - ./docs:/app/docs:ro
+      - backend-hf-cache:/data/hf
+      - backend-torch-cache:/data/torch
+      - backend-chroma:/data/chroma
 
   frontend:
     restart: "no"
     ports:
-      - "5173:80"
+      - "3000:80"
     build:
       context: ./frontend
       args:
@@ -118,3 +132,8 @@ networks:
   traefik-public:
     # For local dev, don't expect an external Traefik network
     external: false
+
+volumes:
+  backend-chroma:
+  backend-hf-cache:
+  backend-torch-cache:
