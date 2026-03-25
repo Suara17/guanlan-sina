@@ -74,7 +74,7 @@ def test_qa_answer_service_returns_fast_fallback_for_placement_accuracy_question
     assert "先做首轮快检" in answer
     assert "图谱检索超时，已跳过该来源。" not in answer
     assert "使用来源：" in answer
-    assert "已检索到3条相关信息" in answer
+    assert "已经检索到3条信息，正在继续检索。" in answer
     _assert_no_metadata_headers(answer)
 
 
@@ -93,7 +93,7 @@ def test_qa_answer_service_moves_default_source_summary_to_source_section():
     )
 
     assert "使用来源：" in answer
-    assert "已检索到3条相关信息" in answer
+    assert "已经检索到3条信息，正在继续检索。" in answer
     assert "图谱检索超时" not in answer
     _assert_no_metadata_headers(answer)
 
@@ -147,3 +147,36 @@ def test_qa_answer_service_filters_generic_missing_info_and_risk_notes():
     assert "缺失信息：" not in answer
     assert "缺少当前设备报警码。" not in answer
     assert "风险/备注：" in answer
+
+
+class HallucinatedSourceLangChainRAGService:
+    def generate_grounded_answer(self, **kwargs):
+        _ = kwargs
+        return QAStructuredAnswer(
+            conclusion=["先检查吸嘴、真空和视觉偏移。"],
+            evidence=["这类问题常见于吸附链路不稳定。"],
+            suggestions=["先做首轮点检。"],
+            risks=["当前回答偏经验性。"],
+            confidence=0.8,
+            used_sources=["设备维护手册", "操作规程"],
+            missing_information=[],
+        )
+
+
+def test_qa_answer_service_ignores_hallucinated_used_sources_without_citations():
+    service = QAAnswerService(langchain_rag_service=HallucinatedSourceLangChainRAGService())
+
+    answer = service.build_answer(
+        question="后续贴装不良的原因是什么？简要回答",
+        route=QARouteDecision(mode="graph", reasons=["test"]),
+        executed_modes=["graph"],
+        graph_citations=[],
+        document_citations=[],
+        citation_groups=None,
+        warnings=[],
+        document_retriever=None,
+    )
+
+    assert "设备维护手册" not in answer
+    assert "操作规程" not in answer
+    assert "已经检索到3条信息，正在继续检索。" in answer

@@ -174,7 +174,7 @@ def test_answer_service_hides_timeout_and_empty_retrieval_warnings_in_answer():
 
     assert "图谱检索超时" not in answer
     assert "未命中相关语义片段" not in answer
-    assert "已检索到3条相关信息" in answer
+    assert "已经检索到3条信息，正在继续检索。" in answer
     assert "模型判断仅能覆盖常见场景" in answer
     _assert_no_metadata_headers(answer)
 

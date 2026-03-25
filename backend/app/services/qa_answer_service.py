@@ -24,7 +24,7 @@ class QAAnswerService:
         "向量检索未启用",
         "文本检索尚未接入",
     )
-    DEFAULT_SOURCE_SUMMARY = "已检索到3条相关信息"
+    DEFAULT_SOURCE_SUMMARY = "已经检索到3条信息，正在继续检索。"
     GENERIC_RISK_FRAGMENTS = (
         "基于行业经验",
         "经验性判断",
@@ -250,6 +250,10 @@ class QAAnswerService:
             graph_citations=graph_citations,
             document_citations=document_citations,
         )
+        available_source_labels = QAAnswerService._build_available_source_labels(
+            graph_citations=graph_citations,
+            document_citations=document_citations,
+        )
         sections: list[str] = []
 
         if answer.conclusion:
@@ -264,11 +268,16 @@ class QAAnswerService:
             sections.append(
                 "建议：\n" + "\n".join(f"- {item}" for item in answer.suggestions if item.strip())
             )
-        has_used_sources = bool(answer.used_sources)
+        trusted_used_sources = [
+            item.strip()
+            for item in answer.used_sources
+            if item.strip() and item.strip() in available_source_labels
+        ]
+        has_used_sources = bool(trusted_used_sources)
         if has_used_sources:
             sections.append(
                 "使用来源：\n"
-                + "\n".join(f"- {item}" for item in answer.used_sources if item.strip())
+                + "\n".join(f"- {item}" for item in trusted_used_sources)
             )
         else:
             sections.append("使用来源：\n" + f"- {source_summary_text}")
@@ -315,6 +324,31 @@ class QAAnswerService:
             return QAAnswerService.DEFAULT_SOURCE_SUMMARY
         display_count = min(total_hits, 3)
         return f"已检索到{display_count}条相关信息"
+
+    @staticmethod
+    def _build_available_source_labels(
+        *,
+        graph_citations: Sequence[QACitation],
+        document_citations: Sequence[QACitation],
+    ) -> set[str]:
+        labels: set[str] = set()
+        for index, citation in enumerate(graph_citations, start=1):
+            metadata = citation.metadata or {}
+            retriever = str(metadata.get("retriever") or "graph").lower()
+            prefix = {"graph": "G", "keyword": "K", "vector": "V", "document": "D"}.get(
+                retriever,
+                "G",
+            )
+            labels.add(f"{prefix}{index}")
+        for index, citation in enumerate(document_citations, start=1):
+            metadata = citation.metadata or {}
+            retriever = str(metadata.get("retriever") or "document").lower()
+            prefix = {"graph": "G", "keyword": "K", "vector": "V", "document": "D"}.get(
+                retriever,
+                "D",
+            )
+            labels.add(f"{prefix}{index}")
+        return labels
 
     @classmethod
     def _filter_risk_items(cls, risk_items: Sequence[str]) -> list[str]:

@@ -76,7 +76,11 @@ class LangChainService:
 
         parsed_payload = self._extract_json_payload(content)
         if parsed_payload is None:
-            logger.warning("OpenAI-compatible response did not contain valid JSON")
+            logger.warning(
+                "OpenAI-compatible response did not contain valid JSON. model=%s preview=%s",
+                self.model,
+                self._preview_content(content),
+            )
             return None
         return self._normalize_structured_answer(parsed_payload)
 
@@ -116,6 +120,12 @@ class LangChainService:
             return response
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code != 400 or "response_format" not in payload:
+                logger.warning(
+                    "Upstream chat completion failed. status=%s model=%s body=%s",
+                    exc.response.status_code,
+                    self.model,
+                    self._preview_content(exc.response.text),
+                )
                 raise
             logger.warning(
                 "Structured output was rejected by upstream model; retrying without response_format"
@@ -166,7 +176,33 @@ class LangChainService:
                 return parsed if isinstance(parsed, dict) else None
             except json.JSONDecodeError:
                 return None
+
+        generic_fenced_match = re.search(r"```\s*(\{.*?\})\s*```", normalized, re.DOTALL)
+        if generic_fenced_match:
+            try:
+                parsed = json.loads(generic_fenced_match.group(1))
+                return parsed if isinstance(parsed, dict) else None
+            except json.JSONDecodeError:
+                return None
+
+        decoder = json.JSONDecoder()
+        for match in re.finditer(r"\{", normalized):
+            try:
+                parsed, end_index = decoder.raw_decode(normalized[match.start() :])
+            except json.JSONDecodeError:
+                continue
+            if isinstance(parsed, dict):
+                trailing = normalized[match.start() + end_index :].strip()
+                if not trailing or trailing.startswith("```"):
+                    return parsed
         return None
+
+    @staticmethod
+    def _preview_content(content: Any, *, limit: int = 240) -> str:
+        text = str(content or "").strip().replace("\r", " ").replace("\n", " ")
+        if len(text) <= limit:
+            return text
+        return f"{text[: limit - 3]}..."
 
     @staticmethod
     def _normalize_structured_answer(payload: Any) -> QAStructuredAnswer | None:
@@ -187,9 +223,46 @@ class LangChainService:
                 ):
                     value = normalized_payload.get(key)
                     if isinstance(value, str):
-                        normalized_payload[key] = [value]
+                        stripped_value = value.strip()
+                        normalized_payload[key] = [] if stripped_value in {"", "无", "暂无", "none", "null"} else [stripped_value]
+                normalized_payload["confidence"] = LangChainService._normalize_confidence_value(
+                    normalized_payload.get("confidence")
+                )
                 return QAStructuredAnswer.model_validate(normalized_payload)
             except Exception:
+                return None
+        return None
+
+    @staticmethod
+    def _normalize_confidence_value(value: Any) -> float | None:
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return 1.0 if value else 0.0
+        if isinstance(value, (int, float)):
+            return max(0.0, min(float(value), 1.0))
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if not normalized or normalized in {"无", "暂无", "none", "null"}:
+                return None
+            confidence_aliases = {
+                "高": 0.8,
+                "较高": 0.75,
+                "中高": 0.7,
+                "中": 0.6,
+                "一般": 0.5,
+                "中低": 0.45,
+                "较低": 0.35,
+                "低": 0.25,
+            }
+            if normalized in confidence_aliases:
+                return confidence_aliases[normalized]
+            percentage_match = re.fullmatch(r"(\d+(?:\.\d+)?)\s*%", normalized)
+            if percentage_match:
+                return max(0.0, min(float(percentage_match.group(1)) / 100.0, 1.0))
+            try:
+                return max(0.0, min(float(normalized), 1.0))
+            except ValueError:
                 return None
         return None
 
