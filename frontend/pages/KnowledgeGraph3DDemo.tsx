@@ -7,9 +7,10 @@ import {
   Line,
   OrbitControls,
   Sphere,
+  Text,
 } from '@react-three/drei'
 import { Canvas, useThree } from '@react-three/fiber'
-import { Box, GitBranch, Lightbulb } from 'lucide-react'
+import { Box, ChevronDown, GitBranch, Lightbulb } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
@@ -47,6 +48,28 @@ const getNodeLabel = (type: KnowledgeNode['type']) => {
   }
 }
 
+const getEdgeLabel = (type: KnowledgeGraph['edges'][number]['type']) => {
+  switch (type) {
+    case 'leads_to':
+      return '导致'
+    case 'caused_by':
+      return '源于'
+    case 'solved_by':
+      return '解决'
+  }
+}
+
+const getEdgeColor = (type: KnowledgeGraph['edges'][number]['type']) => {
+  switch (type) {
+    case 'leads_to':
+      return '#fb7185'
+    case 'caused_by':
+      return '#f59e0b'
+    case 'solved_by':
+      return '#34d399'
+  }
+}
+
 const getNodeIcon = (type: KnowledgeNode['type']) => {
   switch (type) {
     case 'phenomenon':
@@ -57,6 +80,8 @@ const getNodeIcon = (type: KnowledgeNode['type']) => {
       return Lightbulb
   }
 }
+
+const NODE_GROUP_ORDER: KnowledgeNode['type'][] = ['phenomenon', 'cause', 'solution']
 
 const getNodeRadius = (type: KnowledgeNode['type']) => {
   switch (type) {
@@ -120,6 +145,104 @@ const buildLayeredGraph = (graph: KnowledgeGraph): DemoNode[] => {
       }
     })
   })
+}
+
+const GraphEdge3D: React.FC<{
+  edge: KnowledgeGraph['edges'][number]
+  source: DemoNode
+  target: DemoNode
+  emphasized: boolean
+  dimmed: boolean
+}> = ({ edge, source, target, emphasized, dimmed }) => {
+  const color = getEdgeColor(edge.type)
+  const relationLabel = edge.label || getEdgeLabel(edge.type)
+  const arrowLength = 0.48
+
+  const geometry = useMemo(() => {
+    const sourceVector = new THREE.Vector3(...source.position)
+    const targetVector = new THREE.Vector3(...target.position)
+    const direction = targetVector.clone().sub(sourceVector)
+    const unitDirection = direction.clone().normalize()
+    const start = sourceVector
+      .clone()
+      .add(unitDirection.clone().multiplyScalar(getNodeRadius(source.type) * 1.15))
+    const end = targetVector
+      .clone()
+      .add(unitDirection.clone().multiplyScalar(-getNodeRadius(target.type) * 1.45))
+    const visibleDirection = end.clone().sub(start)
+    const visibleLength = Math.max(visibleDirection.length(), 0.001)
+    const visibleUnitDirection = visibleDirection.clone().normalize()
+    const midpoint = start.clone().lerp(end, 0.5)
+    const arrowPosition = end.clone().add(visibleUnitDirection.clone().multiplyScalar(-arrowLength / 2))
+    const arrowQuaternion = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      visibleUnitDirection
+    )
+
+    return {
+      points: [
+        start.toArray() as [number, number, number],
+        end.toArray() as [number, number, number],
+      ],
+      midpoint: midpoint.toArray() as [number, number, number],
+      arrowPosition: arrowPosition.toArray() as [number, number, number],
+      arrowQuaternion,
+      visibleLength,
+    }
+  }, [arrowLength, source.position, source.type, target.position, target.type])
+
+  return (
+    <group>
+      <Line
+        points={geometry.points}
+        color={color}
+        transparent
+        opacity={dimmed ? 0.14 : emphasized ? 0.96 : 0.48}
+        lineWidth={emphasized ? 2.8 : 1.45}
+      />
+      <mesh
+        position={geometry.arrowPosition}
+        quaternion={geometry.arrowQuaternion}
+        scale={emphasized ? 1.12 : 1}
+      >
+        <coneGeometry args={[0.16, arrowLength, 18]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={emphasized ? 1.05 : 0.5}
+          transparent
+          opacity={dimmed ? 0.2 : emphasized ? 0.98 : 0.72}
+          roughness={0.24}
+          metalness={0.08}
+        />
+      </mesh>
+      <Billboard follow position={geometry.midpoint}>
+        <group visible={geometry.visibleLength >= 2.2}>
+          <mesh position={[0, 0, -0.01]}>
+            <planeGeometry args={[1.1, 0.36]} />
+            <meshBasicMaterial
+              color={emphasized ? '#020617' : '#0f172a'}
+              transparent
+              opacity={dimmed ? 0.14 : emphasized ? 0.86 : 0.58}
+              depthWrite={false}
+            />
+          </mesh>
+          <Text
+            fontSize={emphasized ? 0.22 : 0.2}
+            color={emphasized ? '#dbeafe' : '#e2e8f0'}
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.02}
+            outlineColor="#020617"
+            fillOpacity={dimmed ? 0.2 : 0.96}
+            material-depthWrite={false}
+          >
+            {relationLabel}
+          </Text>
+        </group>
+      </Billboard>
+    </group>
+  )
 }
 
 const GraphNodeMesh: React.FC<{
@@ -281,6 +404,23 @@ const GraphScene: React.FC<{
 }) => {
   const nodes = useMemo(() => buildLayeredGraph(graph), [graph])
   const nodeMap = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes])
+  const emphasizedEdgeIds = useMemo(() => {
+    if (!selectedNodeId && !hoveredNodeId) return new Set<string>()
+
+    const activeNodeIds = new Set<string>()
+    if (selectedNodeId) activeNodeIds.add(selectedNodeId)
+    if (hoveredNodeId) activeNodeIds.add(hoveredNodeId)
+
+    return new Set(
+      graph.edges
+        .filter((edge) => {
+          const sourceId = typeof edge.source === 'string' ? edge.source : edge.source.id
+          const targetId = typeof edge.target === 'string' ? edge.target : edge.target.id
+          return activeNodeIds.has(sourceId) || activeNodeIds.has(targetId)
+        })
+        .map((edge) => edge.id)
+    )
+  }, [graph.edges, hoveredNodeId, selectedNodeId])
   const controlsRef = useRef<{
     target: THREE.Vector3
     update: () => void
@@ -316,13 +456,13 @@ const GraphScene: React.FC<{
         if (!source || !target) return null
 
         return (
-          <Line
+          <GraphEdge3D
             key={edge.id}
-            points={[source.position, target.position]}
-            color="#60a5fa"
-            transparent
-            opacity={0.42}
-            lineWidth={1.2}
+            edge={edge}
+            source={source}
+            target={target}
+            emphasized={emphasizedEdgeIds.has(edge.id)}
+            dimmed={emphasizedEdgeIds.size > 0 && !emphasizedEdgeIds.has(edge.id)}
           />
         )
       })}
@@ -361,9 +501,85 @@ const GraphScene: React.FC<{
 
 const KnowledgeGraph3DDemo: React.FC = () => {
   const graph = useMemo(() => getAllKnowledgeGraphsMerged(), [])
+  const canvasContainerRef = useRef<HTMLDivElement | null>(null)
+  const navigationNodes = useMemo(() => {
+    return buildLayeredGraph(graph).sort((a, b) => {
+      if (a.type !== b.type) {
+        return getNodeLabel(a.type).localeCompare(getNodeLabel(b.type), 'zh-CN')
+      }
+      return a.label.localeCompare(b.label, 'zh-CN')
+    })
+  }, [graph])
   const [selectedNode, setSelectedNode] = useState<DemoNode | null>(null)
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
   const [focusKey, setFocusKey] = useState(0)
+  const [nodeQuery, setNodeQuery] = useState('')
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<KnowledgeNode['type'], boolean>>({
+    phenomenon: false,
+    cause: false,
+    solution: false,
+  })
+
+  const handleSelectNode = (node: DemoNode) => {
+    setSelectedNode(node)
+    setFocusKey((value) => value + 1)
+  }
+
+  const filteredNavigationNodes = useMemo(() => {
+    const normalizedQuery = nodeQuery.trim().toLowerCase()
+    if (!normalizedQuery) return navigationNodes
+
+    return navigationNodes.filter((node) => {
+      return (
+        node.label.toLowerCase().includes(normalizedQuery) ||
+        node.rawLabel.toLowerCase().includes(normalizedQuery) ||
+        node.description.toLowerCase().includes(normalizedQuery)
+      )
+    })
+  }, [navigationNodes, nodeQuery])
+
+  const groupedNavigationNodes = useMemo(() => {
+    const groups: Record<KnowledgeNode['type'], DemoNode[]> = {
+      phenomenon: [],
+      cause: [],
+      solution: [],
+    }
+
+    filteredNavigationNodes.forEach((node) => {
+      groups[node.type].push(node)
+    })
+
+    return groups
+  }, [filteredNavigationNodes])
+
+  useEffect(() => {
+    const container = canvasContainerRef.current
+    if (!container) return
+
+    const updateCanvasSize = () => {
+      const rect = container.getBoundingClientRect()
+      setCanvasSize({
+        width: Math.max(0, Math.floor(rect.width)),
+        height: Math.max(0, Math.floor(rect.height)),
+      })
+    }
+
+    const observer = new ResizeObserver(() => {
+      updateCanvasSize()
+    })
+
+    observer.observe(container)
+    updateCanvasSize()
+    const rafId = window.requestAnimationFrame(updateCanvasSize)
+    const timerId = window.setTimeout(updateCanvasSize, 120)
+
+    return () => {
+      observer.disconnect()
+      window.cancelAnimationFrame(rafId)
+      window.clearTimeout(timerId)
+    }
+  }, [])
 
   if (!graph) {
     return (
@@ -374,8 +590,8 @@ const KnowledgeGraph3DDemo: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-[radial-gradient(circle_at_top,#102242_0%,#09111f_48%,#050814_100%)] text-white">
-      <div className="w-[22rem] shrink-0 border-r border-white/10 bg-slate-950/55 p-5 backdrop-blur-xl">
+    <div className="flex h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#102242_0%,#09111f_48%,#050814_100%)] text-white">
+      <div className="flex h-full w-[22rem] shrink-0 flex-col overflow-hidden border-r border-white/10 bg-slate-950/55 p-5 backdrop-blur-xl">
         <div className="mt-6">
           <p className="text-[11px] uppercase tracking-[0.28em] text-cyan-300/80">
             Knowledge Graph
@@ -399,7 +615,7 @@ const KnowledgeGraph3DDemo: React.FC = () => {
           ))}
         </div>
 
-        <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+        <div className="mt-6 shrink-0 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
           <p className="text-xs text-slate-400">节点详情</p>
           {selectedNode ? (
             <div className="mt-3">
@@ -424,9 +640,99 @@ const KnowledgeGraph3DDemo: React.FC = () => {
             </p>
           )}
         </div>
+
+        <div className="mt-6 flex min-h-0 flex-1 flex-col rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-slate-400">节点导航</p>
+            <span className="text-[11px] text-slate-500">
+              {filteredNavigationNodes.length} 个结果
+            </span>
+          </div>
+          <input
+            type="text"
+            value={nodeQuery}
+            onChange={(event) => setNodeQuery(event.target.value)}
+            placeholder="搜索异常、原因、方案"
+            className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-400/60"
+          />
+          <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+            {NODE_GROUP_ORDER.map((groupType) => {
+              const groupNodes = groupedNavigationNodes[groupType]
+              const isCollapsed = collapsedGroups[groupType]
+              const groupLabel = getNodeLabel(groupType)
+
+              if (groupNodes.length === 0) {
+                return null
+              }
+
+              return (
+                <div
+                  key={groupType}
+                  className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/28"
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCollapsedGroups((current) => ({
+                        ...current,
+                        [groupType]: !current[groupType],
+                      }))
+                    }
+                    className="flex w-full items-center justify-between px-3 py-2.5 text-left transition hover:bg-white/[0.04]"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-slate-100">{groupLabel}</p>
+                      <p className="text-[11px] text-slate-500">{groupNodes.length} 个节点</p>
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      className={`text-slate-400 transition-transform ${
+                        isCollapsed ? '-rotate-90' : 'rotate-0'
+                      }`}
+                    />
+                  </button>
+
+                  {!isCollapsed && (
+                    <div className="space-y-2 border-t border-white/10 px-2 pb-2 pt-2">
+                      {groupNodes.map((node) => {
+                        const isSelected = selectedNode?.id === node.id
+                        return (
+                          <button
+                            key={node.id}
+                            type="button"
+                            onClick={() => handleSelectNode(node)}
+                            className={`w-full rounded-2xl border px-3 py-2 text-left transition ${
+                              isSelected
+                                ? 'border-cyan-300/60 bg-cyan-400/12'
+                                : 'border-white/10 bg-slate-950/35 hover:border-white/20 hover:bg-white/[0.05]'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="truncate text-sm font-medium text-slate-100">
+                                {node.label}
+                              </span>
+                            </div>
+                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">
+                              {node.description}
+                            </p>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+            {filteredNavigationNodes.length === 0 && (
+              <div className="rounded-2xl border border-dashed border-white/10 px-3 py-4 text-center text-sm text-slate-500">
+                没搜到匹配节点，换个关键词试试
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="relative flex-1">
+      <div ref={canvasContainerRef} className="relative min-h-0 flex-1 overflow-hidden">
         <div className="absolute left-6 top-6 z-10 rounded-full border border-white/10 bg-slate-950/60 px-4 py-2 text-xs text-slate-200 backdrop-blur">
           鼠标左键自由旋转，滚轮缩放，右键平移
         </div>
@@ -434,20 +740,28 @@ const KnowledgeGraph3DDemo: React.FC = () => {
           悬停节点显示名称，点击节点聚焦查看
         </div>
 
-        <Canvas camera={{ position: [0, 9, 24], fov: 40 }} dpr={[1, 1.75]}>
-          <GraphScene
-            graph={graph}
-            selectedNodeId={selectedNode?.id}
-            selectedNodePosition={selectedNode?.position}
-            focusKey={focusKey}
-            hoveredNodeId={hoveredNodeId || undefined}
-            onSelect={(node) => {
-              setSelectedNode(node)
-              setFocusKey((value) => value + 1)
-            }}
-            onHover={setHoveredNodeId}
-          />
-        </Canvas>
+        {canvasSize.width > 0 && canvasSize.height > 0 ? (
+          <Canvas
+            key={`${canvasSize.width}x${canvasSize.height}`}
+            camera={{ position: [0, 9, 24], fov: 40 }}
+            dpr={[1, 1.75]}
+            className="h-full w-full"
+          >
+            <GraphScene
+              graph={graph}
+              selectedNodeId={selectedNode?.id}
+              selectedNodePosition={selectedNode?.position}
+              focusKey={focusKey}
+              hoveredNodeId={hoveredNodeId || undefined}
+              onSelect={handleSelectNode}
+              onHover={setHoveredNodeId}
+            />
+          </Canvas>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-[#09111f] text-sm text-slate-400">
+            正在初始化 3D 图谱...
+          </div>
+        )}
       </div>
     </div>
   )

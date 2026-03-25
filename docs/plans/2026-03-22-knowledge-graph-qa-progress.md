@@ -9,6 +9,40 @@
 - 状态：后端已切换到 LangChain 路线，统一问答 API 已打通 `graph + keyword + vector + fusion + grouped prompt` 主链路；文档 RAG 已接入真实 PDF 语料，已完成 `jinaai/jina-embeddings-v2-small-en` 本地索引重建、查询英文化扩展、`Chroma` 向量库接入、全 LangChain ingestion / RAG 主干收口，以及 OpenAI 兼容 LLM 的原始 `httpx` 调用改造；前端已接入真实 API
 
 ## 已完成
+### 生产环境联调与排障（2026-03-24）
+- ✅ 已读取生产部署记录并完成远程连接验证：
+  - `docs/部署指南/生产环境部署记录.md`
+  - 已确认生产服务器为 `116.62.78.162`
+- ✅ 已定位格物图谱页面问答“像没走 LLM” 的直接根因：
+  - 生产后端日志显示 `knowledge_qa ask requested_route=graph executed_modes=['graph']`
+  - 同时 `app.services.langchain_service` 在 `_chat_completions_url` 构造阶段报错
+  - 结果导致问答流程静默退回 `QAAnswerService` 模板兜底，表现为：
+    - 返回固定话术，如“结合现有经验先给出简要判断”
+    - 文本中出现“已检索到3条相关信息”，但实际不是 LLM 正常生成
+- ✅ 已确认本次问题不是“图谱-only 路由策略”本身导致：
+  - 用户此前已明确为了规避文档检索耗时，生产侧允许只走图谱
+  - 当前目标已收敛为“先保证即使只走图谱，回答也能正常经过 LLM”
+- ✅ 已完成生产环境 LLM 配置补齐：
+  - 远程文件：`/root/guanlan-sina/.env`
+  - 已新增并生效：
+    - `LLM_PROVIDER=openai`
+    - `LLM_MODEL=openrouter/free`
+    - `LLM_TEMPERATURE=0.1`
+    - `LLM_API_KEY=***`
+    - `LLM_BASE_URL=https://openrouter.ai/api/v1`
+  - 根因说明：
+    - 生产环境此前仅保留旧的 `OPENAI_API_KEY`
+    - 未同步当前代码已切换使用的 `LLM_API_KEY / LLM_BASE_URL / LLM_MODEL` 新字段
+- ✅ 已完成生产后端重启与在线验证：
+  - 已重启 `backend` 容器使新环境变量生效
+  - 已验证生产接口 `POST /api/v1/knowledge-qa/ask` 可返回 LLM 生成内容
+  - 已验证后端日志实际发起：
+    - `POST https://openrouter.ai/api/v1/chat/completions`
+    - 并收到 `HTTP/1.1 200 OK`
+- ✅ 已确认当前生产状态符合“先让 LLM 回答”目标：
+  - 问答已不再停留在模板兜底文案
+  - 即使当前仍只执行 `graph` 路由，只要 LLM 配置存在，也能给出经验性回答
+
 ### Task 1：LangChain 配置与回答器
 - ✅ 新增 LangChain 服务：
   - `backend/app/services/langchain_service.py`
@@ -224,6 +258,9 @@
 
 ## 未完成
 ### 后端待完善
+- ⏳ 生产环境问答当前仍主要走 `graph` 路由，且部分问题存在 `graph_hits=0` 情况
+- ⏳ 当 `graph_hits=0` 时，虽然 LLM 已能回答，但引用为空，返回文案仍可能出现“已检索到3条相关信息”这类不严谨表述
+- ⏳ 生产环境当前优先满足“只走图谱也能走 LLM”，尚未恢复文档检索链路
 - ⏳ 还未做更细粒度异常分类与结果质量评估
 - ⏳ 文档更新说明（Task 4）尚未补写
 - ⏳ 仍需继续优化文档筛选、chunk 清洗和召回排序权重
@@ -260,6 +297,9 @@
 - 本地真实接口验证已通过：
   - `GET /api/v1/utils/health-check/` 返回 `200`
   - `POST /api/v1/knowledge-qa/ask` 已可返回 LLM 生成的结构化结果文本（含 `结论 / 使用来源 / 缺失信息 / 置信度`）
+- 生产环境真实接口验证已通过：
+  - `POST http://116.62.78.162:8000/api/v1/knowledge-qa/ask` 已可返回 LLM 生成内容
+  - 生产后端日志已确认上游 `https://openrouter.ai/api/v1/chat/completions` 返回 `200 OK`
 - `npm run lint` 未通过（前端依赖未安装，已停止）
   - 错误：`'biome' is not recognized as an internal or external command`
   - 原因：`frontend/node_modules` 不存在，当前环境未安装前端依赖
@@ -282,9 +322,13 @@
 - 曾尝试接入 `Voyage` 作为免费 embedding provider，但未绑支付方式账号会被限制到 `3 RPM / 10K TPM`，不适合当前全量索引构建；当前已回退为本地 BAAI 方案
 - 当前已确认英文 PDF + 中文问题场景不适合继续依赖中文专用 embedding 模型；当前已切到更轻量的英文 embedding 模型配置，并通过查询英文化扩展进行补偿
 - 当前已确认 `https://newapi.zhenhaoji.qzz.io/v1` 可通过原始 HTTP `POST /chat/completions` 正常访问并返回 `gpt-5.2` 响应，但对 `openai` / `langchain_openai` SDK 兼容性不稳定，已改为原始 `httpx` 适配方案
+- 当前已确认生产环境曾因 `.env` 缺少 `LLM_PROVIDER / LLM_MODEL / LLM_API_KEY / LLM_BASE_URL` 新字段而退回模板回答；现已在服务器补齐配置并恢复 LLM 调用
 - 后续优先建议：
-  1. 先收 `hybrid` 的图谱误召回，避免 `SMT/SPI` 手册问题混入 `PCB` 图谱事实
-  2. 针对 `SPI设备手册` 类问题继续调优向量 Top1 命中
-  3. 继续补 query 扩展词表与排序规则，减少泛化工艺文档抢位
-  4. 做 document/vector 结果质量评估与更细粒度问题分类
-  5. 补 Task 4 的文档更新说明
+  1. 先把生产返回中的假来源/假命中文案收干净，避免 `citations=[]` 但文本还写“已检索到3条相关信息”
+  2. 明确生产侧 `graph-only` 模式下的回答与引用策略，别整得像检索命中了其实啥也没有
+  3. 若后续允许恢复 `hybrid/document`，再重新评估时延与召回质量
+  4. 先收 `hybrid` 的图谱误召回，避免 `SMT/SPI` 手册问题混入 `PCB` 图谱事实
+  5. 针对 `SPI设备手册` 类问题继续调优向量 Top1 命中
+  6. 继续补 query 扩展词表与排序规则，减少泛化工艺文档抢位
+  7. 做 document/vector 结果质量评估与更细粒度问题分类
+  8. 补 Task 4 的文档更新说明

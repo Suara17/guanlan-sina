@@ -23,6 +23,13 @@ interface PositionedNode extends SimNode {
   y: number
 }
 
+interface EdgeGeometry {
+  path: string
+  labelX: number
+  labelY: number
+  angle: number
+}
+
 const getNodeId = (value: string | SimNode): string =>
   typeof value === 'string' ? value : value.id
 
@@ -53,6 +60,9 @@ const getSelectedStroke = (type: KnowledgeNode['type']): string => {
 const truncateLabel = (label: string): string =>
   label.length > 10 ? `${label.slice(0, 8)}...` : label
 
+const truncateEdgeLabel = (label: string): string =>
+  label.length > 12 ? `${label.slice(0, 10)}...` : label
+
 const getIntersection = (node: PositionedNode, angle: number, isTarget: boolean) => {
   const padding = isTarget ? 10 : 8
   let distance = 0
@@ -75,6 +85,44 @@ const getIntersection = (node: PositionedNode, angle: number, isTarget: boolean)
   return {
     x: node.x + Math.cos(angle) * distance,
     y: node.y + Math.sin(angle) * distance,
+  }
+}
+
+const getEdgeStroke = (type: KnowledgeEdge['type']): string => {
+  switch (type) {
+    case 'leads_to':
+      return '#f97316'
+    case 'caused_by':
+      return '#f59e0b'
+    case 'solved_by':
+      return '#10b981'
+    default:
+      return '#94a3b8'
+  }
+}
+
+const getCurvedEdgeGeometry = (source: PositionedNode, target: PositionedNode): EdgeGeometry => {
+  const forwardAngle = Math.atan2(target.y - source.y, target.x - source.x)
+  const reverseAngle = Math.atan2(source.y - target.y, source.x - target.x)
+  const start = getIntersection(source, forwardAngle, false)
+  const end = getIntersection(target, reverseAngle, true)
+
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  const distance = Math.sqrt(dx * dx + dy * dy) || 1
+  const normalX = -dy / distance
+  const normalY = dx / distance
+  const curvature = Math.min(Math.max(distance * 0.18, 18), 42)
+  const controlX = (start.x + end.x) / 2 + normalX * curvature
+  const controlY = (start.y + end.y) / 2 + normalY * curvature
+  const angle = (Math.atan2(end.y - start.y, end.x - start.x) * 180) / Math.PI
+  const normalizedAngle = angle > 90 || angle < -90 ? angle + 180 : angle
+
+  return {
+    path: `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`,
+    labelX: start.x * 0.25 + controlX * 0.5 + end.x * 0.25,
+    labelY: start.y * 0.25 + controlY * 0.5 + end.y * 0.25,
+    angle: normalizedAngle,
   }
 }
 
@@ -379,6 +427,20 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
       }))
   }, [graphData.edges, activeVisibleNodeIds])
 
+  const selectedNeighborNodeIds = useMemo(() => {
+    if (!selectedNodeId) return new Set<string>()
+
+    const neighborIds = new Set<string>()
+    visibleEdges.forEach((edge) => {
+      const sourceId = getNodeId(edge.source as string | SimNode)
+      const targetId = getNodeId(edge.target as string | SimNode)
+      if (sourceId === selectedNodeId) neighborIds.add(targetId)
+      if (targetId === selectedNodeId) neighborIds.add(sourceId)
+    })
+
+    return neighborIds
+  }, [visibleEdges, selectedNodeId])
+
   useEffect(() => {
     if (!svgRef.current) return
     if (!visibleNodes.length) return
@@ -441,6 +503,16 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
     const nodesLayer = rootSelection.select<SVGGElement>('g.nodes-layer')
 
     const nodeMap = new Map(visibleNodes.map((node) => [node.id, node]))
+    const connectedEdgeIds = new Set<string>()
+    if (selectedNodeId) {
+      visibleEdges.forEach((edge) => {
+        const sourceId = getNodeId(edge.source as string | SimNode)
+        const targetId = getNodeId(edge.target as string | SimNode)
+        if (sourceId === selectedNodeId || targetId === selectedNodeId) {
+          connectedEdgeIds.add(edge.id)
+        }
+      })
+    }
 
     // 边的渲染 - 在 links-layer 中
     const linkJoin = linksLayer
@@ -449,64 +521,82 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
     const linkEnter = linkJoin.enter().append('g').attr('class', 'link').attr('opacity', 0)
 
     linkEnter
-      .append('line')
-      .attr('stroke', '#94a3b8')
-      .attr('stroke-opacity', 0.62)
-      .attr('stroke-width', 1.6)
+      .append('path')
+      .attr('class', 'link-path')
+      .attr('fill', 'none')
+      .attr('stroke', (edge) => getEdgeStroke(edge.type))
+      .attr('stroke-opacity', 0.8)
+      .attr('stroke-width', 2)
       .attr('marker-end', 'url(#kg-arrow)')
 
     linkEnter
+      .append('rect')
+      .attr('class', 'link-label-bg')
+      .attr('rx', 6)
+      .attr('ry', 6)
+      .attr('fill', 'rgba(255,255,255,0.92)')
+      .attr('stroke', '#cbd5e1')
+      .attr('stroke-width', 0.8)
+
+    linkEnter
       .append('text')
+      .attr('class', 'link-label')
       .attr('text-anchor', 'middle')
-      .attr('dy', -6)
-      .attr('fill', '#64748b')
+      .attr('dominant-baseline', 'middle')
+      .attr('fill', '#334155')
       .attr('font-size', '10px')
-      .text((edge) => getEdgeLabel(edge))
+      .attr('font-weight', '700')
+      .attr('paint-order', 'stroke')
+      .attr('stroke', 'rgba(255,255,255,0.96)')
+      .attr('stroke-width', 3)
+      .text((edge) => truncateEdgeLabel(getEdgeLabel(edge)))
 
     linkEnter.transition().duration(360).attr('opacity', 1)
     linkJoin.exit().transition().duration(220).attr('opacity', 0).remove()
     const linkMerged = linkEnter.merge(linkJoin as any)
 
     linkMerged
-      .select('line')
-      .attr('x1', (edge) => {
+      .select<SVGPathElement>('.link-path')
+      .attr('d', (edge) => {
         const source = nodeMap.get(getNodeId(edge.source)) as PositionedNode
         const target = nodeMap.get(getNodeId(edge.target)) as PositionedNode
-        const angle = Math.atan2(target.y - source.y, target.x - source.x)
-        return getIntersection(source, angle, false).x
+        return getCurvedEdgeGeometry(source, target).path
       })
-      .attr('y1', (edge) => {
-        const source = nodeMap.get(getNodeId(edge.source)) as PositionedNode
-        const target = nodeMap.get(getNodeId(edge.target)) as PositionedNode
-        const angle = Math.atan2(target.y - source.y, target.x - source.x)
-        return getIntersection(source, angle, false).y
-      })
-      .attr('x2', (edge) => {
-        const source = nodeMap.get(getNodeId(edge.source)) as PositionedNode
-        const target = nodeMap.get(getNodeId(edge.target)) as PositionedNode
-        const angle = Math.atan2(source.y - target.y, source.x - target.x)
-        return getIntersection(target, angle, true).x
-      })
-      .attr('y2', (edge) => {
-        const source = nodeMap.get(getNodeId(edge.source)) as PositionedNode
-        const target = nodeMap.get(getNodeId(edge.target)) as PositionedNode
-        const angle = Math.atan2(source.y - target.y, source.x - target.x)
-        return getIntersection(target, angle, true).y
-      })
+      .attr('stroke', (edge) => getEdgeStroke(edge.type))
+      .attr('stroke-width', (edge) =>
+        !selectedNodeId ? 2 : connectedEdgeIds.has(edge.id) ? 2.8 : 1.4
+      )
+      .attr('stroke-opacity', (edge) =>
+        !selectedNodeId ? 0.82 : connectedEdgeIds.has(edge.id) ? 0.96 : 0.16
+      )
 
-    linkMerged
-      .select('text')
-      .text((edge) => getEdgeLabel(edge))
-      .attr('x', (edge) => {
-        const source = nodeMap.get(getNodeId(edge.source)) as PositionedNode
-        const target = nodeMap.get(getNodeId(edge.target)) as PositionedNode
-        return (source.x + target.x) / 2
-      })
-      .attr('y', (edge) => {
-        const source = nodeMap.get(getNodeId(edge.source)) as PositionedNode
-        const target = nodeMap.get(getNodeId(edge.target)) as PositionedNode
-        return (source.y + target.y) / 2
-      })
+    linkMerged.each(function (edge) {
+      const source = nodeMap.get(getNodeId(edge.source)) as PositionedNode
+      const target = nodeMap.get(getNodeId(edge.target)) as PositionedNode
+      const geometry = getCurvedEdgeGeometry(source, target)
+      const isConnected = !selectedNodeId || connectedEdgeIds.has(edge.id)
+      const labelText = truncateEdgeLabel(getEdgeLabel(edge))
+
+      const textSelection = d3.select(this).select<SVGTextElement>('.link-label')
+      textSelection
+        .text(labelText)
+        .attr('x', geometry.labelX)
+        .attr('y', geometry.labelY)
+        .attr('transform', `rotate(${geometry.angle}, ${geometry.labelX}, ${geometry.labelY})`)
+        .attr('fill-opacity', isConnected ? 1 : 0.26)
+
+      const textNode = textSelection.node()
+      const bbox = textNode?.getBBox()
+      d3.select(this)
+        .select<SVGRectElement>('.link-label-bg')
+        .attr('x', bbox ? bbox.x - 6 : geometry.labelX - 18)
+        .attr('y', bbox ? bbox.y - 2 : geometry.labelY - 8)
+        .attr('width', bbox ? bbox.width + 12 : 36)
+        .attr('height', bbox ? bbox.height + 4 : 16)
+        .attr('transform', `rotate(${geometry.angle}, ${geometry.labelX}, ${geometry.labelY})`)
+        .attr('fill-opacity', isConnected ? 0.92 : 0.28)
+        .attr('stroke-opacity', isConnected ? 0.88 : 0.2)
+    })
 
     // 节点的渲染 - 在 nodes-layer 中
     const nodeJoin = nodesLayer
@@ -577,15 +667,34 @@ const KnowledgeGraphCanvas: React.FC<Props> = ({
     nodeMerged
       .on('click', (_, node) => onNodeClickRef.current(node))
       .attr('transform', (node) => `translate(${node.x},${node.y})`)
+      .attr('opacity', (node) => {
+        if (!selectedNodeId) return 1
+        if (node.id === selectedNodeId || selectedNeighborNodeIds.has(node.id)) return 1
+        return 0.34
+      })
 
     nodeMerged.each(function (node) {
       d3.select(this)
         .select<SVGElement>('.node-shape')
         .attr('stroke', selectedNodeId === node.id ? getSelectedStroke(node.type) : 'none')
         .attr('stroke-width', selectedNodeId === node.id ? 3 : 0)
-      d3.select(this).select('text').text(truncateLabel(node.label))
+        .attr(
+          'opacity',
+          selectedNodeId && node.id !== selectedNodeId && !selectedNeighborNodeIds.has(node.id)
+            ? 0.58
+            : 1
+        )
+      d3.select(this)
+        .select('text')
+        .text(truncateLabel(node.label))
+        .attr(
+          'opacity',
+          selectedNodeId && node.id !== selectedNodeId && !selectedNeighborNodeIds.has(node.id)
+            ? 0.62
+            : 1
+        )
     })
-  }, [visibleNodes, visibleEdges, selectedNodeId])
+  }, [visibleNodes, visibleEdges, selectedNodeId, selectedNeighborNodeIds])
 
   return (
     <div

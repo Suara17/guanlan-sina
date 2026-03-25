@@ -6,6 +6,19 @@ from app.core.config import settings
 from app.services.embedding_service import EmbeddingService
 
 
+class _EmbeddingServiceAdapter:
+    def __init__(self) -> None:
+        self._embedding_service = EmbeddingService()
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        vectors = self._embedding_service.embed_documents(texts)
+        return vectors or []
+
+    def embed_query(self, text: str) -> list[float]:
+        vector = self._embedding_service.embed_query(text)
+        return vector or []
+
+
 class ChromaVectorStoreService:
     def __init__(
         self,
@@ -216,6 +229,8 @@ class ChromaVectorStoreService:
                     encode_kwargs=encode_kwargs,
                 )
         except Exception:
+            if provider == "huggingface_local":
+                return _EmbeddingServiceAdapter()
             return None
         return None
 

@@ -47,7 +47,7 @@ export const ProductChangeAlert: React.FC<ProductChangeAlertProps> = ({
 
   return (
     <div
-      className={`fixed bottom-24 right-6 z-50 transition-all duration-300 ease-out ${
+      className={`fixed bottom-40 right-6 z-50 transition-all duration-300 ease-out md:bottom-44 ${
         isAnimating ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
       }`}
     >

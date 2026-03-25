@@ -13,7 +13,7 @@
 - **后端**: Python 3.10+ (FastAPI, SQLModel, PostgreSQL, Redis, Celery), uv (依赖管理)
 - **前端**: React 19 (Vite 6, TypeScript 5.8, Tailwind CSS, Biome, Recharts)
 - **数据库**: PostgreSQL (主数据库), Neo4j (知识图谱)
-- **AI/LLM**: Google GenAI (Gemini) 集成
+- **AI/LLM**: LangChain + OpenAI 兼容 LLM / Embedding 接入，支持知识图谱问答与文档 RAG
 
 ### 后端开发命令
 ```bash
@@ -25,6 +25,9 @@ docker compose up -d
 
 # 查看后端日志
 docker compose logs backend
+
+# 查看知识问答相关日志
+docker compose logs backend | grep knowledge_qa
 ```
 
 ### 单独管理服务
@@ -79,6 +82,54 @@ uv run alembic revision --autogenerate -m "描述"  # 创建迁移
 uv run alembic upgrade head                       # 应用迁移
 uv run alembic downgrade -1                       # 回滚一步
 ```
+
+### 知识问答开发/验证命令
+
+```bash
+cd backend
+
+# 构建知识问答文档索引
+uv run python app/scripts/build_knowledge_qa_index.py --with-embeddings
+
+# 构建 Chroma 索引
+uv run python app/scripts/build_knowledge_qa_index.py --with-embeddings --with-chroma
+
+# 执行知识问答回归
+uv run python app/scripts/evaluate_knowledge_qa.py --top-k 3
+
+# 运行核心问答测试
+uv run pytest tests/services/test_knowledge_qa_service.py tests/services/test_langchain_service.py tests/services/test_langchain_rag_service.py tests/services/test_qa_answer_service.py tests/api/routes/test_knowledge_qa.py
+```
+
+## 当前重点模块状态
+
+### 知识图谱问答 / 文档 RAG
+
+- 当前统一问答入口为 `POST /api/v1/knowledge-qa/ask`
+- 后端主链路已包含：
+  - `graph / keyword / vector / fusion` 检索编排
+  - LangChain 文档 ingestion 与 RAG 服务
+  - OpenAI 兼容 LLM 的原始 `httpx` 调用适配
+  - `Chroma` 向量库与 `jsonl` 本地回退
+- 前端问答入口已接入：
+  - `frontend/components/AiAssistant.tsx`
+  - `frontend/src/api/knowledgeQaApi.ts`
+  - 格物页、司南页、内核连接页等上下文透传
+- 当前生产策略需区分两种模式：
+  - `graph-only`：优先保证响应时延，允许不走文档检索
+  - `hybrid/document`：召回更全，但耗时更高，需要单独评估
+- 当前已知残留问题：
+  - `graph_hits=0` 时，LLM 虽可回答，但引用可能为空
+  - 个别场景仍可能出现“已检索到3条相关信息”这类与实际命中不完全一致的文案
+
+### 格物页面
+
+- `/app/gewu` 当前已切换为 3D 知识图谱正式视图
+- 页面问答已支持注入当前选中节点上下文：
+  - `selectedNodeId`
+  - `selectedNodeLabel`
+  - `selectedNodeType`
+  - `selectedNodeDescription`
 
 ## 代码风格指南
 
@@ -474,8 +525,41 @@ frontend/
 - 前端组件要考虑加载状态和错误状态
 - 环境变量不要硬编码在代码中
 - 注意Neo4j知识图谱服务的配置和连接
+- 知识问答相关改动不要只改本地 `.env`，生产环境若缺少 `LLM_PROVIDER / LLM_MODEL / LLM_API_KEY / LLM_BASE_URL` 会直接退回模板回答
+- 当前 OpenAI 兼容 LLM 走原始 `httpx`，不要默认假设 `openai` 或 `langchain_openai` SDK 在现网供应商上稳定可用
+- 文档检索耗时明显高于 `graph-only`，上线策略要先明确是保时延还是保召回，别两头都想占，最后啥也没整明白
+
+## 环境变量补充
+
+### 知识问答 / LLM
+
+```bash
+LANGCHAIN_ENABLED=true
+
+LLM_PROVIDER=openai
+LLM_MODEL=openrouter/free
+LLM_TEMPERATURE=0.1
+LLM_API_KEY=your_key
+LLM_BASE_URL=https://openrouter.ai/api/v1
+
+EMBEDDING_PROVIDER=huggingface_local
+EMBEDDING_MODEL=jinaai/jina-embeddings-v2-small-en
+EMBEDDING_API_KEY=
+EMBEDDING_BASE_URL=
+```
+
+### 生产联调注意事项
+
+- 生产部署与连接信息见：
+  - `docs/部署指南/生产环境部署记录.md`
+- 2026-03-24 已确认一个真实坑：
+  - 生产 `.env` 若仍停留在旧的 `OPENAI_API_KEY`，而未补 `LLM_*` 新字段，格物问答会“看起来像没走 LLM”
+  - 实际表现为 `langchain_service` 报错后静默退回模板回答
+- 生产验证时优先看两类信号：
+  - 接口返回是否还是固定兜底话术
+  - 后端日志是否实际打出 `POST ... /chat/completions` 且返回 `200 OK`
 
 ---
 
-*本文档版本: 1.3 | 更新日期: 2026-02-21 | 项目: 弈控经纬*</content>
+*本文档版本: 1.4 | 更新日期: 2026-03-24 | 项目: 弈控经纬*</content>
 <parameter name="filePath">AGENTS.md

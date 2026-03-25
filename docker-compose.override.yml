@@ -82,7 +82,7 @@ services:
       - ./backend/htmlcov:/app/htmlcov
       - ./backend/app/data/knowledge_qa:/app/app/data/knowledge_qa
       - ./docs:/app/docs:ro
-      - backend-hf-cache:/data/hf
+      - backend-hf-cache:/root/.cache/huggingface
       - backend-torch-cache:/data/torch
       - backend-chroma:/data/chroma
 
@@ -91,7 +91,7 @@ services:
     volumes:
       - ./backend/app/data/knowledge_qa:/app/app/data/knowledge_qa
       - ./docs:/app/docs:ro
-      - backend-hf-cache:/data/hf
+      - backend-hf-cache:/root/.cache/huggingface
       - backend-torch-cache:/data/torch
       - backend-chroma:/data/chroma
 

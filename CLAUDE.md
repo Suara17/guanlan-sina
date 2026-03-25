@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **后端**: Python 3.10+ (FastAPI, SQLModel, PostgreSQL, Redis, Celery), uv (依赖管理)
 - **前端**: React 19 (Vite 6, TypeScript 5.8, Tailwind CSS, Biome, Recharts)
 - **数据库**: PostgreSQL (主数据库), Neo4j (知识图谱)
-- **AI/LLM**: Google GenAI (Gemini) 集成
+- **AI/LLM**: LangChain + OpenAI 兼容 LLM / Embedding 接入，支持知识图谱问答与文档 RAG
 
 ## 开发命令
 
@@ -31,6 +31,9 @@ docker compose logs -f backend
 
 # 查看Neo4j知识图谱日志
 docker compose logs -f neo4j
+
+# 查看知识问答日志
+docker compose logs backend | grep knowledge_qa
 ```
 
 ### 前端
@@ -63,6 +66,55 @@ uv run alembic revision --autogenerate -m "描述"  # 创建迁移
 uv run alembic upgrade head                       # 应用迁移
 uv run alembic downgrade -1                       # 回滚一步
 ```
+
+### 知识问答开发命令
+
+```bash
+cd backend
+
+# 构建知识问答索引
+uv run python app/scripts/build_knowledge_qa_index.py --with-embeddings
+
+# 构建带 Chroma 的索引
+uv run python app/scripts/build_knowledge_qa_index.py --with-embeddings --with-chroma
+
+# 执行知识问答回归
+uv run python app/scripts/evaluate_knowledge_qa.py --top-k 3
+
+# 运行核心问答测试
+uv run pytest tests/services/test_knowledge_qa_service.py tests/services/test_langchain_service.py tests/services/test_langchain_rag_service.py tests/services/test_qa_answer_service.py tests/api/routes/test_knowledge_qa.py
+```
+
+## 当前实现重点
+
+### 统一知识问答
+
+- 统一问答 API：`POST /api/v1/knowledge-qa/ask`
+- 主要服务：
+  - `backend/app/services/knowledge_qa_service.py`
+  - `backend/app/services/qa_router.py`
+  - `backend/app/services/qa_fusion_service.py`
+  - `backend/app/services/langchain_service.py`
+  - `backend/app/services/langchain_rag_service.py`
+- 当前检索模式：
+  - `graph`
+  - `keyword`
+  - `vector`
+  - `fusion`
+- 当前上线策略要明确区分：
+  - `graph-only`：响应更快，适合先保证生产可用
+  - `hybrid/document`：信息更全，但文档检索耗时更高
+- 当前已知问题：
+  - `graph_hits=0` 时，LLM 可直接给经验性回答，但引用可能为空
+  - 个别模板/格式化文案仍可能与真实命中数不完全一致
+
+### 前端问答入口
+
+- 前端统一入口已接入真实 API：
+  - `frontend/components/AiAssistant.tsx`
+  - `frontend/src/api/knowledgeQaApi.ts`
+- `KnowledgeGraph` 页面问答已支持注入当前选中节点上下文
+- `/app/gewu` 当前使用 3D 知识图谱正式视图
 
 ## 架构说明
 
@@ -230,7 +282,33 @@ BACKEND_CORS_ORIGINS=http://localhost:5173
 
 # Redis和Celery
 REDIS_URL=redis://localhost:6379/0
+
+# 知识问答 / LLM
+LANGCHAIN_ENABLED=true
+LLM_PROVIDER=openai
+LLM_MODEL=openrouter/free
+LLM_TEMPERATURE=0.1
+LLM_API_KEY=your_key
+LLM_BASE_URL=https://openrouter.ai/api/v1
+
+# Embedding
+EMBEDDING_PROVIDER=huggingface_local
+EMBEDDING_MODEL=jinaai/jina-embeddings-v2-small-en
+EMBEDDING_API_KEY=
+EMBEDDING_BASE_URL=
 ```
+
+### 生产环境注意事项
+
+- 生产部署记录见：`docs/部署指南/生产环境部署记录.md`
+- 2026-03-24 已确认：
+  - 生产环境如果只保留旧的 `OPENAI_API_KEY`，但没有补 `LLM_PROVIDER / LLM_MODEL / LLM_API_KEY / LLM_BASE_URL`
+  - `langchain_service` 会在构造 chat completions URL 时失败
+  - 前端表现会像“没走 LLM”，实际是静默退回模板回答
+- 生产验证知识问答时，至少检查：
+  - 接口是否返回固定模板话术
+  - 后端日志是否真实发起 `POST ... /chat/completions`
+  - 上游是否返回 `200 OK`
 
 ## 开发工作流
 
@@ -295,9 +373,19 @@ npm run lint                # Biome Check
 | 文档路径 | 说明 |
 |---------|------|
 | [frontend/pages/KnowledgeGraph.tsx](./frontend/pages/KnowledgeGraph.tsx) | 知识图谱页面实现 |
+| [frontend/pages/KnowledgeGraph3DDemo.tsx](./frontend/pages/KnowledgeGraph3DDemo.tsx) | 当前格物 3D 知识图谱正式视图 |
 | [backend/app/api/routes/knowledge_graph.py](./backend/app/api/routes/knowledge_graph.py) | 知识图谱API路由 |
 | [backend/app/models.py](./backend/app/models.py) | 包含知识图谱相关的数据模型 |
 
+### 知识问答相关
+
+| 文档路径 | 说明 |
+|---------|------|
+| [docs/plans/2026-03-22-knowledge-graph-qa-progress.md](./docs/plans/2026-03-22-knowledge-graph-qa-progress.md) | 当前知识图谱问答 / 文档 RAG 主进度文档 |
+| [docs/plans/2026-03-23-knowledge-qa-regression-report.md](./docs/plans/2026-03-23-knowledge-qa-regression-report.md) | 文档检索与融合回归报告 |
+| [docs/plans/2026-03-23-knowledge-qa-docs-consolidation.md](./docs/plans/2026-03-23-knowledge-qa-docs-consolidation.md) | 问答入口与相关文档整合说明 |
+| [docs/部署指南/生产环境部署记录.md](./docs/%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2%E8%AE%B0%E5%BD%95.md) | 生产连接与部署记录 |
+
 ---
 
-*本文档版本: 1.3 | 更新日期: 2026-02-22 | 项目: 弈控经纬*
+*本文档版本: 1.4 | 更新日期: 2026-03-24 | 项目: 弈控经纬*

@@ -18,7 +18,7 @@ import {
   Zap,
 } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 interface SimulationScenario {
@@ -48,7 +48,7 @@ interface SimulationScenario {
   }>
   knowledge_graph_nodes: Array<{
     id: string
-    type: 'phenomenon' | 'direct_cause' | 'root_cause'
+    type: 'phenomenon' | 'direct_cause' | 'root_cause' | 'solution'
     label: string
     description?: string
     x: number
@@ -920,6 +920,123 @@ const severityConfig = {
   },
 }
 
+const GRAPH_BASE_WIDTH = 820
+const SOLUTION_GRAPH_START_Y = 370
+const SOLUTION_GRAPH_ROW_GAP = 86
+const GRAPH_VIEWBOX_PADDING = 72
+const DEFAULT_GRAPH_NODE_WIDTH = 136
+const SOLUTION_GRAPH_NODE_WIDTH = 172
+const GRAPH_NODE_HEIGHT = 36
+const GRAPH_NODE_FONT_SIZE = 13
+const EXECUTION_PROGRESS_STEP = 8
+const EXECUTION_INTERVAL_MS = 280
+const EXECUTION_STAGES = [
+  { threshold: 10, label: '已接收模拟指令，正在初始化方案...' },
+  { threshold: 30, label: '正在通知相关设备并同步停机窗口...' },
+  { threshold: 55, label: '技术人员与工艺参数校验中...' },
+  { threshold: 80, label: '正在执行维修操作并回传状态...' },
+  { threshold: 100, label: '正在验证恢复结果并准备复产...' },
+] as const
+
+const enrichScenarioGraph = (scenario: SimulationScenario): SimulationScenario => {
+  const normalizedNodes = scenario.knowledge_graph_nodes.map((node) => ({ ...node }))
+  const normalizedEdges = scenario.knowledge_graph_edges.map((edge) => ({ ...edge }))
+
+  const rootCauseNodes = normalizedNodes.filter((node) => node.type === 'root_cause')
+  const anchorRootNode = rootCauseNodes[rootCauseNodes.length - 1] ?? normalizedNodes[0]
+  const rootNodeId = anchorRootNode?.id
+  const existingNodeIds = new Set(normalizedNodes.map((node) => node.id))
+  const existingEdgeIds = new Set(normalizedEdges.map((edge) => edge.id))
+  const existingSolutionNodeLabels = new Set(
+    normalizedNodes
+      .filter((node) => node.type === 'solution')
+      .map((node) => node.label.trim().toLowerCase())
+  )
+
+  scenario.solutions.forEach((solution, index) => {
+    const normalizedTitle = solution.title.trim().toLowerCase()
+    const solutionNodeId = `solution-${solution.id}`
+
+    if (!existingSolutionNodeLabels.has(normalizedTitle) && !existingNodeIds.has(solutionNodeId)) {
+      const columnCount = Math.max(Math.min(scenario.solutions.length, 2), 1)
+      const slotWidth = GRAPH_BASE_WIDTH / (columnCount + 1)
+      const columnIndex = index % columnCount
+      const rowIndex = Math.floor(index / columnCount)
+
+      normalizedNodes.push({
+        id: solutionNodeId,
+        type: 'solution',
+        label: solution.title,
+        description: solution.description || `预计耗时 ${solution.implementation_time_hours} 小时`,
+        x: slotWidth * (columnIndex + 1),
+        y: SOLUTION_GRAPH_START_Y + rowIndex * SOLUTION_GRAPH_ROW_GAP,
+      })
+      existingNodeIds.add(solutionNodeId)
+      existingSolutionNodeLabels.add(normalizedTitle)
+    }
+
+    if (rootNodeId) {
+      const edgeId = `edge-${rootNodeId}-${solutionNodeId}`
+      if (!existingEdgeIds.has(edgeId)) {
+        normalizedEdges.push({
+          id: edgeId,
+          source: rootNodeId,
+          target: solutionNodeId,
+          type: 'solved_by',
+        })
+        existingEdgeIds.add(edgeId)
+      }
+    }
+  })
+
+  return {
+    ...scenario,
+    knowledge_graph_nodes: normalizedNodes,
+    knowledge_graph_edges: normalizedEdges,
+  }
+}
+
+const getNodeHalfWidth = (
+  type: SimulationScenario['knowledge_graph_nodes'][number]['type']
+): number => {
+  switch (type) {
+    case 'solution':
+      return SOLUTION_GRAPH_NODE_WIDTH / 2
+    default:
+      return DEFAULT_GRAPH_NODE_WIDTH / 2
+  }
+}
+
+const getGraphViewBox = (scenario: SimulationScenario | null): string => {
+  if (!scenario || scenario.knowledge_graph_nodes.length === 0) {
+    return `0 0 ${GRAPH_BASE_WIDTH} 560`
+  }
+
+  let minX = Number.POSITIVE_INFINITY
+  let maxX = Number.NEGATIVE_INFINITY
+  let minY = Number.POSITIVE_INFINITY
+  let maxY = Number.NEGATIVE_INFINITY
+
+  scenario.knowledge_graph_nodes.forEach((node) => {
+    const halfWidth = getNodeHalfWidth(node.type)
+    minX = Math.min(minX, node.x - halfWidth)
+    maxX = Math.max(maxX, node.x + halfWidth)
+    minY = Math.min(minY, node.y - GRAPH_NODE_HEIGHT / 2 - 10)
+    maxY = Math.max(maxY, node.y + GRAPH_NODE_HEIGHT / 2 + 10)
+  })
+
+  const width = Math.max(maxX - minX + GRAPH_VIEWBOX_PADDING * 2, GRAPH_BASE_WIDTH)
+  const height = Math.max(maxY - minY + GRAPH_VIEWBOX_PADDING * 2, 420)
+  const offsetX = minX - GRAPH_VIEWBOX_PADDING - (GRAPH_BASE_WIDTH - (maxX - minX)) / 2
+  const offsetY = Math.max(minY - GRAPH_VIEWBOX_PADDING, 0)
+
+  return `${offsetX} ${offsetY} ${width} ${height}`
+}
+
+const getExecutionStageLabel = (progress: number): string => {
+  return EXECUTION_STAGES.find((stage) => progress <= stage.threshold)?.label || EXECUTION_STAGES.at(-1)!.label
+}
+
 const Simulation: React.FC = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -934,6 +1051,10 @@ const Simulation: React.FC = () => {
   )
   const [executionProgress, setExecutionProgress] = useState(0)
   const [executionLogs, setExecutionLogs] = useState<string[]>([])
+  const [executionStageLabel, setExecutionStageLabel] = useState(getExecutionStageLabel(0))
+  const [executionCardHighlighted, setExecutionCardHighlighted] = useState(false)
+  const executionCardRef = useRef<HTMLDivElement | null>(null)
+  const graphViewBox = useMemo(() => getGraphViewBox(scenario), [scenario])
 
   // 加载模拟情境数据
   useEffect(() => {
@@ -946,10 +1067,11 @@ const Simulation: React.FC = () => {
           return res.json()
         })
         .then((data) => {
-          setScenario(data)
-          if (data.solutions?.length > 0) {
-            const recommended = data.solutions.find((s: any) => s.is_recommended)
-            setSelectedSolution(recommended?.id || data.solutions[0].id)
+          const normalizedScenario = enrichScenarioGraph(data)
+          setScenario(normalizedScenario)
+          if (normalizedScenario.solutions?.length > 0) {
+            const recommended = normalizedScenario.solutions.find((s: any) => s.is_recommended)
+            setSelectedSolution(recommended?.id || normalizedScenario.solutions[0].id)
           }
         })
         .catch(() => {
@@ -974,10 +1096,11 @@ const Simulation: React.FC = () => {
           }
 
           if (defaultData) {
-            setScenario(defaultData)
-            if (defaultData.solutions.length > 0) {
-              const recommended = defaultData.solutions.find((s) => s.is_recommended)
-              setSelectedSolution(recommended?.id || defaultData.solutions[0].id)
+            const normalizedScenario = enrichScenarioGraph(defaultData)
+            setScenario(normalizedScenario)
+            if (normalizedScenario.solutions.length > 0) {
+              const recommended = normalizedScenario.solutions.find((s) => s.is_recommended)
+              setSelectedSolution(recommended?.id || normalizedScenario.solutions[0].id)
             }
           }
         })
@@ -993,7 +1116,17 @@ const Simulation: React.FC = () => {
 
     setExecutionPhase('executing')
     setExecutionProgress(0)
-    setExecutionLogs([])
+    setExecutionStageLabel(getExecutionStageLabel(0))
+    setExecutionLogs([`${new Date().toLocaleTimeString()} 已接收模拟指令，正在初始化...`])
+    setExecutionCardHighlighted(true)
+
+    window.requestAnimationFrame(() => {
+      executionCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+
+    window.setTimeout(() => {
+      setExecutionCardHighlighted(false)
+    }, 1800)
 
     const solution = scenario?.solutions.find((s) => s.id === selectedSolution)
     const logs = [
@@ -1007,8 +1140,9 @@ const Simulation: React.FC = () => {
 
     let progress = 0
     const interval = setInterval(() => {
-      progress += 5
+      progress += EXECUTION_PROGRESS_STEP
       setExecutionProgress(progress)
+      setExecutionStageLabel(getExecutionStageLabel(progress))
 
       if (progress % 20 === 0 && logs.length > 0) {
         setExecutionLogs((prev) => [...prev, logs.shift() || ''])
@@ -1019,7 +1153,7 @@ const Simulation: React.FC = () => {
         setExecutionPhase('completed')
         setExecutionLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} 模拟完成！`])
       }
-    }, 100)
+    }, EXECUTION_INTERVAL_MS)
   }
 
   // 排序方案
@@ -1108,10 +1242,11 @@ const Simulation: React.FC = () => {
         navigate(`/app/simulation?${newSearchParams.toString()}`, { replace: true })
 
         // 直接设置状态
-        setScenario(selectedData)
-        if (selectedData.solutions.length > 0) {
-          const recommended = selectedData.solutions.find((s) => s.is_recommended)
-          setSelectedSolution(recommended?.id || selectedData.solutions[0].id)
+        const normalizedScenario = enrichScenarioGraph(selectedData)
+        setScenario(normalizedScenario)
+        if (normalizedScenario.solutions.length > 0) {
+          const recommended = normalizedScenario.solutions.find((s) => s.is_recommended)
+          setSelectedSolution(recommended?.id || normalizedScenario.solutions[0].id)
         }
       }
     }
@@ -1251,7 +1386,7 @@ const Simulation: React.FC = () => {
       {/* 主内容区域 */}
       <div className="flex-1 overflow-hidden flex">
         {/* 左侧：根因分析 + 知识图谱 */}
-        <div className="w-1/2 p-4 flex flex-col gap-4 overflow-hidden border-r border-slate-200">
+        <div className="w-1/2 p-4 flex flex-col gap-4 overflow-y-auto border-r border-slate-200">
           {/* 异常信息卡片 */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-shrink-0">
             <h2 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
@@ -1326,11 +1461,33 @@ const Simulation: React.FC = () => {
           </div>
 
           {/* 知识图谱可视化 */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-1 overflow-hidden">
-            <h2 className="font-bold text-slate-800 mb-3">知识图谱</h2>
-            <div className="h-full relative bg-slate-50 rounded-lg border border-slate-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 min-h-[32rem] flex-shrink-0">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="font-bold text-slate-800">知识图谱</h2>
+              <div className="flex items-center gap-3 text-[11px] text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-orange-300"></span>
+                  异常
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-300"></span>
+                  原因
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-300"></span>
+                  解决方案
+                </span>
+              </div>
+            </div>
+            <div className="relative h-[34rem] rounded-lg border border-slate-100 bg-slate-50">
               {/* 简化的知识图谱展示 */}
-              <svg width="100%" height="100%" className="absolute inset-0">
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={graphViewBox}
+                preserveAspectRatio="xMidYMid meet"
+                className="absolute inset-0"
+              >
                 {scenario.knowledge_graph_edges.map((edge) => {
                   const source = scenario.knowledge_graph_nodes.find((n) => n.id === edge.source)
                   const target = scenario.knowledge_graph_nodes.find((n) => n.id === edge.target)
@@ -1365,30 +1522,39 @@ const Simulation: React.FC = () => {
                     phenomenon: { fill: '#fed7aa', stroke: '#f97316', text: '#c2410c' },
                     direct_cause: { fill: '#fde68a', stroke: '#f59e0b', text: '#b45309' },
                     root_cause: { fill: '#fecaca', stroke: '#ef4444', text: '#b91c1c' },
+                    solution: { fill: '#d1fae5', stroke: '#10b981', text: '#047857' },
                   }
                   const colors =
                     nodeColors[node.type as keyof typeof nodeColors] || nodeColors.phenomenon
+                  const isSolution = node.type === 'solution'
                   return (
                     <g key={node.id}>
                       <rect
-                        x={node.x - 60}
-                        y={node.y - 15}
-                        width="120"
-                        height="30"
-                        rx="6"
+                        x={
+                          node.x -
+                          (isSolution
+                            ? SOLUTION_GRAPH_NODE_WIDTH / 2
+                            : DEFAULT_GRAPH_NODE_WIDTH / 2)
+                        }
+                        y={node.y - GRAPH_NODE_HEIGHT / 2}
+                        width={isSolution ? SOLUTION_GRAPH_NODE_WIDTH : DEFAULT_GRAPH_NODE_WIDTH}
+                        height={GRAPH_NODE_HEIGHT}
+                        rx={isSolution ? 15 : 6}
                         fill={colors.fill}
                         stroke={colors.stroke}
                         strokeWidth="2"
                       />
                       <text
                         x={node.x}
-                        y={node.y + 4}
+                        y={node.y + 5}
                         textAnchor="middle"
                         fill={colors.text}
-                        fontSize="12"
+                        fontSize={GRAPH_NODE_FONT_SIZE}
                         fontWeight="500"
                       >
-                        {node.label.length > 10 ? `${node.label.slice(0, 10)}...` : node.label}
+                        {node.label.length > (isSolution ? 14 : 10)
+                          ? `${node.label.slice(0, isSolution ? 14 : 10)}...`
+                          : node.label}
                       </text>
                     </g>
                   )
@@ -1418,10 +1584,13 @@ const Simulation: React.FC = () => {
                     key={opt.key}
                     type="button"
                     onClick={() => setSortBy(opt.key as 'cost' | 'time' | 'risk')}
+                    disabled={executionPhase === 'executing'}
                     className={`px-3 py-1 text-sm rounded-md transition-colors ${
                       sortBy === opt.key
                         ? 'bg-white text-blue-600 shadow-sm'
                         : 'text-slate-600 hover:text-slate-800'
+                    } ${
+                      executionPhase === 'executing' ? 'cursor-not-allowed opacity-50' : ''
                     }`}
                   >
                     {opt.label}
@@ -1440,8 +1609,13 @@ const Simulation: React.FC = () => {
                   selectedSolution === sol.id
                     ? 'border-blue-500 bg-blue-50/50'
                     : 'border-slate-200 hover:border-slate-300'
+                } ${
+                  executionPhase === 'executing' ? 'pointer-events-none opacity-60' : ''
                 }`}
-                onClick={() => setSelectedSolution(sol.id)}
+                onClick={() => {
+                  if (executionPhase === 'executing') return
+                  setSelectedSolution(sol.id)
+                }}
               >
                 {sol.is_recommended && (
                   <div className="absolute -top-2 left-4 bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
@@ -1508,14 +1682,26 @@ const Simulation: React.FC = () => {
           </div>
 
           {/* 执行区域 */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-shrink-0">
+          <div
+            ref={executionCardRef}
+            className={`bg-white rounded-xl border shadow-sm p-4 flex-shrink-0 transition-all duration-500 ${
+              executionCardHighlighted
+                ? 'border-blue-400 ring-4 ring-blue-100 shadow-blue-100/80'
+                : 'border-slate-200'
+            }`}
+          >
             {executionPhase === 'select' && (
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-slate-600">
-                  已选择：
-                  <span className="font-medium text-slate-800">
-                    {scenario.solutions.find((s) => s.id === selectedSolution)?.title || '未选择'}
-                  </span>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-sm text-slate-600">
+                    已选择：
+                    <span className="font-medium text-slate-800">
+                      {scenario.solutions.find((s) => s.id === selectedSolution)?.title || '未选择'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    点击后会立即展示实时进度、执行阶段和操作日志。
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -1532,8 +1718,17 @@ const Simulation: React.FC = () => {
             {executionPhase === 'executing' && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-medium text-slate-800">执行中...</span>
+                  <span className="font-medium text-slate-800">模拟执行中</span>
                   <span className="text-sm text-blue-600 font-mono">{executionProgress}%</span>
+                </div>
+                <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                  <div className="flex items-center gap-2 font-medium">
+                    <Loader2 size={14} className="animate-spin" />
+                    {executionStageLabel}
+                  </div>
+                  <p className="mt-1 text-xs text-blue-600">
+                    当前已锁定方案选择与排序，避免模拟过程中状态乱跳。
+                  </p>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-2 mb-3">
                   <div
@@ -1541,7 +1736,24 @@ const Simulation: React.FC = () => {
                     style={{ width: `${executionProgress}%` }}
                   />
                 </div>
-                <div className="bg-slate-50 rounded-lg p-3 max-h-24 overflow-y-auto">
+                <div className="mb-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                  {EXECUTION_STAGES.map((stage) => {
+                    const isDone = executionProgress >= stage.threshold
+                    return (
+                      <div
+                        key={stage.threshold}
+                        className={`rounded-lg border px-2.5 py-2 transition-colors ${
+                          isDone
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                            : 'border-slate-200 bg-slate-50 text-slate-500'
+                        }`}
+                      >
+                        {stage.label.replace('...', '')}
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="bg-slate-50 rounded-lg p-3 max-h-32 overflow-y-auto">
                   {executionLogs.map((log, index) => (
                     <p key={index} className="text-xs text-slate-600 font-mono">
                       {log}
@@ -1571,6 +1783,7 @@ const Simulation: React.FC = () => {
                       setExecutionPhase('select')
                       setExecutionProgress(0)
                       setExecutionLogs([])
+                      setExecutionStageLabel(getExecutionStageLabel(0))
                     }}
                     className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
                   >
