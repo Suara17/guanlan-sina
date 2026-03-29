@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from numbers import Real
 from typing import Any
 
+from app.core.config import settings
 from app.services.knowledge_qa_models import (
     QACitation,
     QARouteDecision,
@@ -17,12 +18,78 @@ class LangChainRAGService:
     def __init__(self, langchain_service: LangChainService) -> None:
         self.langchain_service = langchain_service
 
+    @staticmethod
+    def should_use_quick_answer() -> bool:
+        return settings.QA_EMPTY_HIT_FAST_LLM
+
     @classmethod
     def from_settings(cls) -> "LangChainRAGService | None":
         langchain_service = LangChainService.from_settings()
         if langchain_service is None:
             return None
         return cls(langchain_service)
+
+    def generate_quick_answer(
+        self,
+        *,
+        question: str,
+        route: QARouteDecision,
+        executed_modes: Sequence[str],
+        warnings: Sequence[str],
+    ) -> str | QAStructuredAnswer | None:
+        warning_context = "\n".join(f"- {warning}" for warning in warnings[:2])
+        try:
+            if settings.QA_USE_PLAIN_TEXT_ANSWER:
+                return self.langchain_service.generate_text_answer(
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "你是工业问答助手。当前没有检索命中或检索价值较低时，"
+                                "请直接给出简短、可执行、相对稳妥的经验性回答。"
+                                "只输出普通简体中文短文本，控制在2到4句。"
+                                "不要编造来源，不要输出 JSON，不要写标题。"
+                            ),
+                        },
+                        {
+                            "role": "user",
+                            "content": (
+                                f"问题：{question}\n"
+                                f"请求路由：{route.mode}\n"
+                                f"实际执行：{', '.join(executed_modes) if executed_modes else 'none'}\n"
+                                f"注意事项：\n{warning_context or '无'}\n"
+                            ),
+                        },
+                    ]
+                )
+            return self.langchain_service.generate_structured_answer(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "你是工业问答助手。当前没有检索命中或检索价值较低时，"
+                            "请直接给出一个简短、可执行、相对稳妥的经验性答案。"
+                            "不要假装已经查到事实，不要编造来源。"
+                            "必须输出 JSON 对象，字段只有 conclusion、evidence、suggestions、"
+                            "risks、confidence、used_sources、missing_information。"
+                            "所有字段内容必须使用简体中文。used_sources 必须为空数组。"
+                            "结论和建议尽量短，优先保证响应速度。"
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            f"问题：{question}\n"
+                            f"请求路由：{route.mode}\n"
+                            f"实际执行：{', '.join(executed_modes) if executed_modes else 'none'}\n"
+                            f"注意事项：\n{warning_context or '无'}\n"
+                        ),
+                    },
+                ]
+            )
+        except Exception:
+            logger.exception("LangChain quick answer generation failed")
+            return None
 
     def generate_grounded_answer(
         self,
@@ -35,16 +102,48 @@ class LangChainRAGService:
         citation_groups: dict[str, Sequence[QACitation]] | None,
         warnings: Sequence[str],
         document_retriever: Any | None = None,
-    ) -> QAStructuredAnswer | None:
+    ) -> str | QAStructuredAnswer | None:
+        context_limit = max(settings.QA_LLM_MAX_CONTEXT_CITATIONS, 1)
         graph_context = self.langchain_service._format_citation_context(
-            graph_citations[:5], group_name="graph"
+            graph_citations[:context_limit], group_name="graph"
         )
         document_context = self.langchain_service._format_citation_context(
-            document_citations[:5], group_name="document"
+            document_citations[:context_limit], group_name="document"
         )
-        grouped_context = self.langchain_service._format_grouped_context(citation_groups)
-        warning_context = "\n".join(f"- {warning}" for warning in warnings)
+        grouped_context = ""
+        if settings.QA_INCLUDE_GROUPED_CONTEXT:
+            grouped_context = self.langchain_service._format_grouped_context(citation_groups)
+        warning_context = "\n".join(f"- {warning}" for warning in warnings[:2])
+        grouped_context_block = ""
+        if grouped_context:
+            grouped_context_block = f"分组上下文：\n{grouped_context}\n\n"
         try:
+            if settings.QA_USE_PLAIN_TEXT_ANSWER:
+                return self.langchain_service.generate_text_answer(
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "你是工业知识问答助手。优先基于给定检索片段快速作答。"
+                                "只输出普通简体中文短文本，控制在2到4句。"
+                                "有来源时可在句中带上类似 [K1] 的标签，但不要展开大段引用。"
+                                "不要输出 JSON，不要写标题，不要解释你的推理过程。"
+                            ),
+                        },
+                        {
+                            "role": "user",
+                            "content": (
+                                f"问题：{question}\n"
+                                f"请求路由：{route.mode}\n"
+                                f"实际执行：{', '.join(executed_modes) if executed_modes else 'none'}\n\n"
+                                f"图谱事实：\n{graph_context or '无'}\n\n"
+                                f"文本片段：\n{document_context or '无'}\n\n"
+                                f"{grouped_context_block}"
+                                f"注意事项：\n{warning_context or '无'}\n"
+                            ),
+                        },
+                    ]
+                )
             return self.langchain_service.generate_structured_answer(
                 messages=[
                     {
@@ -71,7 +170,7 @@ class LangChainRAGService:
                             f"实际执行：{', '.join(executed_modes) if executed_modes else 'none'}\n\n"
                             f"图谱事实：\n{graph_context or '无'}\n\n"
                             f"文本片段：\n{document_context or '无'}\n\n"
-                            f"分组上下文：\n{grouped_context or '无'}\n\n"
+                            f"{grouped_context_block}"
                             f"注意事项：\n{warning_context or '无'}\n"
                         ),
                     },
@@ -79,7 +178,11 @@ class LangChainRAGService:
             )
         except Exception:
             logger.exception("LangChain grounded answer generation failed")
-            if document_retriever is None or route.mode not in {"document", "hybrid"}:
+            if (
+                not settings.QA_DOCUMENT_RAG_FALLBACK_ENABLED
+                or document_retriever is None
+                or route.mode not in {"document", "hybrid"}
+            ):
                 return None
 
         if document_retriever is not None and route.mode in {"document", "hybrid"}:
@@ -110,7 +213,7 @@ class LangChainRAGService:
         try:
             filtered_retriever = self._build_filtered_retriever(
                 retriever,
-                max_documents=3 if route.mode == "hybrid" else 5,
+                max_documents=max(settings.QA_LLM_MAX_CONTEXT_CITATIONS, 1),
             )
             documents = filtered_retriever.invoke(question)
             document_context = self._format_document_context(documents)

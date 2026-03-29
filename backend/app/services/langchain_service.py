@@ -84,6 +84,32 @@ class LangChainService:
             return None
         return self._normalize_structured_answer(parsed_payload)
 
+    def generate_text_answer(self, *, messages: list[dict[str, str]]) -> str | None:
+        if self.provider != "openai":
+            logger.warning("Unsupported LLM provider for LangChain service: %s", self.provider)
+            return None
+
+        payload = self._build_payload(messages=messages, structured_output=False)
+
+        try:
+            timeout = httpx.Timeout(
+                timeout=settings.LLM_REQUEST_TIMEOUT_SECONDS,
+                connect=min(settings.LLM_REQUEST_TIMEOUT_SECONDS, 5.0),
+            )
+            with httpx.Client(timeout=timeout, trust_env=False) as client:
+                response = self._post_chat_completion(client=client, payload=payload)
+        except Exception:
+            logger.exception("Failed to request OpenAI-compatible text answer")
+            return None
+
+        try:
+            content = response.json()["choices"][0]["message"]["content"]
+        except Exception:
+            logger.exception("Failed to parse OpenAI-compatible text response payload")
+            return None
+
+        return self._extract_text_payload(content)
+
     def _build_payload(
         self,
         *,
@@ -196,6 +222,19 @@ class LangChainService:
                 if not trailing or trailing.startswith("```"):
                     return parsed
         return None
+
+    @staticmethod
+    def _extract_text_payload(content: Any) -> str | None:
+        if isinstance(content, list):
+            content = "".join(
+                str(item.get("text") or "")
+                for item in content
+                if isinstance(item, dict)
+            )
+        if not isinstance(content, str):
+            return None
+        normalized = content.strip()
+        return normalized or None
 
     @staticmethod
     def _preview_content(content: Any, *, limit: int = 240) -> str:

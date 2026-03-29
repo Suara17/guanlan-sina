@@ -16,6 +16,7 @@ from app.core.db import engine
 from app.models import TokenPayload, User
 from app.services.chroma_vector_store_service import ChromaVectorStoreService
 from app.services.document_index_service import DocumentIndexService
+from app.services.embedding_service import EmbeddingService
 from app.services.knowledge_qa_service import KnowledgeQAService
 from app.services.langchain_rag_service import LangChainRAGService
 from app.services.langchain_service import LangChainService
@@ -159,3 +160,8 @@ def warm_knowledge_qa_dependencies() -> None:
         _ = get_cached_chroma_vector_store_service().is_available
     except Exception:
         logger.exception("Failed to warm Chroma vector store availability")
+    if settings.QA_ENABLE_VECTOR_RETRIEVER:
+        try:
+            EmbeddingService().embed_query("知识问答预热")
+        except Exception:
+            logger.exception("Failed to warm embedding service")

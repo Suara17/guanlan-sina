@@ -74,7 +74,19 @@ class QAAnswerService:
         document_retriever: Any | None = None,
     ) -> str:
         visible_warnings = self._filter_visible_warnings(warnings)
-        if self.langchain_rag_service is not None:
+        has_citations = bool(graph_citations or document_citations)
+        if (
+            not has_citations
+            and self.langchain_rag_service is not None
+            and self.langchain_rag_service.should_use_quick_answer()
+        ):
+            generated_answer = self.langchain_rag_service.generate_quick_answer(
+                question=question,
+                route=route,
+                executed_modes=executed_modes,
+                warnings=visible_warnings,
+            )
+        elif self.langchain_rag_service is not None:
             generated_answer = self.langchain_rag_service.generate_grounded_answer(
                 question=question,
                 route=route,

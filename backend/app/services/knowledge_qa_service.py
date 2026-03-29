@@ -172,42 +172,52 @@ class KnowledgeQAService:
         document_primary_intent = self._is_document_primary_request(request)
 
         if requested_mode == "graph":
-            graph_available = self.graph_retriever.is_available
+            graph_available = (
+                settings.QA_ENABLE_GRAPH_RETRIEVER and self.graph_retriever.is_available
+            )
             return ["graph"] if graph_available else []
         if requested_mode == "document":
-            keyword_available = self.keyword_retriever.is_available
-            vector_available = self.vector_retriever.is_available
+            keyword_available = (
+                settings.QA_ENABLE_KEYWORD_RETRIEVER
+                and self.keyword_retriever.is_available
+            )
+            vector_available = (
+                settings.QA_ENABLE_VECTOR_RETRIEVER
+                and self.vector_retriever.is_available
+            )
             modes: list[str] = []
             if keyword_available:
                 modes.append("keyword")
-            if vector_available:
+            if vector_available and not keyword_available:
                 modes.append("vector")
             if modes:
                 return modes
-            graph_available = self.graph_retriever.is_available
+            graph_available = (
+                settings.QA_ENABLE_GRAPH_RETRIEVER and self.graph_retriever.is_available
+            )
             return ["graph"] if graph_available else []
         if requested_mode == "hybrid":
-            keyword_available = self.keyword_retriever.is_available
-            vector_available = self.vector_retriever.is_available
-            if document_primary_intent and keyword_available and vector_available:
-                return ["keyword", "vector"]
+            keyword_available = (
+                settings.QA_ENABLE_KEYWORD_RETRIEVER
+                and self.keyword_retriever.is_available
+            )
+            vector_available = (
+                settings.QA_ENABLE_VECTOR_RETRIEVER
+                and self.vector_retriever.is_available
+            )
             if document_primary_intent and (keyword_available or vector_available):
-                modes: list[str] = []
                 if keyword_available:
-                    modes.append("keyword")
+                    return ["keyword"]
                 if vector_available:
-                    modes.append("vector")
-                graph_available = self.graph_retriever.is_available
-                return modes or (["graph"] if graph_available else [])
-            modes: list[str] = []
-            graph_available = self.graph_retriever.is_available
-            if graph_available:
-                modes.append("graph")
+                    return ["vector"]
             if keyword_available:
-                modes.append("keyword")
+                return ["keyword"]
             if vector_available:
-                modes.append("vector")
-            return modes
+                return ["vector"]
+            graph_available = (
+                settings.QA_ENABLE_GRAPH_RETRIEVER and self.graph_retriever.is_available
+            )
+            return ["graph"] if graph_available else []
         return []
 
     @staticmethod

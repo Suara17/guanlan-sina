@@ -117,9 +117,17 @@ class Settings(BaseSettings):
     CHROMA_COLLECTION_NAME: str = "knowledge_qa_chunks"
     CHROMA_PERSIST_DIR: str = "app/data/knowledge_qa/chroma"
     CHROMA_TOP_K: int = 5
-    QA_RETRIEVER_TIMEOUT_MS: int = 1500
+    QA_RETRIEVER_TIMEOUT_MS: int = 800
     QA_RETRIEVER_MAX_WORKERS: int = 3
-    LLM_REQUEST_TIMEOUT_SECONDS: float = 12.0
+    LLM_REQUEST_TIMEOUT_SECONDS: float = 8.0
+    QA_ENABLE_GRAPH_RETRIEVER: bool = True
+    QA_ENABLE_KEYWORD_RETRIEVER: bool = True
+    QA_ENABLE_VECTOR_RETRIEVER: bool = False
+    QA_EMPTY_HIT_FAST_LLM: bool = True
+    QA_LLM_MAX_CONTEXT_CITATIONS: int = 1
+    QA_INCLUDE_GROUPED_CONTEXT: bool = False
+    QA_DOCUMENT_RAG_FALLBACK_ENABLED: bool = False
+    QA_USE_PLAIN_TEXT_ANSWER: bool = True
 
     @computed_field  # type: ignore[prop-decorator]
     @property
