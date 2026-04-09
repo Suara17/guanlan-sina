@@ -156,7 +156,7 @@ export const FactoryVisualization3D: React.FC<FactoryVisualization3DProps> = ({ 
   return (
     <div className={`relative h-full w-full flex flex-col ${className || ''}`}>
       {/* Header / Breadcrumbs */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-white/90 backdrop-blur-md p-3 rounded-xl shadow-lg border border-slate-200">
+      <div className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 p-3 shadow-lg backdrop-blur-md">
         <button
           type="button"
           onClick={resetToGlobalView}
@@ -214,7 +214,7 @@ export const FactoryVisualization3D: React.FC<FactoryVisualization3DProps> = ({ 
         <button
           type="button"
           onClick={resetToGlobalView}
-          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/90 px-3 py-2 text-xs font-medium text-slate-700 shadow-lg backdrop-blur-md hover:bg-slate-50"
+          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/92 px-3 py-2 text-xs font-medium text-slate-900 shadow-lg backdrop-blur-md hover:bg-slate-50"
         >
           <RotateCcw size={14} />
           重置视角
@@ -240,52 +240,52 @@ export const FactoryVisualization3D: React.FC<FactoryVisualization3DProps> = ({ 
       </div>
 
       {/* Legend / Info Panel */}
-      <div className="absolute bottom-4 left-4 z-10 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg border border-slate-200 text-sm">
-        <h4 className="font-bold text-slate-800 mb-2">状态图例</h4>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]"></div>
-            <span className="text-slate-600">{getStatusLabel('running')}</span>
+      <div className="absolute bottom-4 left-4 z-10 rounded-lg border border-slate-200 bg-white/92 p-3 text-xs shadow-lg backdrop-blur-md">
+        <h4 className="mb-1.5 font-semibold text-slate-900">状态图例</h4>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.5)]"></div>
+            <span className="text-slate-900">{getStatusLabel('running')}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]"></div>
-            <span className="text-slate-600">{getStatusLabel('idle')}</span>
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-full bg-yellow-400 shadow-[0_0_6px_rgba(250,204,21,0.5)]"></div>
+            <span className="text-slate-900">{getStatusLabel('idle')}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></div>
-            <span className="text-slate-600">{getStatusLabel('error')}</span>
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]"></div>
+            <span className="text-slate-900">{getStatusLabel('error')}</span>
           </div>
         </div>
-        <div className="h-px bg-slate-200 my-3" />
-        <h4 className="font-bold text-slate-800 mb-2">接入图例</h4>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-              <span className="text-slate-600">已接入</span>
+        <div className="my-2.5 h-px bg-slate-200" />
+        <h4 className="mb-1.5 font-semibold text-slate-900">接入图例</h4>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <div className="h-2.5 w-2.5 rounded-full bg-emerald-500"></div>
+              <span className="text-slate-900">已接入</span>
             </div>
             <span className="text-xs font-semibold text-emerald-700">
               {integrationStats.connected}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-slate-400"></div>
-              <span className="text-slate-600">未接入</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <div className="h-2.5 w-2.5 rounded-full bg-slate-400"></div>
+              <span className="text-slate-900">未接入</span>
             </div>
             <span className="text-xs font-semibold text-slate-600">
               {integrationStats.unconnected}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span className="text-slate-600">异常</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <div className="h-2.5 w-2.5 rounded-full bg-red-500"></div>
+              <span className="text-slate-900">异常</span>
             </div>
             <span className="text-xs font-semibold text-red-700">{integrationStats.abnormal}</span>
           </div>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-2.5 max-w-[180px] text-[11px] leading-4 text-slate-700">
           {snapshot
             ? `数据时间：${formatDateTimeLabel(snapshot.saved_at)}`
             : '暂无接入快照，请先在 OS 内核接入页完成绑定。'}

@@ -1,4 +1,4 @@
-import { Beaker, Clock, Factory } from 'lucide-react'
+import { Beaker, Clock, Factory, MonitorPlay } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -254,7 +254,15 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex items-center gap-4 text-sm">
+          <button
+            type="button"
+            onClick={() => navigate('/app/dashboard-demo')}
+            className="inline-flex items-center gap-2 rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-700 transition hover:border-cyan-300 hover:bg-cyan-100"
+          >
+            <MonitorPlay size={14} />
+            查看紧凑版 DEMO
+          </button>
           <div className="text-right">
             <p className="text-slate-400 text-xs">当前班次</p>
             <p className="font-semibold text-slate-700">白班 (08:00 - 20:00)</p>
