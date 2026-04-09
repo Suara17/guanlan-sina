@@ -36,7 +36,7 @@ type SinanQaState = {
 
 const AboutUs = lazy(() => import('./pages/AboutUs'))
 const CustomerCases = lazy(() => import('./pages/CustomerCases'))
-const Dashboard = lazy(() => import('./pages/Dashboard'))
+const DashboardCompactDemo = lazy(() => import('./pages/DashboardCompactDemo'))
 const Dongwei = lazy(() => import('./pages/Dongwei'))
 const Ecosystem = lazy(() => import('./pages/Ecosystem'))
 const Huntian = lazy(() => import('./pages/Huntian'))
@@ -390,6 +390,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     switch (path) {
       case '/app/':
         return '生产可视化'
+      case '/app/dashboard-demo':
+        return '生产可视化 DEMO'
       case '/app/sinan':
         return '司南智能诊断'
       case '/app/gewu':
@@ -520,7 +522,8 @@ const App: React.FC = () => {
                 <ProtectedRoute>
                   <Layout>
                     <Routes>
-                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/" element={<DashboardCompactDemo />} />
+                      <Route path="/dashboard-demo" element={<DashboardCompactDemo />} />
                       <Route path="/sinan" element={<SinanAnalysis />} />
                       <Route path="/zhixing" element={<Zhixing />} />
                       <Route path="/subscription-value" element={<SubscriptionValue />} />
